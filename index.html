@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orchestra Concerts</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- jQuery CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        /* Custom CSS for grid and hover effects */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light background */
+            color: #334155; /* Dark gray text */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        body.body-no-scroll {
+            overflow: hidden; /* Prevent scrolling when modal is open */
+        }
+
+        .concert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive columns */
+            grid-auto-rows: minmax(200px, auto); /* Minimum row height */
+            gap: 1.5rem; /* Gap between grid items */
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+            transition: filter 0.3s ease-in-out; /* For blur effect */
+        }
+
+        .concert-grid.blurred {
+            filter: blur(5px);
+            pointer-events: none; /* Disable interaction with blurred elements */
+        }
+
+        .concert-box {
+            background-color: #ffffff; /* This will be blended with the image */
+            border-radius: 1.5rem; /* More rounded corners */
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); /* Softer shadow */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Align content to bottom initially */
+            background-size: cover;
+            background-position: center;
+            color: white; /* Text color for overlay */
+            background-blend-mode: multiply; /* Blends background-image and background-color */
+        }
+
+        /* Example of different box sizes using grid-column/row-span */
+        .concert-box.size-large {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        .concert-box.size-medium {
+            grid-column: span 1;
+            grid-row: span 2;
+        }
+
+        .concert-box.size-wide {
+            grid-column: span 2;
+        }
+
+        .concert-box.size-tall {
+            grid-row: span 2;
+        }
+
+        .concert-box-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%; /* Take full height to manage internal content */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Align content to bottom initially */
+            padding: 1.5rem;
+            transition: background 0.3s ease-in-out, justify-content 0.3s ease-in-out;
+        }
+
+        /* Content for the small (grid) version */
+        .concert-content-small {
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0)); /* Gradient overlay */
+            padding-top: 50%; /* Pushes content to the bottom */
+            transition: padding-top 0.3s ease-in-out;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+		    padding-left: 20px;
+		    padding-bottom: 10px;
+        }
+
+        /* Content for the expanded version */
+        .concert-content-expanded {
+            display: none; /* Hidden by default */
+            background: rgba(0, 0, 0, 0.8); /* Solid background for expanded overlay */
+            padding: 2rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow-y: auto; /* Enable scrolling for content if needed */
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        /* Hover effects for non-expanded boxes */
+        .concert-box:not(.is-expanded-active):hover { /* Apply hover only if not expanded */
+            transform: translateY(-8px) scale(1.02); /* Slight lift and scale */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+            z-index: 10; /* Bring to front on hover */
+        }
+
+        .concert-box:not(.is-expanded-active):hover .concert-content-small {
+            padding-top: 1.5rem; /* Show full content on hover */
+        }
+
+        .concert-box-description-small {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-top: 0.5rem;
+        }
+
+        .concert-box:not(.is-expanded-active):hover .concert-box-description-small {
+            max-height: 100px; /* Adjust based on content */
+            opacity: 1;
+        }
+
+        .concert-date-small {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+
+        .concert-title-small {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Expanded state styles for the cloned box */
+        .expanded-box-clone {
+            position: fixed;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+            z-index: 1000; /* On top of everything */
+            cursor: zoom-out; /* Indicate it's clickable to close */
+            transition: all 0.4s ease-in-out; /* Smooth transition for position and size */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align content to top for expanded view */
+            color: white;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .expanded-box-clone.is-expanded-active {
+            width: 90vw; /* Almost full viewport width */
+            height: 90vh; /* Almost full viewport height */
+            top: 50% !important; /* Override initial top/left set by JS */
+            left: 50% !important; /* Override initial top/left set by JS */
+            transform: translate(-50%, -50%) !important; /* Center it */
+            overflow-y: auto; /* Enable scrolling for content if needed */
+        }
+
+        .expanded-box-clone .concert-content-small {
+            display: none; /* Hide small content in expanded view */
+        }
+
+        .expanded-box-clone .concert-content-expanded {
+            display: flex; /* Show expanded content in expanded view */
+        }
+
+        .expanded-box-clone .concert-date-expanded {
+            font-size: 1rem;
+            opacity: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .expanded-box-clone .concert-title-expanded {
+            font-size: 2.5rem; /* Larger title for expanded view */
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .expanded-box-clone .concert-box-description-expanded {
+            max-height: none; /* Show full description */
+            opacity: 1;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-top: 1rem;
+        }
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+            z-index: 999; /* Below expanded box, above grid */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        .modal-backdrop--active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .concert-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 columns on medium screens */
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .concert-grid {
+                grid-template-columns: repeat(4, 1fr); /* 4 columns on large screens */
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12 text-center rounded-b-3xl shadow-lg">
+        <h1 class="text-5xl font-bold mb-4">Onze voorbije concerten</h1>
+        <p class="text-xl opacity-90">A journey through our past performances.</p>
+    </header>
+
+    <main class="concert-grid" id="concertGrid">
+        <!-- Concert boxes will be dynamically loaded here by jQuery -->
+    </main>
+
+    <!-- Modal Backdrop -->
+    <div id="modalBackdrop" class="modal-backdrop"></div>
+
+    <script>
+        $(document).ready(function() {
+            const concertData = [
+                { year: "2018", season: "NJ", title: "Gaudeamus", director: "Kurt Bikkembergs", dates: "30 nov, 2 dec", locations: "MTC", Repertoire: "", coorporation: "", pdf: "" },
+                { year: "2019", season: "VJ", title: "Source of the Nile", director: "Thomas Geudens", dates: "28 april, 3 mei", locations: "MTC", Repertoire: "L'Italiana in Algeri - Rossini\nPrince of Egypt - Schwartz\nEgyptischer Marsch - Strauss\nIndiana Jones - Williams\nClarinet Concerto in A; Adagio - Mozart\nOut of Africa Soundtrack - Barry\nAfrica - Toto", coorporation: "Solist: Arne Herman (klarinet)", pdf: "" },
+                { year: "2019", season: "NJ", title: "Land van Macht, Land van Pracht", director: "Stijn Paredis", dates: "15, 16 nov", locations: "MTC", Repertoire: "The Gadfly Suite: Ouverture - Shostakovich\nOuverture op 3 Russische thema’s - Rimsky Korsakov\nSchone slaapster: Wals - Tchaikovsky\nDe notenkraker: Trepak - Tchaikovsky\nOuverture 1812 - Tchaikovsky (arr. Carter)\nHet zwanenmeer: Danses des cygnes - Tchaikovsky\nFinlandia - Sibelius\nAnastasia - Flaherty (arr. Custer)\nHet zwanenmeer: Scène - Tchaikovsky", coorporation: "", pdf: "" },
+                { year: "2021", season: "VJ", title: "Beethoven concerten", director: "-", dates: "-", locations: "-", Repertoire: "zie bestuursverslag 4.4", coorporation: "", pdf: "" },
+                { year: "2021", season: "NJ", title: "Awakening", director: "Joris Decolvenaer", dates: "29, 31 okt", locations: "PDS", Repertoire: "Also Sprach Zarathustra - Strauss\nSymfonie nr. 9 'Uit de Nieuwe Wereld': delen 2, 4 - Dvorak\nThe Lark ascending - Vaughan Williams\nClair de lune - Debussy\nStar Wars main title – John Williams\nNimrod from 'enigma' variations - Elgar", coorporation: "Solist: Eva Lievens (viool)", pdf: "" },
+                { year: "2022", season: "VJ", title: "Belle Epoque", director: "Joris Decolvenaer", dates: "7, 8 mei", locations: "Vesalius", Repertoire: "Dahomeense Rhapsodie - De Boeck\nMoldau - Smetana\nCavalleria Rusticana: Intermezzo - Mascagni\nTitanic Suite – James Horner arr John Moss\nPavane - Faure\nScheherazade deel 1 - Korsakov", coorporation: "", pdf: "" },
+                { year: "2022", season: "NJ", title: "Fandango", director: "Joris Decolvenaer", dates: "3, 4 dec", locations: "PDS, Kapelle-op-den-Bos", Repertoire: "Concierto de Aranjuez,\nEl sombrero de tres picos - Manuel de Falla,\n1ste suite: introductie, afternoon, dance of the miller's wife\n2de suite: dance of the miller, final dance\nThe mask of Zorro suite - James Horner\nHuapango - José Pablo Moncayo", coorporation: "Solist: Maarten Vandenbemden (gitaar)", pdf: "" },
+                { year: "2023", season: "VJ", title: "Chocolat", director: "Joris Decolvenaer", dates: "20, 21 mei", locations: "PDS", Repertoire: "La noche de Maya - Revueltas\nConga del Fuego - Marquez\nThe Mission - Morricone\nParsifal Ouverture - Wagner\nVlaamse dansen - Jan Blockx\nThe Chronicals of Narnia - Harry Gregson Williams, Steve Barton\nForrest Gump Suite - Alan Silvestri, Calvin Custer", coorporation: "", pdf: "" },
+                { year: "2023", season: "NJ", title: "Musician's Choice", director: "Joris Decolvenaer", dates: "25, 26 nov", locations: "Vesalius", Repertoire: "The Lion King - Hans Zimmer, Elton John, arr. Brad Kelley\nGame of Thrones - Ramin Djawadi arr. Sean Fearnley\nJurassic Park - John Williams arr. Calvin Custe\nCoriolanus ouverture - Beethoven\nLord of The Rings (Fellowship, two towers) - Howard Shore, arr. John Whitney\nSymfonie 7 deel 2 - Beethoven\nValse Triste - Sibelius\nKodaly Zoltan - intermezzo", coorporation: "", pdf: "" },
+                { year: "2024", season: "VJ", title: "Carmen", director: "Joris Decolvenaer", dates: "25, 26 mei", locations: "PDS", Repertoire: "Uit opera en Carmen suites\nAct 1\n-Prelude\n-La Garde montante (5de deel van Suite II)\n-Habanera (Carmen)\n-Seguidilla (Carmen + Don Jose)\n-Entracte Nr 1\nAct 2\n-Gypsy song\n-Toreador song (4de deel van Suite II)\n-Exit van Escamillo\n-Don Jose Halte qui voila\n-Duet Danse Carmen + (Don Jose+ Carmen)\n- Finale Act 2\n-Entracte Nr 2\nAct 3\n-Marche des contrebandiers (1ste deel van Suite No. II)\n-Nocturne (3de deel van Suite II)\n-Entracte Nr 3\nAct 4\n-Finale", coorporation: "Solisten: Lara Cannaert & Manuel Murabito", pdf: "" },
+                { year: "2024", season: "NJ", title: "Anxiety", director: "Joris Decolvenaer", dates: "14, 15 dec", locations: "Vesalius", Repertoire: "Suite from Jaws, The Shark Theme - John Williams\nDanse Macabre - Camille Saint-Saëns\nSymfonie No. 5, deel 2 - Pjotr Iljitsj Tsjaikovski\nPictures at exhibition - Modest Moessorgski\nLa vita è bella suite - Nicola Piovani", coorporation: "Verteller: prof. Bram Vervliet", pdf: "ja" },
+                { year: "2025", season: "VJ", title: "Leuven by Knightfall", director: "Joris Decolvenaer", dates: "17, 18 mei", locations: "PDS", Repertoire: "Japanse suite - Gustav Holst\nMan of steel - Hans Zimmer\nSymphonie Fantastique Op. 14, deel 3 t.e.m. deel 5 - Hector Berlioz\nThe Rock - Hans Zimmer", coorporation: "Verteller: Eva Fernandez Gonzalez", pdf: "ja" }
+            ];
+
+            const $modalBackdrop = $('#modalBackdrop');
+            const $concertGrid = $('#concertGrid');
+            const $body = $('body');
+            let $currentClonedBox = null; // To keep track of the currently expanded cloned box
+            let $originalBoxReference = null; // To keep a reference to the original box
+
+            // Array of placeholder image colors
+            const imageColors = ['60A5FA', 'FACC15', 'EC4899', '10B981', 'EF4444', '3B82F6', 'D946EF', 'F97316', '6EE7B7'];
+            let colorIndex = 0;
+
+            // Function to generate a single concert box HTML
+            function generateConcertBox(concert, index) {
+                const color = imageColors[colorIndex % imageColors.length];
+                colorIndex++; // Move to the next color
+
+                let boxClass = '';
+                // Simple logic for varying sizes, adjust as needed
+                if (index === 0) { // First box is large
+                    boxClass = 'size-large';
+                } else if (index % 5 === 0) { // Every 5th box (after the first) is wide
+                    boxClass = 'size-wide';
+                } else if (index % 7 === 0) { // Every 7th box (after the first) is tall
+                    boxClass = 'size-tall';
+                }
+
+                // Format repertoire for display, handling newlines
+                const repertoireHtml = concert.Repertoire.split('\n').filter(item => item.trim() !== '').map(item => `<p>${item.trim()}</p>`).join('');
+
+                // Format coorporation/pdf for display
+                let coorporationHtml = '';
+                if (concert.coorporation && concert.coorporation !== '-') {
+                    coorporationHtml = `<p class="mt-4"><strong>${concert.coorporation}</strong></p>`;
+                }
+                if (concert.pdf === 'ja') {
+                    coorporationHtml += `<p class="mt-2"><em>Programmaboekje</em></p>`;
+                }
+
+                return `
+                    <div class="concert-box ${boxClass}" style="background-image: url('https://picsum.photos/800/600?random=${index + 1}'); background-color: #${color};">
+                        <div class="concert-box-overlay">
+                            <!-- Small content for grid view -->
+                            <div class="concert-content-small">
+                                <p class="concert-date-small">${concert.year}</p>
+                                <h2 class="concert-title-small">${concert.title}</h2>
+                                <p class="concert-box-description-small">
+                                    ${concert.Repertoire.split('\n')[0] || 'Geen repertoire beschikbaar.'}
+                                </p>
+                            </div>
+                            <!-- Expanded content for modal view -->
+                            <div class="concert-content-expanded">
+                                <p class="concert-date-expanded">${concert.dates} - ${concert.locations}</p>
+                                <h2 class="concert-title-expanded">${concert.title} (${concert.year})</h2>
+                                <p class="concert-box-description-expanded mt-2">
+                                    <strong>Director:</strong> ${concert.director}
+                                </p>
+                                ${repertoireHtml ? `<p class="concert-box-description-expanded mt-4"><strong>Repertoire:</strong></p><div class="concert-box-description-expanded text-sm">${repertoireHtml}</div>` : ''}
+                                ${coorporationHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Populate the grid with concert data
+            concertData.forEach((concert, index) => {
+                $concertGrid.append(generateConcertBox(concert, index));
+            });
+
+            // Function to expand a box
+            function expandBox($originalBox) {
+                // If there's already an expanded box, collapse it first
+                if ($currentClonedBox) {
+                    collapseBox();
+                }
+
+                $originalBoxReference = $originalBox; // Store reference to the original box
+
+                // Get the position and size of the original box
+                const rect = $originalBox[0].getBoundingClientRect(); // Use [0] to get the native DOM element
+
+                // Create a clone of the clicked box
+                const $clonedBox = $originalBox.clone();
+                $clonedBox.addClass('expanded-box-clone');
+                // Remove grid sizing classes from the clone
+                $clonedBox.removeClass('size-large size-medium size-wide size-tall');
+
+                // Set initial position and size of the clone to match the original
+                // This is crucial for the animation to start from the original position
+                $clonedBox.css({
+                    top: rect.top + 'px',
+                    left: rect.left + 'px',
+                    margin: '0' // Remove any margin that might interfere
+                });
+
+                // Append the clone to the body to take it out of the grid flow
+                $body.append($clonedBox);
+                $currentClonedBox = $clonedBox;
+
+                // Hide the original box immediately
+                $originalBox.css({
+                    opacity: '0',
+                    pointerEvents: 'none'
+                });
+
+                // Activate backdrop and blur grid
+                $modalBackdrop.addClass('modal-backdrop--active');
+                $concertGrid.addClass('blurred');
+                $body.addClass('body-no-scroll');
+
+                // After a very short delay, apply the final expanded styles to trigger the transition
+                requestAnimationFrame(() => {
+                    $clonedBox.addClass('is-expanded-active');
+                });
+            }
+
+            // Function to collapse a box
+            function collapseBox() {
+                if (!$currentClonedBox || !$originalBoxReference) return;
+
+                const rect = $originalBoxReference[0].getBoundingClientRect();
+
+                // Revert the clone's styles to match the original box's position and size
+                $currentClonedBox.removeClass('is-expanded-active');
+                $currentClonedBox.css({
+                    width: rect.width + 'px',
+                    height: rect.height + 'px',
+                    top: rect.top + 'px',
+                    left: rect.left + 'px',
+                    transform: 'translate(0, 0)' // Remove the centering transform
+                });
+
+                // Listen for the end of the transition
+                $currentClonedBox.one('transitionend', function() {
+                    // Remove the clone from the DOM
+                    $currentClonedBox.remove();
+                    $currentClonedBox = null;
+
+                    // Show the original box again
+                    if ($originalBoxReference) {
+                        $originalBoxReference.css({
+                            opacity: '1',
+                            pointerEvents: 'auto'
+                        });
+                        $originalBoxReference = null;
+                    }
+
+                    // Deactivate backdrop and unblur grid
+                    $modalBackdrop.removeClass('modal-backdrop--active');
+                    $concertGrid.removeClass('blurred');
+                    $body.removeClass('body-no-scroll');
+                });
+            }
+
+            // Add click listeners to each concert box (using delegation for dynamically added elements)
+            $concertGrid.on('click', '.concert-box', function() {
+                const $this = $(this); // Cache jQuery object for the clicked box
+                // Only expand if no box is currently expanded, or if it's the currently expanded box (to collapse)
+                if (!$currentClonedBox) {
+                    expandBox($this);
+                } else if ($originalBoxReference && $originalBoxReference[0] === $this[0]) { // If clicking the original box of the expanded clone
+                    collapseBox();
+                }
+                // If clicking a different box while one is expanded, the expandBox function will handle collapsing the old one first.
+            });
+
+            // Add click listener to the backdrop to close the expanded box
+            $modalBackdrop.on('click', function() {
+                collapseBox();
+            });
+
+            // Add click listener to the cloned box itself to close it (if it exists)
+            // This is handled by attaching the listener to the body and delegating
+            $body.on('click', '.expanded-box-clone', function() {
+                collapseBox();
+            });
+        });
+    </script>
+</body>
+</html>
+  

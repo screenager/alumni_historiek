@@ -18,27 +18,36 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: url('aula_wideshot.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             color: #ffffff;
             overflow-x: hidden;
         }
 
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
         header {
             text-align: center;
-            padding: 2rem 1rem;
+            padding: 1.5rem 1rem;
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
         }
 
-        header h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(90deg, #f8b500, #ff6b6b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        header .logo {
+            max-width: 250px;
+            height: auto;
+            margin: 0 auto 0.5rem;
+            display: block;
         }
 
         header p {
@@ -84,8 +93,8 @@
         /* Postcard styling */
         .postcard {
             position: absolute;
-            width: 800px;
-            height: 560px;
+            width: 450px;
+            height: 650px;
             cursor: pointer;
             transform-style: preserve-3d;
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
@@ -95,14 +104,25 @@
                         z-index 0s;
             left: 50%;
             top: 50%;
-            margin-left: -400px;
-            margin-top: -280px;
+            margin-left: -225px;
+            margin-top: -325px;
             pointer-events: auto;
+            filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.25));
         }
 
         .postcard.focused {
             z-index: 100;
             cursor: pointer;
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.35));
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        opacity 0.4s ease,
+                        filter 1s ease,
+                        z-index 0s;
+        }
+
+        .postcard.focused.flipped {
+            filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3));
         }
 
         .postcard:not(.focused) {
@@ -121,12 +141,79 @@
             width: 100%;
             height: 100%;
             transform-style: preserve-3d;
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
         }
 
         .postcard.flipped .postcard-inner {
-            transform: rotateY(180deg);
+            transform: rotateY(180deg) rotateZ(90deg);
+        }
+
+        /* Flip hint icon */
+        .flip-icon {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            width: 70px;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .flip-icon svg {
+            width: 50px;
+            height: 50px;
+            color: rgba(255, 255, 255, 0.9);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            animation: flipIconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes flipIconPulse {
+            0%, 100% {
+                transform: rotateY(0deg);
+            }
+            50% {
+                transform: rotateY(180deg);
+            }
+        }
+
+        .flip-icon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 0.8;
+            }
+        }
+
+        .postcard.focused:not(.flipped) .flip-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .postcard.flipped .flip-icon {
+            opacity: 0;
+            transform: scale(0.8);
         }
 
         .postcard-front,
@@ -135,10 +222,11 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
             border-radius: 8px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             overflow: hidden;
             pointer-events: none;
+            background: #f5f0e1;
         }
 
         /* Postcard Front */
@@ -186,6 +274,7 @@
             width: 100px;
             height: 120px;
             background: linear-gradient(135deg, #e74c3c, #c0392b);
+            transition: opacity 0.3s ease;
             border: 4px dashed #fff;
             border-radius: 3px;
             display: flex;
@@ -200,18 +289,35 @@
             z-index: 10;
         }
 
+        .postcard.flipped .stamp {
+            opacity: 0;
+        }
+
         /* Postcard Back */
         .postcard-back {
             background: #f5f0e1;
             transform: rotateY(180deg);
-            padding: 3rem;
+            padding: 0;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             color: #333;
             font-family: 'Caveat', cursive;
         }
 
-        .postcard-back::before {
+        .postcard-back-content {
+            /* Swap dimensions: content is landscape inside portrait container */
+            width: 650px;
+            height: 450px;
+            transform: rotate(90deg);
+            transform-origin: center center;
+            display: flex;
+            flex-direction: row;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .postcard-back-content::before {
             content: '';
             position: absolute;
             top: 0;
@@ -225,85 +331,83 @@
             width: 48%;
             height: 100%;
             overflow-y: auto;
-            padding-right: 2rem;
-            font-size: 1.4rem;
-            line-height: 1.6;
+            padding-right: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.5;
         }
 
         .postcard-back-right {
-            position: absolute;
-            right: 3rem;
-            top: 3rem;
-            width: 45%;
-            height: calc(100% - 6rem);
+            width: 48%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding-left: 1.5rem;
         }
 
         .postcard-back-title {
             font-family: 'Caveat', cursive;
-            font-size: 3rem;
+            font-size: 2rem;
             font-weight: 600;
             color: #1a1a2e;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .postcard-back-date {
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             color: #666;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.75rem;
             font-style: italic;
         }
 
         .postcard-back-director {
-            font-size: 1.6rem;
+            font-size: 1.2rem;
             color: #444;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .postcard-back-repertoire {
-            font-size: 1.3rem;
+            font-size: 0.95rem;
             color: #555;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         .postcard-back-repertoire p {
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem;
         }
 
         .address-lines {
-            position: absolute;
-            bottom: 40%;
-            right: 20px;
-            width: 90%;
+            margin-top: auto;
+            width: 100%;
         }
 
         .address-line {
             border-bottom: 2px solid #999;
-            height: 50px;
-            margin-bottom: 8px;
+            height: 35px;
+            margin-bottom: 6px;
         }
 
         .postmark {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            width: 140px;
-            height: 140px;
-            border: 4px solid #c0392b;
+            width: 100px;
+            height: 100px;
+            border: 3px solid #c0392b;
             border-radius: 50%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: #c0392b;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             text-align: center;
             transform: rotate(-15deg);
             opacity: 0.7;
+            margin-bottom: 1.5rem;
         }
 
         .postmark-city {
             font-weight: 700;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
         }
 
         /* Navigation arrows */
@@ -340,39 +444,10 @@
             right: 30px;
         }
 
-        /* Indicators */
-        .coverflow-indicators {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            z-index: 200;
-        }
-
-        .indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .indicator.active {
-            background: #f8b500;
-            transform: scale(1.2);
-        }
-
-        .indicator:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
         /* Flip hint */
         .flip-hint {
             position: absolute;
-            bottom: 80px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(248, 181, 0, 0.9);
@@ -394,10 +469,10 @@
         /* Responsive */
         @media (max-width: 1200px) {
             .postcard {
-                width: 600px;
-                height: 420px;
-                margin-left: -300px;
-                margin-top: -210px;
+                width: 380px;
+                height: 550px;
+                margin-left: -190px;
+                margin-top: -275px;
             }
 
             .postcard-front {
@@ -405,11 +480,16 @@
             }
 
             .postcard-title-front {
-                font-size: 2rem;
+                font-size: 1.8rem;
+            }
+
+            .postcard-back-content {
+                width: 550px;
+                height: 380px;
             }
 
             .postcard-back-title {
-                font-size: 2.4rem;
+                font-size: 1.6rem;
             }
 
             .stamp {
@@ -419,17 +499,22 @@
             }
 
             .postmark {
-                width: 110px;
-                height: 110px;
+                width: 80px;
+                height: 80px;
+                font-size: 0.8rem;
+            }
+
+            .postmark-city {
+                font-size: 0.9rem;
             }
         }
 
         @media (max-width: 768px) {
             .postcard {
-                width: 360px;
-                height: 252px;
-                margin-left: -180px;
-                margin-top: -126px;
+                width: 280px;
+                height: 400px;
+                margin-left: -140px;
+                margin-top: -200px;
             }
 
             .postcard-front {
@@ -448,28 +533,31 @@
                 font-size: 1.4rem;
             }
 
-            .postcard-back {
-                padding: 1.5rem;
+            .postcard-back-content {
+                width: 400px;
+                height: 280px;
+                padding: 1rem;
             }
 
             .postcard-back-left {
-                font-size: 1rem;
+                font-size: 0.85rem;
+                padding-right: 0.75rem;
             }
 
             .postcard-back-title {
-                font-size: 1.6rem;
+                font-size: 1.2rem;
             }
 
             .postcard-back-date {
-                font-size: 1rem;
+                font-size: 0.8rem;
             }
 
             .postcard-back-director {
-                font-size: 1.1rem;
+                font-size: 0.9rem;
             }
 
             .postcard-back-repertoire {
-                font-size: 0.9rem;
+                font-size: 0.75rem;
             }
 
             .stamp {
@@ -481,15 +569,26 @@
             }
 
             .postmark {
-                width: 70px;
-                height: 70px;
-                font-size: 0.6rem;
-                top: 12px;
-                right: 12px;
+                width: 55px;
+                height: 55px;
+                font-size: 0.55rem;
+                border-width: 2px;
             }
 
             .postmark-city {
-                font-size: 0.7rem;
+                font-size: 0.65rem;
+            }
+
+            .flip-icon {
+                width: 50px;
+                height: 50px;
+                bottom: 15px;
+                right: 15px;
+            }
+
+            .flip-icon svg {
+                width: 35px;
+                height: 35px;
             }
 
             .coverflow-nav {
@@ -512,25 +611,35 @@
         }
 
         /* Scrollbar for postcard back */
+        .postcard-back-left {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(100, 100, 100, 0.5) transparent;
+        }
+
         .postcard-back-left::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
         }
 
         .postcard-back-left::-webkit-scrollbar-track {
-            background: transparent;
+            background: rgba(200, 200, 200, 0.2);
+            border-radius: 3px;
         }
 
         .postcard-back-left::-webkit-scrollbar-thumb {
-            background: #999;
-            border-radius: 2px;
+            background: rgba(100, 100, 100, 0.5);
+            border-radius: 3px;
+        }
+
+        .postcard-back-left::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 100, 100, 0.7);
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Postcards from Our Concerts</h1>
+        <img src="logo.png" alt="Orchestra Logo" class="logo">
         <p>Flip through memories of our past performances</p>
-        <a href="index.html" class="nav-link">← Back to Grid View</a>
+        <!--<a href="index.html" class="nav-link">← Back to Grid View</a>-->
     </header>
 
     <div class="coverflow-container">
@@ -550,10 +659,6 @@
         </button>
 
         <div class="flip-hint" id="flipHint">Click to flip the postcard</div>
-
-        <div class="coverflow-indicators" id="indicators">
-            <!-- Indicators will be dynamically inserted here -->
-        </div>
     </div>
 
     <script>
@@ -574,7 +679,6 @@
             ];
 
             const $wrapper = $('#coverflowWrapper');
-            const $indicators = $('#indicators');
             const $flipHint = $('#flipHint');
             let currentIndex = 0;
             let totalCards = concertData.length;
@@ -595,7 +699,7 @@
                     <div class="postcard" data-index="${index}">
                         <div class="postcard-inner">
                             <div class="postcard-front">
-                                <img src="https://picsum.photos/800/560?random=${index + 100}" alt="${concert.title}">
+                                <img src="https://picsum.photos/450/650?random=${index + 100}" alt="${concert.title}">
                                 <div class="stamp">
                                     <span>${concert.season}<br>${concert.year}</span>
                                 </div>
@@ -603,24 +707,32 @@
                                     <span class="postcard-year">${concert.dates || concert.year}</span>
                                     <h3 class="postcard-title-front">${concert.title}</h3>
                                 </div>
+                                <div class="flip-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                        <path d="M3 3v5h5"></path>
+                                    </svg>
+                                </div>
                             </div>
                             <div class="postcard-back">
-                                <div class="postcard-back-left">
-                                    <h3 class="postcard-back-title">${concert.title}</h3>
-                                    <p class="postcard-back-date">${concert.dates} - ${concert.locations}</p>
-                                    <p class="postcard-back-director">Dirigent: ${concert.director}</p>
-                                    ${repertoireHtml ? `<div class="postcard-back-repertoire">${repertoireHtml}</div>` : '<p class="postcard-back-repertoire">Geen repertoire beschikbaar.</p>'}
-                                    ${coorporationHtml}
-                                </div>
-                                <div class="postcard-back-right">
-                                    <div class="postmark">
-                                        <span class="postmark-city">LEUVEN</span>
-                                        <span>${concert.year}</span>
+                                <div class="postcard-back-content">
+                                    <div class="postcard-back-left">
+                                        <h3 class="postcard-back-title">${concert.title}</h3>
+                                        <p class="postcard-back-date">${concert.dates} - ${concert.locations}</p>
+                                        <p class="postcard-back-director">Dirigent: ${concert.director}</p>
+                                        ${repertoireHtml ? `<div class="postcard-back-repertoire">${repertoireHtml}</div>` : '<p class="postcard-back-repertoire">Geen repertoire beschikbaar.</p>'}
+                                        ${coorporationHtml}
                                     </div>
-                                    <div class="address-lines">
-                                        <div class="address-line"></div>
-                                        <div class="address-line"></div>
-                                        <div class="address-line"></div>
+                                    <div class="postcard-back-right">
+                                        <div class="postmark">
+                                            <span class="postmark-city">LEUVEN</span>
+                                            <span>${concert.year}</span>
+                                        </div>
+                                        <div class="address-lines">
+                                            <div class="address-line"></div>
+                                            <div class="address-line"></div>
+                                            <div class="address-line"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -629,15 +741,9 @@
                 `;
             }
 
-            // Generate indicator dot
-            function generateIndicator(index) {
-                return `<div class="indicator ${index === 0 ? 'active' : ''}" data-index="${index}"></div>`;
-            }
-
             // Initialize postcards
             concertData.forEach((concert, index) => {
                 $wrapper.append(generatePostcard(concert, index));
-                $indicators.append(generateIndicator(index));
             });
 
             // Position postcards in coverflow style
@@ -648,7 +754,7 @@
                     const absOffset = Math.abs(offset);
 
                     // Calculate transform values - improved for better visibility and clicking
-                    let translateX = offset * 500; // More horizontal spacing for bigger cards
+                    let translateX = offset * 350; // Horizontal spacing for portrait cards
                     let translateZ = -absOffset * 50; // Much less depth so side cards are more accessible
                     let rotateY = offset < 0 ? 30 : (offset > 0 ? -30 : 0); // Less rotation
                     let scale = offset === 0 ? 1 : Math.max(0.75, 0.9 - (absOffset * 0.05)); // Better scale for side cards
@@ -681,10 +787,6 @@
                         $card.removeClass('flipped'); // Unflip non-focused cards
                     }
                 });
-
-                // Update indicators
-                $('.indicator').removeClass('active');
-                $(`.indicator[data-index="${currentIndex}"]`).addClass('active');
 
                 // Show/hide flip hint
                 const $focusedCard = $('.postcard.focused');
@@ -728,13 +830,13 @@
             // Click handler using manual hit detection for better 3D support
             $('.coverflow-container').on('click', function(e) {
                 // Don't handle clicks on navigation buttons
-                if ($(e.target).closest('.coverflow-nav, .coverflow-indicators, .flip-hint').length) return;
+                if ($(e.target).closest('.coverflow-nav, .flip-hint').length) return;
 
                 const containerRect = this.getBoundingClientRect();
                 const clickX = e.clientX - containerRect.left;
                 const centerX = containerRect.width / 2;
-                const cardWidth = 800;
-                const spacing = 500;
+                const cardWidth = 450;
+                const spacing = 350;
                 const deadZone = cardWidth / 2; // The center area where clicks go to focused card
 
                 // Get all postcards at this click point
@@ -785,12 +887,6 @@
                 }
             });
 
-            // Click on indicator
-            $indicators.on('click', '.indicator', function() {
-                const index = parseInt($(this).data('index'));
-                goToIndex(index);
-            });
-
             // Keyboard navigation
             $(document).on('keydown', function(e) {
                 if (e.key === 'ArrowLeft') {
@@ -829,6 +925,33 @@
                     }
                 }
             }
+
+            // Wheel/trackpad scroll support
+            let wheelTimeout = null;
+            let lastWheelTime = 0;
+            const wheelCooldown = 300; // ms between card changes
+
+            $wrapper.on('wheel', function(e) {
+                // Prevent page scroll
+                e.preventDefault();
+                
+                const now = Date.now();
+                if (now - lastWheelTime < wheelCooldown) return;
+                
+                // Use deltaX for horizontal scroll, fallback to deltaY
+                const delta = Math.abs(e.originalEvent.deltaX) > Math.abs(e.originalEvent.deltaY) 
+                    ? e.originalEvent.deltaX 
+                    : e.originalEvent.deltaY;
+                
+                if (Math.abs(delta) > 10) {
+                    lastWheelTime = now;
+                    if (delta > 0) {
+                        goNext();
+                    } else {
+                        goPrev();
+                    }
+                }
+            });
 
             // Initialize coverflow
             updateCoverflow();

@@ -1218,9 +1218,16 @@
     </script>
 
     <!-- Navigation Bar -->
+    <button class="nav-hamburger" onclick="document.querySelector('.nav-bar').classList.toggle('open'); this.classList.toggle('open')">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
     <nav class="nav-bar">
-        <a href="postcards.html" class="active">Idee 2: Postkaartjes</a>
-        <a href="tegels.html">Idee 1: Tegels</a>
+        <div class="nav-links">
+            <a href="postcards.html" class="active">Idee 2: Postkaartjes</a>
+            <a href="tegels.html">Idee 1: Tegels</a>
+        </div>
     </nav>
 </body>
 </html>

@@ -248,7 +248,6 @@
     <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12 text-center rounded-b-3xl shadow-lg">
         <h1 class="text-5xl font-bold mb-4">Onze voorbije concerten</h1>
         <p class="text-xl opacity-90">A journey through our past performances.</p>
-        <a href="postcards.html" class="inline-block mt-4 px-6 py-2 bg-white/20 hover:bg-white/30 rounded-full text-white font-medium transition-colors">View as Postcards →</a>
     </header>
 
     <main class="concert-grid" id="concertGrid">
@@ -454,9 +453,16 @@
     </script>
 
     <!-- Navigation Bar -->
+    <button class="nav-hamburger" onclick="document.querySelector('.nav-bar').classList.toggle('open'); this.classList.toggle('open')">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
     <nav class="nav-bar">
-        <a href="postcards.html">Idee 2: Postkaartjes</a>
-        <a href="tegels.html" class="active">Idee 1: Tegels</a>
+        <div class="nav-links">
+            <a href="postcards.html">Idee 2: Postkaartjes</a>
+            <a href="tegels.html" class="active">Idee 1: Tegels</a>
+        </div>
     </nav>
 </body>
 </html>

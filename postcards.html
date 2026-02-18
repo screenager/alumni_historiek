@@ -229,13 +229,18 @@
             background: #f5f0e1;
         }
 
+        .postcard.flipped .postcard-back {
+            overflow: visible;
+            pointer-events: auto;
+        }
+
         /* Postcard Front */
         .postcard-front {
             background: #f5f0e1;
             border: 5px solid #f5f0e1;
         }
 
-        .postcard-front img {
+        .postcard-front postcard_img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -333,10 +338,12 @@
         .postcard-back-left {
             width: 48%;
             height: 100%;
-            overflow-y: auto;
+            overflow: hidden;
             padding-right: 1.5rem;
             font-size: 1.1rem;
             line-height: 1.5;
+            display: flex;
+            flex-direction: column;
         }
 
         .postcard-back-right {
@@ -374,6 +381,9 @@
             font-size: 0.95rem;
             color: #555;
             line-height: 1.4;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
         }
 
         .postcard-back-repertoire p {
@@ -641,7 +651,7 @@
 <body>
     <header>
         <img src="logo.png" alt="Orchestra Logo" class="logo">
-        <p>Flip through memories of our past performances</p>
+        <p>Blader door herinneringen aan onze eerdere optredens</p>
         <!--<a href="index.html" class="nav-link">← Back to Grid View</a>-->
     </header>
 
@@ -661,26 +671,240 @@
             </svg>
         </button>
 
-        <div class="flip-hint" id="flipHint">Click to flip the postcard</div>
+        <div class="flip-hint" id="flipHint">Klik op het postkaartje!</div>
     </div>
 
     <script>
         $(document).ready(function() {
-            const concertData = [
-                { year: "2018", season: "nov", title: "Gaudeamus", img: "gaudeamus.jpg", director: "Kurt Bikkembergs", dates: "30 nov, 2 dec", locations: "MTC", Repertoire: "", coorporation: "", pdf: "" },
-                { year: "2019", season: "mei", title: "Source of the Nile", img: "sourceofthenile.jpg", director: "Thomas Geudens", dates: "28 april, 3 mei", locations: "MTC", Repertoire: "L'Italiana in Algeri - Rossini\nPrince of Egypt - Schwartz\nEgyptischer Marsch - Strauss\nIndiana Jones - Williams\nClarinet Concerto in A; Adagio - Mozart\nOut of Africa Soundtrack - Barry\nAfrica - Toto", coorporation: "Solist: Arne Herman (klarinet)", pdf: "" },
-                { year: "2019", season: "nov", title: "Land van Macht, Land van Pracht", img: "landvanmacht.jpg", director: "Stijn Paredis", dates: "15, 16 nov", locations: "MTC", Repertoire: "The Gadfly Suite: Ouverture - Shostakovich\nOuverture op 3 Russische thema's - Rimsky Korsakov\nSchone slaapster: Wals - Tchaikovsky\nDe notenkraker: Trepak - Tchaikovsky\nOuverture 1812 - Tchaikovsky (arr. Carter)\nHet zwanenmeer: Danses des cygnes - Tchaikovsky\nFinlandia - Sibelius\nAnastasia - Flaherty (arr. Custer)\nHet zwanenmeer: Scène - Tchaikovsky", coorporation: "", pdf: "" },
-                { year: "2021", season: "VJ", title: "Beethoven concerten", img: "", director: "-", dates: "-", locations: "-", Repertoire: "zie bestuursverslag 4.4", coorporation: "", pdf: "" },
-                { year: "2021", season: "okt", title: "Awakening", img: "", director: "Joris Decolvenaer", dates: "29, 31 okt", locations: "PDS", Repertoire: "Also Sprach Zarathustra - Strauss\nSymfonie nr. 9 'Uit de Nieuwe Wereld': delen 2, 4 - Dvorak\nThe Lark ascending - Vaughan Williams\nClair de lune - Debussy\nStar Wars main title – John Williams\nNimrod from 'enigma' variations - Elgar", coorporation: "Solist: Eva Lievens (viool)", pdf: "" },
-                { year: "2022", season: "mei", title: "Belle Epoque", img: "belleepoque.jpg", director: "Joris Decolvenaer", dates: "7, 8 mei", locations: "Vesalius", Repertoire: "Dahomeense Rhapsodie - De Boeck\nMoldau - Smetana\nCavalleria Rusticana: Intermezzo - Mascagni\nTitanic Suite – James Horner arr John Moss\nPavane - Faure\nScheherazade deel 1 - Korsakov", coorporation: "", pdf: "" },
-                { year: "2022", season: "dec", title: "Fandango", img: "fadango.jpg", director: "Joris Decolvenaer", dates: "3, 4 dec", locations: "PDS, Kapelle-op-den-Bos", Repertoire: "Concierto de Aranjuez,\nEl sombrero de tres picos - Manuel de Falla,\n1ste suite: introductie, afternoon, dance of the miller's wife\n2de suite: dance of the miller, final dance\nThe mask of Zorro suite - James Horner\nHuapango - José Pablo Moncayo", coorporation: "Solist: Maarten Vandenbemden (gitaar)", pdf: "" },
-                { year: "2023", season: "mei", title: "Chocolat", img: "", director: "Joris Decolvenaer", dates: "20, 21 mei", locations: "PDS", Repertoire: "La noche de Maya - Revueltas\nConga del Fuego - Marquez\nThe Mission - Morricone\nParsifal Ouverture - Wagner\nVlaamse dansen - Jan Blockx\nThe Chronicals of Narnia - Harry Gregson Williams, Steve Barton\nForrest Gump Suite - Alan Silvestri, Calvin Custer", coorporation: "", pdf: "" },
-                { year: "2023", season: "nov", title: "Musician's Choice", img: "musicianschoice.jpg", director: "Joris Decolvenaer", dates: "25, 26 nov", locations: "Vesalius", Repertoire: "The Lion King - Hans Zimmer, Elton John, arr. Brad Kelley\nGame of Thrones - Ramin Djawadi arr. Sean Fearnley\nJurassic Park - John Williams arr. Calvin Custe\nCoriolanus ouverture - Beethoven\nLord of The Rings (Fellowship, two towers) - Howard Shore, arr. John Whitney\nSymfonie 7 deel 2 - Beethoven\nValse Triste - Sibelius\nKodaly Zoltan - intermezzo", coorporation: "", pdf: "" },
-                { year: "2024", season: "mei", title: "Carmen", img: "carmen.jpg", director: "Joris Decolvenaer", dates: "25, 26 mei", locations: "PDS", Repertoire: "Uit opera en Carmen suites\nAct 1\n-Prelude\n-La Garde montante (5de deel van Suite II)\n-Habanera (Carmen)\n-Seguidilla (Carmen + Don Jose)\n-Entracte Nr 1\nAct 2\n-Gypsy song\n-Toreador song (4de deel van Suite II)\n-Exit van Escamillo\n-Don Jose Halte qui voila\n-Duet Danse Carmen + (Don Jose+ Carmen)\n- Finale Act 2\n-Entracte Nr 2\nAct 3\n-Marche des contrebandiers (1ste deel van Suite No. II)\n-Nocturne (3de deel van Suite II)\n-Entracte Nr 3\nAct 4\n-Finale", coorporation: "Solisten: Lara Cannaert & Manuel Murabito", pdf: "" },
-                { year: "2024", season: "dec", title: "Anxiety", img: "anxiety2.jpg", director: "Joris Decolvenaer", dates: "14, 15 dec", locations: "Vesalius", Repertoire: "Suite from Jaws, The Shark Theme - John Williams\nDanse Macabre - Camille Saint-Saëns\nSymfonie No. 5, deel 2 - Pjotr Iljitsj Tsjaikovski\nPictures at exhibition - Modest Moessorgski\nLa vita è bella suite - Nicola Piovani", coorporation: "Verteller: prof. Bram Vervliet", pdf: "ja" },
-                { year: "2025", season: "mei", title: "Leuven by Knightfall", img: "knightfall.jpg", director: "Joris Decolvenaer", dates: "17, 18 mei", locations: "PDS", Repertoire: "Japanse suite - Gustav Holst\nMan of steel - Hans Zimmer\nSymphonie Fantastique Op. 14, deel 3 t.e.m. deel 5 - Hector Berlioz\nThe Rock - Hans Zimmer", coorporation: "Verteller: Eva Fernandez Gonzalez", pdf: "ja" },
-                { year: "2025", season: "mei", title: "Hansje en Griet", img: "hansjegriet.jpg", director: "Joris Decolvenaer", dates: "29, 30 mei", locations: "PDS", Repertoire: "Engelbert Humperdinck, arrangement door Thomas Dorsch", coorporation: "Verteller: Frans Van Der Aa", pdf: "ja" }
-            
+       const concertData = [
+                {
+                    year: "2018",
+                    season: "nov",
+                    title: "Gaudeamus",
+                    postcard_img: "gaudeamus.jpg",
+                    director: "Kurt Bikkembergs",
+                    dates: "30 nov, 2 dec",
+                    locations: "MTC",
+                    Repertoire: ``,
+                    coorporation: "",
+                    pdf: ""
+                },
+                {
+                    year: "2019",
+                    season: "mei",
+                    title: "Source of the Nile",
+                    postcard_img: "sourceofthenile.jpg",
+                    director: "Thomas Geudens",
+                    dates: "28 april, 3 mei",
+                    locations: "MTC",
+                    Repertoire: `L'Italiana in Algeri - Rossini
+                Prince of Egypt - Schwartz
+                Egyptischer Marsch - Strauss
+                Indiana Jones - Williams
+                Clarinet Concerto in A; Adagio - Mozart
+                Out of Africa Soundtrack - Barry
+                Africa - Toto`,
+                    coorporation: "Solist: Arne Herman (klarinet)",
+                    pdf: ""
+                },
+                {
+                    year: "2019",
+                    season: "nov",
+                    title: "Land van Macht, Land van Pracht",
+                    postcard_img: "landvanmacht.jpg",
+                    director: "Stijn Paredis",
+                    dates: "15, 16 nov",
+                    locations: "MTC",
+                    Repertoire: `The Gadfly Suite: Ouverture - Shostakovich
+                Ouverture op 3 Russische thema's - Rimsky Korsakov
+                Schone slaapster: Wals - Tchaikovsky
+                De notenkraker: Trepak - Tchaikovsky
+                Ouverture 1812 - Tchaikovsky (arr. Carter)
+                Het zwanenmeer: Danses des cygnes - Tchaikovsky
+                Finlandia - Sibelius
+                Anastasia - Flaherty (arr. Custer)
+                Het zwanenmeer: Scène - Tchaikovsky`,
+                    coorporation: "",
+                    pdf: ""
+                },
+                {
+                    year: "2021",
+                    season: "VJ",
+                    title: "Beethoven concerten",
+                    postcard_img: "",
+                    director: "-",
+                    dates: "-",
+                    locations: "-",
+                    Repertoire: `zie bestuursverslag 4.4`,
+                    coorporation: "",
+                    pdf: ""
+                },
+                {
+                    year: "2021",
+                    season: "okt",
+                    title: "Awakening",
+                    postcard_img: "",
+                    director: "Joris Decolvenaer",
+                    dates: "29, 31 okt",
+                    locations: "PDS",
+                    Repertoire: `Also Sprach Zarathustra - Strauss
+                Symfonie nr. 9 'Uit de Nieuwe Wereld': delen 2, 4 - Dvorak
+                The Lark ascending - Vaughan Williams
+                Clair de lune - Debussy
+                Star Wars main title – John Williams
+                Nimrod from 'enigma' variations - Elgar`,
+                    coorporation: "Solist: Eva Lievens (viool)",
+                    pdf: ""
+                },
+                {
+                    year: "2022",
+                    season: "mei",
+                    title: "Belle Epoque",
+                    postcard_img: "belleepoque.jpg",
+                    director: "Joris Decolvenaer",
+                    dates: "7, 8 mei",
+                    locations: "Vesalius",
+                    Repertoire: `Dahomeense Rhapsodie - De Boeck
+                Moldau - Smetana
+                Cavalleria Rusticana: Intermezzo - Mascagni
+                Titanic Suite – James Horner arr John Moss
+                Pavane - Faure
+                Scheherazade deel 1 - Korsakov`,
+                    coorporation: "",
+                    pdf: ""
+                },
+                {
+                    year: "2022",
+                    season: "dec",
+                    title: "Fandango",
+                    postcard_img: "fadango.jpg",
+                    director: "Joris Decolvenaer",
+                    dates: "3, 4 dec",
+                    locations: "PDS, Kapelle-op-den-Bos",
+                    Repertoire: `Concierto de Aranjuez,
+                El sombrero de tres picos - Manuel de Falla,
+                1ste suite: introductie, afternoon, dance of the miller's wife
+                2de suite: dance of the miller, final dance
+                The mask of Zorro suite - James Horner
+                Huapango - José Pablo Moncayo`,
+                    coorporation: "Solist: Maarten Vandenbemden (gitaar)",
+                    pdf: ""
+                },
+                {
+                    year: "2023",
+                    season: "mei",
+                    title: "Chocolat",
+                    postcard_img: "",
+                    director: "Joris Decolvenaer",
+                    dates: "20, 21 mei",
+                    locations: "PDS",
+                    Repertoire: `La noche de Maya - Revueltas
+                Conga del Fuego - Marquez
+                The Mission - Morricone
+                Parsifal Ouverture - Wagner
+                Vlaamse dansen - Jan Blockx
+                The Chronicals of Narnia - Harry Gregson Williams, Steve Barton
+                Forrest Gump Suite - Alan Silvestri, Calvin Custer`,
+                    coorporation: "",
+                    pdf: ""
+                },
+                {
+                    year: "2023",
+                    season: "nov",
+                    title: "Musician's Choice",
+                    postcard_img: "musicianschoice.jpg",
+                    director: "Joris Decolvenaer",
+                    dates: "25, 26 nov",
+                    locations: "Vesalius",
+                    Repertoire: `The Lion King - Hans Zimmer, Elton John, arr. Brad Kelley
+                Game of Thrones - Ramin Djawadi arr. Sean Fearnley
+                Jurassic Park - John Williams arr. Calvin Custe
+                Coriolanus ouverture - Beethoven
+                Lord of The Rings (Fellowship, two towers) - Howard Shore, arr. John Whitney
+                Symfonie 7 deel 2 - Beethoven
+                Valse Triste - Sibelius
+                Kodaly Zoltan - intermezzo`,
+                    coorporation: "",
+                    pdf: ""
+                },
+                {
+                    year: "2024",
+                    season: "mei",
+                    title: "Carmen",
+                    postcard_img: "carmen.jpg",
+                    director: "Joris Decolvenaer",
+                    dates: "25, 26 mei",
+                    locations: "PDS",
+                    Repertoire: `Uit opera en Carmen suites
+                Act 1
+                - Prelude
+                - La Garde montante (5de deel van Suite II)
+                - Habanera (Carmen)
+                - Seguidilla (Carmen + Don Jose)
+                - Entracte Nr 1
+
+                Act 2
+                - Gypsy song
+                - Toreador song (4de deel van Suite II)
+                - Exit van Escamillo
+                - Don Jose Halte qui voila
+                - Duet Danse Carmen + (Don Jose + Carmen)
+                - Finale Act 2
+                - Entracte Nr 2
+
+                Act 3
+                - Marche des contrebandiers (1ste deel van Suite No. II)
+                - Nocturne (3de deel van Suite II)
+                - Entracte Nr 3
+
+                Act 4
+                - Finale`,
+                    coorporation: "Solisten: Lara Cannaert & Manuel Murabito",
+                    pdf: ""
+                },
+                {
+                    year: "2024",
+                    season: "dec",
+                    title: "Anxiety",
+                    postcard_img: "anxiety2.jpg",
+                    director: "Joris Decolvenaer",
+                    dates: "14, 15 dec",
+                    locations: "Vesalius",
+                    Repertoire: `Suite from Jaws, The Shark Theme - John Williams
+                Danse Macabre - Camille Saint-Saëns
+                Symfonie No. 5, deel 2 - Pjotr Iljitsj Tsjaikovski
+                Pictures at exhibition - Modest Moessorgski
+                La vita è bella suite - Nicola Piovani`,
+                    coorporation: "Verteller: prof. Bram Vervliet",
+                    pdf: "ja"
+                },
+                {
+                    year: "2025",
+                    season: "mei",
+                    title: "Leuven by Knightfall",
+                    postcard_img: "knightfall.jpg",
+                    director: "Joris Decolvenaer",
+                    dates: "17, 18 mei",
+                    locations: "PDS",
+                    Repertoire: `Japanse suite - Gustav Holst
+                Man of steel - Hans Zimmer
+                Symphonie Fantastique Op. 14, deel 3 t.e.m. deel 5 - Hector Berlioz
+                The Rock - Hans Zimmer`,
+                    coorporation: "Verteller: Eva Fernandez Gonzalez",
+                    pdf: "ja"
+                },
+                {
+                    year: "2025",
+                    season: "mei",
+                    title: "Hansje en Griet",
+                    postcard_img: "hansjegriet.jpg",
+                    director: "Joris Decolvenaer",
+                    dates: "29, 30 mei",
+                    locations: "PDS",
+                    Repertoire: `Engelbert Humperdinck, arrangement door Thomas Dorsch`,
+                    coorporation: "Verteller: Frans Van Der Aa",
+                    pdf: "ja"
+                }
             ];
 
             // revert order
@@ -708,7 +932,7 @@
                     <div class="postcard" data-index="${index}">
                         <div class="postcard-inner">
                             <div class="postcard-front">
-                                <img src="flyers/${concert.img}" alt="${concert.title}">
+                                <img src="flyers/${concert.postcard_img}" alt="${concert.title}">
                                 <div class="stamp">
                                     <span>${concert.season}<br>${concert.year}</span>
                                 </div>
@@ -831,8 +1055,18 @@
             }
 
             // Event listeners
-            $('#prevBtn').on('click', goPrev);
-            $('#nextBtn').on('click', goNext);
+            $('#prevBtn').on('click', function() {
+                const $focusedCard = $('.postcard.focused');
+                if (!$focusedCard.hasClass('flipped')) {
+                    goPrev();
+                }
+            });
+            $('#nextBtn').on('click', function() {
+                const $focusedCard = $('.postcard.focused');
+                if (!$focusedCard.hasClass('flipped')) {
+                    goNext();
+                }
+            });
 
             // Click handler using manual hit detection for better 3D support
             $('.coverflow-container').on('click', function(e) {
@@ -896,13 +1130,16 @@
 
             // Keyboard navigation
             $(document).on('keydown', function(e) {
-                if (e.key === 'ArrowLeft') {
+                const $focusedCard = $('.postcard.focused');
+                const isFlipped = $focusedCard.length && $focusedCard.hasClass('flipped');
+                
+                if (e.key === 'ArrowLeft' && !isFlipped) {
                     goPrev();
-                } else if (e.key === 'ArrowRight') {
+                } else if (e.key === 'ArrowRight' && !isFlipped) {
                     goNext();
                 } else if (e.key === ' ' || e.key === 'Enter') {
                     e.preventDefault();
-                    $('.postcard.focused').toggleClass('flipped');
+                    $focusedCard.toggleClass('flipped');
                     $flipHint.removeClass('visible');
                 }
             });
@@ -921,6 +1158,12 @@
             });
 
             function handleSwipe() {
+                // Don't navigate if a card is flipped
+                const $focusedCard = $('.postcard.focused');
+                if ($focusedCard.length && $focusedCard.hasClass('flipped')) {
+                    return;
+                }
+                
                 const swipeThreshold = 50;
                 const diff = touchStartX - touchEndX;
 
@@ -939,6 +1182,13 @@
             const wheelCooldown = 300; // ms between card changes
 
             $wrapper.on('wheel', function(e) {
+                // If a card is flipped, allow native scrolling on the back content
+                const $focusedCard = $('.postcard.focused');
+                if ($focusedCard.length && $focusedCard.hasClass('flipped')) {
+                    // Don't prevent default - allow vertical scrolling on repertoire
+                    return;
+                }
+                
                 // Prevent page scroll
                 e.preventDefault();
                 

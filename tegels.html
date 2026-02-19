@@ -152,9 +152,41 @@
             right: 0;
             bottom: 0;
             overflow-y: auto; /* Enable scrolling for content if needed */
+            flex-direction: row; /* Side-by-side layout */
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 2rem;
+        }
+
+        .concert-expanded-text {
+            flex: 1;
+            display: flex;
             flex-direction: column;
             justify-content: flex-start;
             align-items: flex-start;
+            overflow-y: auto;
+            min-width: 0;
+            color: #ffffff;
+            z-index: 1;
+        }
+
+        .concert-expanded-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            max-width: 45%;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .concert-expanded-image img {
+            max-height: 100%;
+            max-width: 100%;
+            width: auto;
+            display: block;
+            object-fit: contain;
         }
 
         /* Hover effects for non-expanded boxes */
@@ -210,6 +242,7 @@
             color: white;
             background-size: cover;
             background-position: center;
+            background-color: #000000 !important; /* Prevent white edges showing through */
         }
 
         .expanded-box-clone.is-expanded-active {
@@ -218,7 +251,8 @@
             top: 50% !important; /* Override initial top/left set by JS */
             left: 50% !important; /* Override initial top/left set by JS */
             transform: translate(-50%, -50%) !important; /* Center it */
-            overflow-y: auto; /* Enable scrolling for content if needed */
+            overflow-y: hidden; /* Let inner containers handle scrolling */
+            overflow-x: hidden;
         }
 
         .expanded-box-clone .concert-content-small {
@@ -227,6 +261,7 @@
 
         .expanded-box-clone .concert-content-expanded {
             display: flex; /* Show expanded content in expanded view */
+            z-index: 2;
         }
 
         .expanded-box-clone .concert-date-expanded {
@@ -266,6 +301,53 @@
         .modal-backdrop--active {
             opacity: 1;
             visibility: visible;
+        }
+
+        /* Modal navigation controls */
+        .modal-nav {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            z-index: 10;
+        }
+
+        .modal-nav-btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.15s ease;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .modal-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .modal-nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .modal-nav-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         /* Responsive adjustments */
@@ -345,7 +427,7 @@
                     : `background-image: url('postcards/${concert.postcard_img}');`;
 
                 return `
-                    <div class="concert-box ${boxClass}" style="${bgStyle}">
+                    <div class="concert-box ${boxClass}" data-slug="${concert.slug}" style="${bgStyle}">
                         <div class="concert-box-overlay">
                             <!-- Small content for grid view -->
                             <div class="concert-content-small">
@@ -357,13 +439,29 @@
                             </div>
                             <!-- Expanded content for modal view -->
                             <div class="concert-content-expanded">
-                                <p class="concert-date-expanded">${concert.dates} - ${concert.locations}</p>
-                                <h2 class="concert-title-expanded">${concert.title} (${concert.year})</h2>
-                                <p class="concert-box-description-expanded mt-2">
-                                    <strong>Director:</strong> ${concert.director}
-                                </p>
-                                ${repertoireHtml ? `<p class="concert-box-description-expanded mt-4"><strong>Repertoire:</strong></p><div class="concert-box-description-expanded text-sm">${repertoireHtml}</div>` : ''}
-                                ${coorporationHtml}
+                                <div class="concert-expanded-text">
+                                    <p class="concert-date-expanded">${concert.dates} - ${concert.locations}</p>
+                                    <h2 class="concert-title-expanded">${concert.title} (${concert.year})</h2>
+                                    <p class="concert-box-description-expanded mt-2">
+                                        <strong>Director:</strong> ${concert.director}
+                                    </p>
+                                    ${repertoireHtml ? `<p class="concert-box-description-expanded mt-4"><strong>Repertoire:</strong></p><div class="concert-box-description-expanded text-sm">${repertoireHtml}</div>` : ''}
+                                    ${coorporationHtml}
+                                </div>
+                                <div class="concert-expanded-image">
+                                    <img src="postcards/${concert.postcard_img}" alt="${concert.title} postcard">
+                                </div>
+                                <div class="modal-nav">
+                                    <button class="modal-nav-btn" data-action="prev" title="Vorige (←)">
+                                        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                    </button>
+                                    <button class="modal-nav-btn" data-action="close" title="Sluiten (Esc)">
+                                        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    </button>
+                                    <button class="modal-nav-btn" data-action="next" title="Volgende (→)">
+                                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -371,6 +469,9 @@
             }
 
             // Populate the grid with concert data
+            // Reverse so most recent concert appears first
+            concertData.reverse();
+
             concertData.forEach((concert, index) => {
                 $concertGrid.append(generateConcertBox(concert, index));
             });
@@ -398,7 +499,9 @@
                 $clonedBox.css({
                     top: rect.top + 'px',
                     left: rect.left + 'px',
-                    margin: '0' // Remove any margin that might interfere
+                    margin: '0', // Remove any margin that might interfere
+                    'background-color': '#000000',
+                    'background-blend-mode': 'normal'
                 });
 
                 // Append the clone to the body to take it out of the grid flow
@@ -415,6 +518,12 @@
                 $modalBackdrop.addClass('modal-backdrop--active');
                 $concertGrid.addClass('blurred');
                 $body.addClass('body-no-scroll');
+
+                // Update URL hash with slug
+                const slug = $originalBox.data('slug');
+                if (slug) {
+                    history.replaceState(null, null, '#' + slug);
+                }
 
                 // After a very short delay, apply the final expanded styles to trigger the transition
                 requestAnimationFrame(() => {
@@ -457,6 +566,9 @@
                     $modalBackdrop.removeClass('modal-backdrop--active');
                     $concertGrid.removeClass('blurred');
                     $body.removeClass('body-no-scroll');
+
+                    // Clear URL hash
+                    history.replaceState(null, null, window.location.pathname);
                 });
             }
 
@@ -479,9 +591,119 @@
 
             // Add click listener to the cloned box itself to close it (if it exists)
             // This is handled by attaching the listener to the body and delegating
-            $body.on('click', '.expanded-box-clone', function() {
+            $body.on('click', '.expanded-box-clone', function(e) {
+                // Don't close if clicking on nav buttons
+                if ($(e.target).closest('.modal-nav').length) return;
                 collapseBox();
             });
+
+            // Navigation button click handlers (delegated)
+            $body.on('click', '.modal-nav-btn', function(e) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                const action = $(this).data('action');
+                if (action === 'close') {
+                    collapseBox();
+                } else if (action === 'prev') {
+                    navigateToPrev();
+                } else if (action === 'next') {
+                    navigateToNext();
+                }
+            });
+
+            // Navigate to previous concert
+            function navigateToPrev() {
+                if (!$originalBoxReference) return;
+                const $allBoxes = $concertGrid.find('.concert-box');
+                const currentIndex = $allBoxes.index($originalBoxReference);
+                const prevIndex = (currentIndex - 1 + $allBoxes.length) % $allBoxes.length;
+                navigateToIndex(prevIndex);
+            }
+
+            // Navigate to next concert
+            function navigateToNext() {
+                if (!$originalBoxReference) return;
+                const $allBoxes = $concertGrid.find('.concert-box');
+                const currentIndex = $allBoxes.index($originalBoxReference);
+                const nextIndex = (currentIndex + 1) % $allBoxes.length;
+                navigateToIndex(nextIndex);
+            }
+
+            // Navigate to a specific index — instant swap without collapse animation
+            function navigateToIndex(index) {
+                const $allBoxes = $concertGrid.find('.concert-box');
+                const $targetBox = $allBoxes.eq(index);
+                if (!$targetBox.length) return;
+
+                // Restore the old original box visibility
+                if ($originalBoxReference) {
+                    $originalBoxReference.css({ opacity: '1', pointerEvents: 'auto' });
+                }
+
+                // Remove old clone
+                if ($currentClonedBox) {
+                    $currentClonedBox.remove();
+                    $currentClonedBox = null;
+                }
+
+                // Clone BEFORE hiding the original (so clone doesn't inherit opacity: 0)
+                const $clonedBox = $targetBox.clone();
+                $clonedBox.addClass('expanded-box-clone is-expanded-active');
+                $clonedBox.removeClass('size-large size-medium size-wide size-tall');
+                $clonedBox.css({
+                    margin: '0',
+                    opacity: '1',
+                    pointerEvents: 'auto',
+                    'background-color': '#000000',
+                    'background-blend-mode': 'normal',
+                    'transition': 'none'
+                });
+
+                // Now hide the original
+                $originalBoxReference = $targetBox;
+                $targetBox.css({ opacity: '0', pointerEvents: 'none' });
+
+                // Append already expanded — no animation
+                $body.append($clonedBox);
+                $currentClonedBox = $clonedBox;
+
+                // Re-enable transitions after paint so collapse animation still works
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        $clonedBox.css('transition', '');
+                    });
+                });
+
+                // Update URL hash
+                const slug = $targetBox.data('slug');
+                if (slug) {
+                    history.replaceState(null, null, '#' + slug);
+                }
+            }
+
+            // Keyboard navigation
+            $(document).on('keydown', function(e) {
+                if (!$currentClonedBox) return;
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    collapseBox();
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    navigateToPrev();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    navigateToNext();
+                }
+            });
+            // On page load, open modal if URL hash matches a slug
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                const $target = $(`.concert-box[data-slug="${hash}"]`);
+                if ($target.length) {
+                    // Small delay to let the grid render before expanding
+                    setTimeout(() => expandBox($target), 100);
+                }
+            }
         }); // end $.getJSON
         });
     </script>

@@ -6,18 +6,56 @@
     <title>Orchestra Concerts</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
     <!-- jQuery CDN -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <!-- Navigation CSS -->
     <link rel="stylesheet" href="nav.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         /* Custom CSS for grid and hover effects */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light background */
-            color: #334155; /* Dark gray text */
+            background: url('aula_wideshot.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: #ffffff;
             overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        header .logo {
+            max-width: 250px;
+            height: auto;
+            margin: 0 auto 0.5rem;
+            display: block;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
         }
 
         body.body-no-scroll {
@@ -245,9 +283,9 @@
     </style>
 </head>
 <body class="antialiased">
-    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12 text-center rounded-b-3xl shadow-lg">
-        <h1 class="text-5xl font-bold mb-4">Onze voorbije concerten</h1>
-        <p class="text-xl opacity-90">A journey through our past performances.</p>
+    <header>
+        <img src="logo.png" alt="Orchestra Logo" class="logo">
+        <p>Een reis door onze voorbije concerten</p>
     </header>
 
     <main class="concert-grid" id="concertGrid">
@@ -259,20 +297,11 @@
 
     <script>
         $(document).ready(function() {
-            const concertData = [
-                { year: "2018", season: "NJ", title: "Gaudeamus", director: "Kurt Bikkembergs", dates: "30 nov, 2 dec", locations: "MTC", Repertoire: "", coorporation: "", pdf: "" },
-                { year: "2019", season: "VJ", title: "Source of the Nile", director: "Thomas Geudens", dates: "28 april, 3 mei", locations: "MTC", Repertoire: "L'Italiana in Algeri - Rossini\nPrince of Egypt - Schwartz\nEgyptischer Marsch - Strauss\nIndiana Jones - Williams\nClarinet Concerto in A; Adagio - Mozart\nOut of Africa Soundtrack - Barry\nAfrica - Toto", coorporation: "Solist: Arne Herman (klarinet)", pdf: "" },
-                { year: "2019", season: "NJ", title: "Land van Macht, Land van Pracht", director: "Stijn Paredis", dates: "15, 16 nov", locations: "MTC", Repertoire: "The Gadfly Suite: Ouverture - Shostakovich\nOuverture op 3 Russische thema’s - Rimsky Korsakov\nSchone slaapster: Wals - Tchaikovsky\nDe notenkraker: Trepak - Tchaikovsky\nOuverture 1812 - Tchaikovsky (arr. Carter)\nHet zwanenmeer: Danses des cygnes - Tchaikovsky\nFinlandia - Sibelius\nAnastasia - Flaherty (arr. Custer)\nHet zwanenmeer: Scène - Tchaikovsky", coorporation: "", pdf: "" },
-                { year: "2021", season: "VJ", title: "Beethoven concerten", director: "-", dates: "-", locations: "-", Repertoire: "zie bestuursverslag 4.4", coorporation: "", pdf: "" },
-                { year: "2021", season: "NJ", title: "Awakening", director: "Joris Decolvenaer", dates: "29, 31 okt", locations: "PDS", Repertoire: "Also Sprach Zarathustra - Strauss\nSymfonie nr. 9 'Uit de Nieuwe Wereld': delen 2, 4 - Dvorak\nThe Lark ascending - Vaughan Williams\nClair de lune - Debussy\nStar Wars main title – John Williams\nNimrod from 'enigma' variations - Elgar", coorporation: "Solist: Eva Lievens (viool)", pdf: "" },
-                { year: "2022", season: "VJ", title: "Belle Epoque", director: "Joris Decolvenaer", dates: "7, 8 mei", locations: "Vesalius", Repertoire: "Dahomeense Rhapsodie - De Boeck\nMoldau - Smetana\nCavalleria Rusticana: Intermezzo - Mascagni\nTitanic Suite – James Horner arr John Moss\nPavane - Faure\nScheherazade deel 1 - Korsakov", coorporation: "", pdf: "" },
-                { year: "2022", season: "NJ", title: "Fandango", director: "Joris Decolvenaer", dates: "3, 4 dec", locations: "PDS, Kapelle-op-den-Bos", Repertoire: "Concierto de Aranjuez,\nEl sombrero de tres picos - Manuel de Falla,\n1ste suite: introductie, afternoon, dance of the miller's wife\n2de suite: dance of the miller, final dance\nThe mask of Zorro suite - James Horner\nHuapango - José Pablo Moncayo", coorporation: "Solist: Maarten Vandenbemden (gitaar)", pdf: "" },
-                { year: "2023", season: "VJ", title: "Chocolat", director: "Joris Decolvenaer", dates: "20, 21 mei", locations: "PDS", Repertoire: "La noche de Maya - Revueltas\nConga del Fuego - Marquez\nThe Mission - Morricone\nParsifal Ouverture - Wagner\nVlaamse dansen - Jan Blockx\nThe Chronicals of Narnia - Harry Gregson Williams, Steve Barton\nForrest Gump Suite - Alan Silvestri, Calvin Custer", coorporation: "", pdf: "" },
-                { year: "2023", season: "NJ", title: "Musician's Choice", director: "Joris Decolvenaer", dates: "25, 26 nov", locations: "Vesalius", Repertoire: "The Lion King - Hans Zimmer, Elton John, arr. Brad Kelley\nGame of Thrones - Ramin Djawadi arr. Sean Fearnley\nJurassic Park - John Williams arr. Calvin Custe\nCoriolanus ouverture - Beethoven\nLord of The Rings (Fellowship, two towers) - Howard Shore, arr. John Whitney\nSymfonie 7 deel 2 - Beethoven\nValse Triste - Sibelius\nKodaly Zoltan - intermezzo", coorporation: "", pdf: "" },
-                { year: "2024", season: "VJ", title: "Carmen", director: "Joris Decolvenaer", dates: "25, 26 mei", locations: "PDS", Repertoire: "Uit opera en Carmen suites\nAct 1\n-Prelude\n-La Garde montante (5de deel van Suite II)\n-Habanera (Carmen)\n-Seguidilla (Carmen + Don Jose)\n-Entracte Nr 1\nAct 2\n-Gypsy song\n-Toreador song (4de deel van Suite II)\n-Exit van Escamillo\n-Don Jose Halte qui voila\n-Duet Danse Carmen + (Don Jose+ Carmen)\n- Finale Act 2\n-Entracte Nr 2\nAct 3\n-Marche des contrebandiers (1ste deel van Suite No. II)\n-Nocturne (3de deel van Suite II)\n-Entracte Nr 3\nAct 4\n-Finale", coorporation: "Solisten: Lara Cannaert & Manuel Murabito", pdf: "" },
-                { year: "2024", season: "NJ", title: "Anxiety", director: "Joris Decolvenaer", dates: "14, 15 dec", locations: "Vesalius", Repertoire: "Suite from Jaws, The Shark Theme - John Williams\nDanse Macabre - Camille Saint-Saëns\nSymfonie No. 5, deel 2 - Pjotr Iljitsj Tsjaikovski\nPictures at exhibition - Modest Moessorgski\nLa vita è bella suite - Nicola Piovani", coorporation: "Verteller: prof. Bram Vervliet", pdf: "ja" },
-                { year: "2025", season: "VJ", title: "Leuven by Knightfall", director: "Joris Decolvenaer", dates: "17, 18 mei", locations: "PDS", Repertoire: "Japanse suite - Gustav Holst\nMan of steel - Hans Zimmer\nSymphonie Fantastique Op. 14, deel 3 t.e.m. deel 5 - Hector Berlioz\nThe Rock - Hans Zimmer", coorporation: "Verteller: Eva Fernandez Gonzalez", pdf: "ja" }
-            ];
+        // Load concert data from external JSON file
+        $.getJSON('concertData.json', function(concertData) {
+
+            // Set to true to tint tile backgrounds with a color overlay, false for original photos
+            const useColorOverlay = true;
 
             const $modalBackdrop = $('#modalBackdrop');
             const $concertGrid = $('#concertGrid');
@@ -311,8 +340,12 @@
                     coorporationHtml += `<p class="mt-2"><em>Programmaboekje</em></p>`;
                 }
 
+                const bgStyle = useColorOverlay
+                    ? `background-image: url('postcards/${concert.postcard_img}'); background-color: #${color};`
+                    : `background-image: url('postcards/${concert.postcard_img}');`;
+
                 return `
-                    <div class="concert-box ${boxClass}" style="background-image: url('https://picsum.photos/800/600?random=${index + 1}'); background-color: #${color};">
+                    <div class="concert-box ${boxClass}" style="${bgStyle}">
                         <div class="concert-box-overlay">
                             <!-- Small content for grid view -->
                             <div class="concert-content-small">
@@ -449,6 +482,7 @@
             $body.on('click', '.expanded-box-clone', function() {
                 collapseBox();
             });
+        }); // end $.getJSON
         });
     </script>
 

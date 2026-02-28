@@ -689,7 +689,7 @@
         .coverflow-nav {
             position: absolute;
             top: 50%;
-            transform: translateY(-50%);
+            transform: translateY(-50%) translateZ(0);
             width: 60px;
             height: 60px;
             background: rgba(255, 255, 255, 0.1);
@@ -699,16 +699,17 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
             z-index: 200;
             color: white;
             font-size: 1.5rem;
+            pointer-events: auto;
         }
 
         .coverflow-nav:hover {
             background: rgba(255, 255, 255, 0.2);
             border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-50%) scale(1.1);
+            transform: translateY(-50%) translateZ(0) scale(1.1);
         }
 
         .coverflow-nav.prev {
@@ -1169,15 +1170,21 @@
             }
 
             // Event listeners
-            $('#prevBtn').on('click', function() {
+            $('#prevBtn').on('click', function(e) {
+                e.stopPropagation();
                 const $focusedCard = $('.postcard.focused');
-                if (!$focusedCard.hasClass('flipped')) {
+                if ($focusedCard.length && $focusedCard.hasClass('flipped')) {
+                    navigateWhileFlipped('prev');
+                } else {
                     goPrev();
                 }
             });
-            $('#nextBtn').on('click', function() {
+            $('#nextBtn').on('click', function(e) {
+                e.stopPropagation();
                 const $focusedCard = $('.postcard.focused');
-                if (!$focusedCard.hasClass('flipped')) {
+                if ($focusedCard.length && $focusedCard.hasClass('flipped')) {
+                    navigateWhileFlipped('next');
+                } else {
                     goNext();
                 }
             });

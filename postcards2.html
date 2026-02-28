@@ -118,6 +118,15 @@
             will-change: transform, opacity;
         }
 
+        /* Initial fade-in on page load */
+        .postcard.fade-in-init {
+            opacity: 0 !important;
+            transform: translateY(30px) scale(0.95) !important;
+        }
+        .postcard.fade-in-ready {
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out !important;
+        }
+
         /* Faster transitions during rapid keyboard navigation */
         .coverflow-wrapper.rapid-nav .postcard {
             transition: transform 0.15s ease-out, 
@@ -1118,6 +1127,25 @@
             // Initialize postcards
             concertData.forEach((concert, index) => {
                 $wrapper.append(generatePostcard(concert, index));
+            });
+
+            // Add initial hidden state for fade-in
+            $('.postcard').addClass('fade-in-init');
+
+            // Fade in cards with staggered delay after initial layout
+            requestAnimationFrame(() => {
+                const cards = document.querySelectorAll('.postcard');
+                cards.forEach((card, i) => {
+                    const delay = Math.min(i * 60, 400);
+                    setTimeout(() => {
+                        card.classList.add('fade-in-ready');
+                        card.classList.remove('fade-in-init');
+                    }, delay);
+                });
+                // Remove fade-in transition override after animation completes
+                setTimeout(() => {
+                    cards.forEach(card => card.classList.remove('fade-in-ready'));
+                }, 1200);
             });
 
             // Flip hint timeout handle

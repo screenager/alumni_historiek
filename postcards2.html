@@ -589,7 +589,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.88);
+            background: rgba(0, 0, 0, 0.48);
             z-index: 10000;
             display: flex;
             align-items: center;
@@ -605,6 +605,39 @@
             border: 4px solid #fff;
             object-fit: contain;
             z-index: 10001;
+        }
+
+        .lightbox-content {
+            position: relative;
+            display: inline-block;
+            z-index: 10001;
+        }
+
+        .lightbox-close-btn {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 70px;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 2rem;
+            font-weight: 300;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10002;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .lightbox-close-btn:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: scale(1.1);
         }
 
         /* Navigation arrows */
@@ -1305,8 +1338,11 @@
 
                 // Show overlay with full image instantly (thumbnail as fallback)
                 const $overlay = $('<div class="lightbox-overlay"></div>');
+                const $wrapper = $('<div class="lightbox-content"></div>');
                 const $img = $(`<img class="lightbox-img" src="${thumbSrc}">`);
-                $overlay.append($img);
+                const $closeBtn = $('<button class="lightbox-close-btn" title="Sluiten">&times;</button>');
+                $wrapper.append($img).append($closeBtn);
+                $overlay.append($wrapper);
                 $('body').append($overlay);
 
                 // If there's a different full-res source, preload and swap
@@ -1324,7 +1360,14 @@
                     lightboxOpen = false;
                 }
 
-                $overlay.on('click', closeLightbox);
+                $closeBtn.on('click', function(e) {
+                    e.stopPropagation();
+                    closeLightbox();
+                });
+                // Click on overlay background (outside image) also closes
+                $overlay.on('click', function(e) {
+                    if ($(e.target).hasClass('lightbox-overlay')) closeLightbox();
+                });
                 $(document).one('keydown.lightbox', function(e) {
                     if (e.key === 'Escape') closeLightbox();
                 });

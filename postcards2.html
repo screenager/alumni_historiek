@@ -1197,8 +1197,16 @@
                 // Debounce URL hash update to avoid micro-hangs during rapid navigation
                 if (historyTimer) clearTimeout(historyTimer);
                 historyTimer = setTimeout(() => {
-                    history.replaceState(null, null, '#' + concertData[currentIndex].slug);
+                    updateHash();
                 }, 150);
+            }
+
+            // Helper: update URL hash including flip state
+            function updateHash() {
+                const slug = concertData[currentIndex].slug;
+                const $fc = $(`.postcard[data-index="${currentIndex}"]`);
+                const isFlipped = $fc.length && $fc.hasClass('flipped');
+                history.replaceState(null, null, '#' + slug + (isFlipped ? '/flipped' : ''));
             }
 
             // Navigate to specific index
@@ -1303,6 +1311,7 @@
                     // Focused card - flip it
                     $(`.postcard[data-index="${currentIndex}"]`).toggleClass('flipped');
                     $flipHint.removeClass('visible');
+                    updateHash();
                 } else {
                     // Navigate to clicked card
                     goToIndex(targetIndex);
@@ -1324,6 +1333,7 @@
                         $('.postcard.focused').addClass('flipped');
                         $flipHint.removeClass('visible');
                         flipAfterNavTimer = null;
+                        updateHash();
                     }, 650);
                 }
             }
@@ -1383,6 +1393,7 @@
                     const $focusedCard = $('.postcard.focused');
                     $focusedCard.toggleClass('flipped');
                     $flipHint.removeClass('visible');
+                    updateHash();
                 }
             });
 
@@ -1396,6 +1407,7 @@
                             $('.postcard.focused').addClass('flipped');
                             $flipHint.removeClass('visible');
                             flipAfterNavTimer = null;
+                            updateHash();
                         }, 400);
                     }
                     wasFlippedBeforeHold = false;
@@ -1601,10 +1613,14 @@
                 });
             });
 
-            // Read initial card from URL hash (slug-based)
+            // Read initial card from URL hash (slug-based, with optional /flipped suffix)
             const hash = window.location.hash.replace('#', '');
+            let initialFlipped = false;
             if (hash) {
-                const idx = concertData.findIndex(c => c.slug === hash);
+                const parts = hash.split('/');
+                const slug = parts[0];
+                initialFlipped = parts[1] === 'flipped';
+                const idx = concertData.findIndex(c => c.slug === slug);
                 if (idx !== -1) {
                     currentIndex = idx;
                 }
@@ -1748,6 +1764,14 @@
 
             // Initialize coverflow
             updateCoverflow();
+
+            // If the hash indicated flipped state, flip the focused card after rendering
+            if (initialFlipped) {
+                setTimeout(function() {
+                    $(`.postcard[data-index="${currentIndex}"]`).addClass('flipped');
+                    $flipHint.removeClass('visible');
+                }, 100);
+            }
         }); // end $.getJSON
         }); // end document.ready
     </script>

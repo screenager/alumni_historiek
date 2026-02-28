@@ -65,7 +65,19 @@ function loadConcerts(): array {
 }
 
 function saveConcerts(array $concerts): void {
-    $json = json_encode($concerts, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    $json = json_encode($concerts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+
+    // Compact image objects onto single lines to match original format:
+    //   { "thumb": "...", "full": "..." }
+    $json = preg_replace_callback(
+        '/\{\s*"thumb":\s*"([^"]*)",\s*"full":\s*"([^"]*)"\s*\}/s',
+        fn($m) => '{ "thumb": "' . $m[1] . '", "full": "' . $m[2] . '" }',
+        $json
+    );
+
+    // Ensure trailing newline
+    $json = rtrim($json) . "\n";
+
     file_put_contents(DATA_FILE, $json, LOCK_EX);
 }
 
@@ -233,7 +245,58 @@ switch ($action) {
         }
 
         $oldTitle = $concerts[(int)$index]['title'] ?? '(onbekend)';
-        $concerts[(int)$index] = $data;
+        $oldConcert = $concerts[(int)$index];
+
+        // Preserve original key order: update existing keys in-place,
+        // only add new keys if they have a non-empty value.
+        $original = $concerts[(int)$index];
+        foreach ($data as $key => $value) {
+            if (array_key_exists($key, $original) || ($value !== '' && $value !== null)) {
+                $original[$key] = $value;
+            }
+        }
+        // Remove keys deleted from the form (keep 'images' always)
+        foreach (array_keys($original) as $key) {
+            if ($key !== 'images' && !array_key_exists($key, $data)) {
+                unset($original[$key]);
+            }
+        }
+
+        // Delete removed image files from disk
+        $oldImages = $oldConcert['images'] ?? [];
+        $newImages = $data['images'] ?? [];
+        $newPaths  = array_merge(
+            array_column($newImages, 'thumb'),
+            array_column($newImages, 'full')
+        );
+        $concertFolder = ($oldConcert['year'] ?? '') . '_' . ($oldConcert['slug'] ?? '');
+        if ($concertFolder !== '_') {
+            foreach ($oldImages as $img) {
+                foreach (['thumb', 'full'] as $key) {
+                    $rel = $img[$key] ?? '';
+                    if ($rel && !in_array($rel, $newPaths, true)) {
+                        $absPath = CONCERTS_DIR . '/' . $concertFolder . '/' . $rel;
+                        if (file_exists($absPath)) {
+                            unlink($absPath);
+                            auditLog($user, 'delete_image', "file=$concertFolder/$rel");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Delete poster file if postcard_img was cleared
+        $oldPoster = $oldConcert['postcard_img'] ?? '';
+        $newPoster = $data['postcard_img'] ?? '';
+        if ($oldPoster && !$newPoster) {
+            $posterPath = CONCERTS_DIR . '/' . $oldPoster;
+            if (file_exists($posterPath)) {
+                unlink($posterPath);
+                auditLog($user, 'delete_poster', "file=$oldPoster");
+            }
+        }
+
+        $concerts[(int)$index] = $original;
         saveConcerts($concerts);
 
         auditLog($user, 'update_concert', "index=$index title=\"{$data['title']}\" (was \"$oldTitle\")");
@@ -273,12 +336,95 @@ switch ($action) {
             jsonResponse(['error' => 'Concert niet gevonden'], 404);
         }
 
-        $title = $concerts[(int)$index]['title'] ?? '(onbekend)';
+        $concert = $concerts[(int)$index];
+        $title = $concert['title'] ?? '(onbekend)';
+
+        // Delete associated image files from disk
+        $concertFolder = ($concert['year'] ?? '') . '_' . ($concert['slug'] ?? '');
+        if ($concertFolder !== '_') {
+            foreach ($concert['images'] ?? [] as $img) {
+                foreach (['thumb', 'full'] as $k) {
+                    $rel = $img[$k] ?? '';
+                    if ($rel) {
+                        $absPath = CONCERTS_DIR . '/' . $concertFolder . '/' . $rel;
+                        if (file_exists($absPath)) {
+                            unlink($absPath);
+                        }
+                    }
+                }
+            }
+            // Delete poster
+            $poster = $concert['postcard_img'] ?? '';
+            if ($poster) {
+                $posterPath = CONCERTS_DIR . '/' . $poster;
+                if (file_exists($posterPath)) {
+                    unlink($posterPath);
+                }
+            }
+        }
+
         array_splice($concerts, (int)$index, 1);
         saveConcerts($concerts);
 
         auditLog($user, 'delete_concert', "index=$index title=\"$title\"");
         jsonResponse(['ok' => true]);
+        break;
+
+    // ── UPLOAD POSTER ────────────────────────────────────
+    case 'upload_poster':
+        if ($method !== 'POST') jsonResponse(['error' => 'POST vereist'], 405);
+        $user = requireAuth();
+        requireCsrf();
+
+        $concertFolder = $_POST['folder'] ?? '';
+        if (!$concertFolder || !preg_match('/^[a-z0-9_]+$/i', $concertFolder)) {
+            jsonResponse(['error' => 'Ongeldige concertmap'], 400);
+        }
+
+        $concertDir = CONCERTS_DIR . '/' . $concertFolder;
+        if (!is_dir($concertDir)) {
+            mkdir($concertDir, 0755, true);
+        }
+
+        if (empty($_FILES['poster']) || $_FILES['poster']['error'] !== UPLOAD_ERR_OK) {
+            $code = $_FILES['poster']['error'] ?? 'geen bestand';
+            jsonResponse(['error' => "Upload mislukt (code $code)"], 400);
+        }
+
+        $tmpName = $_FILES['poster']['tmp_name'];
+        $origName = $_FILES['poster']['name'];
+        $info = getimagesize($tmpName);
+        if (!$info || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP, IMAGETYPE_GIF])) {
+            jsonResponse(['error' => 'Geen geldig afbeeldingsformaat'], 400);
+        }
+
+        $src = loadImage($tmpName, $info[2]);
+        if (!$src) {
+            jsonResponse(['error' => 'Kan afbeelding niet laden'], 500);
+        }
+
+        $origW = imagesx($src);
+        $origH = imagesy($src);
+
+        // Resize to 1200px height, maintain aspect ratio
+        $targetH = 1200;
+        $targetW = (int)round($origW * ($targetH / $origH));
+
+        $dest = imagecreatetruecolor($targetW, $targetH);
+        imagecopyresampled($dest, $src, 0, 0, 0, 0, $targetW, $targetH, $origW, $origH);
+
+        $posterPath = $concertDir . '/poster.jpg';
+        imagejpeg($dest, $posterPath, 90);
+        imagedestroy($dest);
+        imagedestroy($src);
+
+        auditLog($user, 'upload_poster', "folder=$concertFolder original=\"$origName\" size={$targetW}x{$targetH}");
+        jsonResponse([
+            'ok' => true,
+            'postcard_img' => $concertFolder . '/poster.jpg',
+            'width' => $targetW,
+            'height' => $targetH
+        ]);
         break;
 
     // ── UPLOAD IMAGES ────────────────────────────────────
@@ -400,11 +546,41 @@ switch ($action) {
 
 // ── Image loading helper ────────────────────────────────
 function loadImage(string $path, int $type): ?GdImage {
-    return match ($type) {
+    $img = match ($type) {
         IMAGETYPE_JPEG => imagecreatefromjpeg($path),
         IMAGETYPE_PNG  => imagecreatefrompng($path),
         IMAGETYPE_WEBP => imagecreatefromwebp($path),
         IMAGETYPE_GIF  => imagecreatefromgif($path),
         default        => null,
     } ?: null;
+
+    if ($img) {
+        $img = fixExifOrientation($img, $path, $type);
+    }
+    return $img;
+}
+
+/**
+ * Read EXIF orientation tag and rotate/flip the image so it
+ * displays correctly regardless of camera orientation metadata.
+ */
+function fixExifOrientation(GdImage $img, string $path, int $type): GdImage {
+    // EXIF data is only embedded in JPEG files
+    if ($type !== IMAGETYPE_JPEG || !function_exists('exif_read_data')) {
+        return $img;
+    }
+    $exif = @exif_read_data($path);
+    if (!$exif || empty($exif['Orientation'])) {
+        return $img;
+    }
+    switch ((int)$exif['Orientation']) {
+        case 2: imageflip($img, IMG_FLIP_HORIZONTAL); break;
+        case 3: $img = imagerotate($img, 180, 0); break;
+        case 4: imageflip($img, IMG_FLIP_VERTICAL); break;
+        case 5: $img = imagerotate($img, -90, 0); imageflip($img, IMG_FLIP_HORIZONTAL); break;
+        case 6: $img = imagerotate($img, -90, 0); break;
+        case 7: $img = imagerotate($img, 90, 0); imageflip($img, IMG_FLIP_HORIZONTAL); break;
+        case 8: $img = imagerotate($img, 90, 0); break;
+    }
+    return $img;
 }

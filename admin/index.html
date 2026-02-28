@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin — Alumni Arenbergorkest</title>
+    <title>Admin historiek - Alumni Arenbergorkest</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -28,6 +28,10 @@
         .upload-progress { height: 4px; border-radius: 2px; background: #2a2a4a; overflow: hidden; }
         .upload-progress-bar { height: 100%; background: #667eea; transition: width .3s; }
         .thumb-preview { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #3a3a5a; }
+        .drag-handle { cursor: grab; opacity: .5; font-size: 1.2rem; user-select: none; }
+        .drag-handle:active { cursor: grabbing; }
+        .image-row.dragging { opacity: .3; }
+        .image-row.drag-over-row { border-top: 2px solid #667eea; }
     </style>
 </head>
 <body>
@@ -54,7 +58,7 @@
 
     <!-- Top bar -->
     <nav class="navbar navbar-dark-custom px-4 py-2 sticky-top shadow-sm">
-        <span class="navbar-brand fw-bold mb-0">Alumni Arenbergorkest — Concertbeheer</span>
+        <span class="navbar-brand fw-bold mb-0 text-white">Alumni Arenbergorkest — Historiek beheer</span>
         <div class="d-flex align-items-center gap-3">
             <span id="currentUser" class="text-secondary small"></span>
             <button onclick="doLogout()" class="btn btn-sm btn-outline-light">Uitloggen</button>
@@ -87,11 +91,11 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label small text-secondary">Jaar</label>
-                            <input name="year" type="text" class="form-control form-control-lg" required>
+                            <label class="form-label small text-secondary">Jaar <span class="text-danger">*</span></label>
+                            <input name="year" type="number" min="1900" max="2099" class="form-control form-control-lg" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small text-secondary">Seizoen</label>
+                            <label class="form-label small text-secondary">Seizoen <span class="text-danger">*</span></label>
                             <select name="season" class="form-select form-select-lg" required>
                                 <option value="">-- kies --</option>
                                 <option value="jan">jan</option><option value="feb">feb</option>
@@ -105,12 +109,13 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small text-secondary">Titel</label>
+                        <label class="form-label small text-secondary">Titel <span class="text-danger">*</span></label>
                         <input name="title" type="text" class="form-control form-control-lg" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small text-secondary">Slug</label>
-                        <input name="slug" type="text" class="form-control form-control-lg" required>
+                        <label class="form-label small text-secondary">Slug <span class="text-danger">*</span></label>
+                        <input name="slug" type="text" class="form-control form-control-lg" required pattern="[a-z0-9]+" title="Alleen kleine letters en cijfers">
+                        <div class="form-text text-secondary">Korte naam zonder spaties, gebruikt als mapnaam en in de URL (bv. "belleepoque", "hansjegriet"). Combinatie van jaar + slug wordt de concertmap (bv. 2025_hansjegriet).</div>
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -132,10 +137,7 @@
                             <input name="locations" type="text" class="form-control form-control-lg">
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-secondary">Postcard afbeelding</label>
-                        <input name="postcard_img" type="text" class="form-control form-control-lg" placeholder="bv. 2025_hansjegriet/poster.jpg">
-                    </div>
+                    <input name="postcard_img" type="hidden">
                     <div class="mb-3">
                         <label class="form-label small text-secondary">Beschrijving</label>
                         <textarea name="text" class="form-control form-control-lg" rows="4"></textarea>
@@ -164,6 +166,25 @@
                             <option value="">Nee</option>
                             <option value="ja">Ja</option>
                         </select>
+                    </div>
+
+                    <!-- Poster upload -->
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Poster</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <img id="posterPreview" src="" class="rounded border border-secondary" style="height:120px; display:none; object-fit:contain;">
+                            <div class="flex-grow-1">
+                                <div id="posterUploadZone" class="upload-zone py-3" onclick="document.getElementById('posterFileInput').click()">
+                                    <input type="file" id="posterFileInput" accept="image/jpeg,image/png,image/webp,image/gif">
+                                    <p class="mb-1 small fw-medium">Klik of sleep een poster hierheen</p>
+                                    <p class="small text-secondary mb-0">Wordt herschaald naar 1200px hoog (als poster.jpg)</p>
+                                </div>
+                                <div id="posterProgress" class="upload-progress mt-2 d-none">
+                                    <div id="posterProgressBar" class="upload-progress-bar" style="width:0%"></div>
+                                </div>
+                                <div id="posterStatus" class="small mt-2"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Images section -->
@@ -289,9 +310,18 @@ async function loadConcerts() {
     renderList();
 }
 
+const MONTH_ORDER = {jan:1,feb:2,mrt:3,apr:4,mei:5,jun:6,jul:7,aug:8,sep:9,okt:10,nov:11,dec:12};
+
 function renderList() {
     const container = document.getElementById('concertList');
-    container.innerHTML = concerts.map((c, i) => `
+    // Build index array and sort newest-first by year then season
+    const sorted = concerts.map((c, i) => ({concert: c, idx: i}))
+        .sort((a, b) => {
+            const yDiff = (parseInt(b.concert.year) || 0) - (parseInt(a.concert.year) || 0);
+            if (yDiff !== 0) return yDiff;
+            return (MONTH_ORDER[b.concert.season] || 0) - (MONTH_ORDER[a.concert.season] || 0);
+        });
+    container.innerHTML = sorted.map(({concert: c, idx: i}) => `
         <div class="concert-card p-3 mb-2 d-flex align-items-center justify-content-between fade-in">
             <div class="flex-grow-1 text-truncate me-3">
                 <div class="d-flex align-items-center gap-2">
@@ -311,7 +341,7 @@ function renderList() {
 }
 
 // ── Edit / Add modal ───────────────────────────────────
-const FIELDS = ['year','season','title','slug','director','director_url','dates','locations','postcard_img','text','Repertoire','coorporation_label','coorporation','coorporation_url','pdf'];
+const FIELDS = ['year','season','title','slug','postcard_img','director','director_url','dates','locations','text','Repertoire','coorporation_label','coorporation','coorporation_url','pdf'];
 
 function openEditForm(index) {
     const c = concerts[index];
@@ -338,6 +368,22 @@ function openAddForm() {
 function clearUploadState() {
     document.getElementById('uploadStatus').innerHTML = '';
     document.getElementById('uploadProgress').classList.add('d-none');
+    document.getElementById('posterStatus').innerHTML = '';
+    document.getElementById('posterProgress').classList.add('d-none');
+    // Show poster preview if concert has one
+    updatePosterPreview();
+}
+
+function updatePosterPreview() {
+    const folder = getConcertFolder();
+    const img = document.getElementById('posterPreview');
+    if (folder) {
+        img.src = `../concerts/${folder}/poster.jpg?t=${Date.now()}`;
+        img.style.display = '';
+        img.onerror = () => { img.style.display = 'none'; };
+    } else {
+        img.style.display = 'none';
+    }
 }
 
 // Image rows — display existing images with thumbnail preview
@@ -348,15 +394,18 @@ function renderImages(images) {
         cont.innerHTML = '<div class="text-secondary small fst-italic">Nog geen afbeeldingen</div>';
         return;
     }
-    images.forEach((img, idx) => {
+    // Render in reverse order so admin matches frontend display
+    [...images].reverse().forEach((img, idx) => {
         const row = document.createElement('div');
-        row.className = 'row g-2 mb-2 align-items-center';
+        row.className = 'row g-2 mb-2 align-items-center image-row';
+        row.draggable = true;
         row.dataset.thumb = img.thumb;
         row.dataset.full = img.full;
         // Build thumbnail src — concert folder derived from year_slug
         const folder = getConcertFolder();
         const thumbSrc = folder ? `../concerts/${folder}/${img.thumb}` : '';
         row.innerHTML = `
+            <div class="col-auto drag-handle" title="Versleep om te herordenen">&#x2630;</div>
             <div class="col-auto">
                 ${thumbSrc ? `<img src="${escAttr(thumbSrc)}" class="thumb-preview" onerror="this.style.display='none'">` : ''}
             </div>
@@ -370,6 +419,7 @@ function renderImages(images) {
                 <button type="button" onclick="this.closest('.row').remove()" class="btn btn-sm btn-outline-danger" title="Verwijderen">✕</button>
             </div>
         `;
+        initImageRowDrag(row);
         cont.appendChild(row);
     });
 }
@@ -383,10 +433,12 @@ function addImageRow(thumb, full) {
     const folder = getConcertFolder();
     const thumbSrc = folder ? `../concerts/${folder}/${thumb}` : '';
     const row = document.createElement('div');
-    row.className = 'row g-2 mb-2 align-items-center fade-in';
+    row.className = 'row g-2 mb-2 align-items-center fade-in image-row';
+    row.draggable = true;
     row.dataset.thumb = thumb;
     row.dataset.full = full;
     row.innerHTML = `
+        <div class="col-auto drag-handle" title="Versleep om te herordenen">&#x2630;</div>
         <div class="col-auto">
             ${thumbSrc ? `<img src="${escAttr(thumbSrc)}" class="thumb-preview">` : ''}
         </div>
@@ -400,6 +452,7 @@ function addImageRow(thumb, full) {
             <button type="button" onclick="this.closest('.row').remove()" class="btn btn-sm btn-outline-danger" title="Verwijderen">✕</button>
         </div>
     `;
+    initImageRowDrag(row);
     cont.appendChild(row);
 }
 
@@ -409,7 +462,114 @@ function getConcertFolder() {
     return (year && slug) ? `${year}_${slug}` : '';
 }
 
-// ── Upload handling ────────────────────────────────────
+// ── Drag-and-drop reordering for image rows ────────────
+let dragSrcRow = null;
+
+function initImageRowDrag(row) {
+    row.addEventListener('dragstart', e => {
+        dragSrcRow = row;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', ''); // required for Firefox
+    });
+    row.addEventListener('dragend', () => {
+        dragSrcRow = null;
+        row.classList.remove('dragging');
+        document.querySelectorAll('#imagesList .drag-over-row').forEach(r => r.classList.remove('drag-over-row'));
+    });
+    row.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (dragSrcRow && dragSrcRow !== row) {
+            row.classList.add('drag-over-row');
+        }
+    });
+    row.addEventListener('dragleave', () => {
+        row.classList.remove('drag-over-row');
+    });
+    row.addEventListener('drop', e => {
+        e.preventDefault();
+        row.classList.remove('drag-over-row');
+        if (!dragSrcRow || dragSrcRow === row) return;
+        const cont = document.getElementById('imagesList');
+        const rows = [...cont.querySelectorAll('.image-row')];
+        const fromIdx = rows.indexOf(dragSrcRow);
+        const toIdx = rows.indexOf(row);
+        if (fromIdx < toIdx) {
+            cont.insertBefore(dragSrcRow, row.nextSibling);
+        } else {
+            cont.insertBefore(dragSrcRow, row);
+        }
+    });
+}
+
+// ── Poster upload handling ─────────────────────────────
+const posterUploadZone = document.getElementById('posterUploadZone');
+const posterFileInput  = document.getElementById('posterFileInput');
+
+posterUploadZone.addEventListener('dragover', e => { e.preventDefault(); posterUploadZone.classList.add('drag-over'); });
+posterUploadZone.addEventListener('dragleave', () => posterUploadZone.classList.remove('drag-over'));
+posterUploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    posterUploadZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) handlePosterUpload(e.dataTransfer.files[0]);
+});
+posterFileInput.addEventListener('change', () => {
+    if (posterFileInput.files.length) handlePosterUpload(posterFileInput.files[0]);
+    posterFileInput.value = '';
+});
+
+async function handlePosterUpload(file) {
+    const folder = getConcertFolder();
+    if (!folder) { toast('Vul eerst Jaar en Slug in vóór je een poster uploadt', 'warning'); return; }
+
+    const progressWrap = document.getElementById('posterProgress');
+    const progressBar  = document.getElementById('posterProgressBar');
+    const statusEl     = document.getElementById('posterStatus');
+
+    progressWrap.classList.remove('d-none');
+    progressBar.style.width = '0%';
+    statusEl.innerHTML = '<span class="text-info">⏳ Poster uploaden en verwerken...</span>';
+
+    const formData = new FormData();
+    formData.append('folder', folder);
+    formData.append('poster', file);
+
+    try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${API}?action=upload_poster`);
+        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+
+        xhr.upload.addEventListener('progress', e => {
+            if (e.lengthComputable) progressBar.style.width = Math.round((e.loaded / e.total) * 100) + '%';
+        });
+
+        const result = await new Promise((resolve, reject) => {
+            xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch { reject(new Error('Ongeldig antwoord')); } };
+            xhr.onerror = () => reject(new Error('Netwerkfout'));
+            xhr.send(formData);
+        });
+
+        progressWrap.classList.add('d-none');
+
+        if (!result.ok) {
+            statusEl.innerHTML = `<span class="text-danger">❌ ${escHtml(result.error)}</span>`;
+            return;
+        }
+
+        // Update postcard_img field and preview
+        const postcardField = document.querySelector('#concertForm [name="postcard_img"]');
+        if (postcardField) postcardField.value = result.postcard_img;
+        updatePosterPreview();
+        statusEl.innerHTML = `<span class="text-success">✅ Poster opgeslagen (${result.width}×${result.height})</span>`;
+        setTimeout(() => statusEl.innerHTML = '', 5000);
+    } catch (err) {
+        progressWrap.classList.add('d-none');
+        statusEl.innerHTML = `<span class="text-danger">❌ ${escHtml(err.message)}</span>`;
+    }
+}
+
+// ── Photo upload handling ──────────────────────────────
 const uploadZone = document.getElementById('uploadZone');
 const fileInput  = document.getElementById('fileInput');
 
@@ -517,7 +677,7 @@ async function doSubmit() {
         data[f] = form.querySelector(`[name="${f}"]`).value;
     });
 
-    const thumbs = form.querySelectorAll('#imagesList .row');
+    const thumbs = [...form.querySelectorAll('#imagesList .image-row')].reverse();
     data.images = [];
     thumbs.forEach(row => {
         const th = row.dataset.thumb || row.querySelector('.img-thumb')?.value?.trim() || '';

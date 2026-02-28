@@ -1084,13 +1084,13 @@
                                 <div class="postcard-back-content">
                                     <div class="postcard-back-left${textHtml && concert.text.trim().length >= 50 ? ' equal-heights' : ''}">
                                         ${textHtml ? `<div class="postcard-back-text" data-custom-scroll>${textHtml}</div><div class="text-repertoire-spacer"></div>` : ''}
-                                        <div class="postcard-back-repertoire-label">Repertoire</div>
-                                        ${repertoireHtml ? `<div class="postcard-back-repertoire" data-custom-scroll>${repertoireHtml}</div>` : '<div class="postcard-back-repertoire" data-custom-scroll><p>Geen repertoire beschikbaar.</p></div>'}
+                                        ${repertoireHtml ? `<div class="postcard-back-repertoire-label">Repertoire</div>
+                                        <div class="postcard-back-repertoire" data-custom-scroll>${repertoireHtml}</div>` : ''}
                                         <div class="postcard-back-bottom-row">
-                                            <div class="postcard-back-director">
+                                            ${concert.director ? `<div class="postcard-back-director">
                                                 <div class="bottom-label">Dirigent</div>
                                                 ${concert.director}
-                                            </div>
+                                            </div>` : ''}
                                             ${concert.coorporation ? `<div class="postcard-back-coorporation">
                                                 <div class="bottom-label">${concert.coorporation_label || 'Medewerking'}</div>
                                                 ${concert.coorporation}
@@ -1103,7 +1103,7 @@
                                             <span>${concert.year}</span>
                                         </div>
                                         <div class="postcard-back-title">${concert.title}</div>
-                                        <div class="postcard-back-date">${concert.dates} ${concert.year} - ${concert.locations}</div>
+                                        <div class="postcard-back-date">${[concert.dates, concert.season, concert.year].filter(Boolean).join(' ')}${concert.locations ? ' - ' + concert.locations : ''}</div>
                                         <div class="postcard-back-images">
                                             ${imagesHtml}
                                         </div>

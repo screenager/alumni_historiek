@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Alumni Arenbergorkest</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #1a1a2e; color: #e0e0e0; }
+        .fade-in { animation: fadeIn .3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        .form-control, .form-select { color: #000 !important; background-color: #fff !important; }
+        .form-control::placeholder { color: #999 !important; }
+        textarea.form-control { min-height: 90px; }
+        .concert-card { background: #16213e; border: 1px solid #2a2a4a; border-radius: 12px; transition: background .2s; }
+        .concert-card:hover { background: #1a2745; }
+        .navbar-dark-custom { background: #0f3460; }
+        .modal-content { background: #16213e; color: #e0e0e0; }
+        .modal-header { border-bottom: 1px solid #2a2a4a; }
+        .modal-footer { border-top: 1px solid #2a2a4a; }
+        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; }
+        /* Upload zone */
+        .upload-zone { border: 2px dashed #4a5568; border-radius: 12px; padding: 2rem; text-align: center;
+                       cursor: pointer; transition: all .2s; background: rgba(255,255,255,0.03); }
+        .upload-zone:hover, .upload-zone.drag-over { border-color: #667eea; background: rgba(102,126,234,0.08); }
+        .upload-zone input[type="file"] { display: none; }
+        .upload-progress { height: 4px; border-radius: 2px; background: #2a2a4a; overflow: hidden; }
+        .upload-progress-bar { height: 100%; background: #667eea; transition: width .3s; }
+        .thumb-preview { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #3a3a5a; }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="loginScreen" class="d-flex align-items-center justify-content-center min-vh-100">
+    <form id="loginForm" class="p-5 rounded-4 shadow-lg fade-in" style="background:#16213e; width:100%; max-width:420px;">
+        <h1 class="h3 fw-bold text-center mb-4">🔒 Admin Login</h1>
+        <div id="loginError" class="alert alert-danger d-none small"></div>
+        <div class="mb-3">
+            <label class="form-label small text-secondary">Gebruikersnaam</label>
+            <input id="username" type="text" class="form-control form-control-lg" required autofocus>
+        </div>
+        <div class="mb-4">
+            <label class="form-label small text-secondary">Wachtwoord</label>
+            <input id="password" type="password" class="form-control form-control-lg" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg w-100">Inloggen</button>
+    </form>
+</div>
+
+<!-- ═══════════════ ADMIN PANEL ═══════════════ -->
+<div id="adminPanel" class="d-none">
+
+    <!-- Top bar -->
+    <nav class="navbar navbar-dark-custom px-4 py-2 sticky-top shadow-sm">
+        <span class="navbar-brand fw-bold mb-0">Alumni Arenbergorkest — Concertbeheer</span>
+        <div class="d-flex align-items-center gap-3">
+            <span id="currentUser" class="text-secondary small"></span>
+            <button onclick="doLogout()" class="btn btn-sm btn-outline-light">Uitloggen</button>
+        </div>
+    </nav>
+
+    <div class="container py-4" style="max-width:960px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 fw-semibold mb-0">Concerten</h2>
+            <button onclick="openAddForm()" class="btn btn-success d-flex align-items-center gap-2">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Nieuw concert
+            </button>
+        </div>
+        <div id="concertList"></div>
+    </div>
+</div>
+
+<!-- ═══════════════ EDIT / ADD MODAL ═══════════════ -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header px-4 py-3">
+                <h5 id="modalTitle" class="modal-title fw-bold">Concert bewerken</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 py-4">
+                <form id="concertForm">
+                    <input type="hidden" id="editIndex">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Jaar</label>
+                            <input name="year" type="text" class="form-control form-control-lg" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Seizoen</label>
+                            <select name="season" class="form-select form-select-lg" required>
+                                <option value="">-- kies --</option>
+                                <option value="jan">jan</option><option value="feb">feb</option>
+                                <option value="mrt">mrt</option><option value="apr">apr</option>
+                                <option value="mei">mei</option><option value="jun">jun</option>
+                                <option value="jul">jul</option><option value="aug">aug</option>
+                                <option value="sep">sep</option><option value="okt">okt</option>
+                                <option value="nov">nov</option><option value="dec">dec</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Titel</label>
+                        <input name="title" type="text" class="form-control form-control-lg" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Slug</label>
+                        <input name="slug" type="text" class="form-control form-control-lg" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Dirigent</label>
+                            <input name="director" type="text" class="form-control form-control-lg">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Dirigent URL</label>
+                            <input name="director_url" type="text" class="form-control form-control-lg">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Data</label>
+                            <input name="dates" type="text" class="form-control form-control-lg" placeholder="bv. 29, 30 nov">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Locatie(s)</label>
+                            <input name="locations" type="text" class="form-control form-control-lg">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Postcard afbeelding</label>
+                        <input name="postcard_img" type="text" class="form-control form-control-lg" placeholder="bv. 2025_hansjegriet/poster.jpg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Beschrijving</label>
+                        <textarea name="text" class="form-control form-control-lg" rows="4"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Repertoire</label>
+                        <textarea name="Repertoire" class="form-control form-control-lg" rows="5"></textarea>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Samenwerking label</label>
+                            <input name="coorporation_label" type="text" class="form-control form-control-lg" placeholder="bv. Solist, Verteller">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Samenwerking</label>
+                            <input name="coorporation" type="text" class="form-control form-control-lg">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Samenwerking URL</label>
+                        <input name="coorporation_url" type="text" class="form-control form-control-lg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">PDF beschikbaar</label>
+                        <select name="pdf" class="form-select form-select-lg">
+                            <option value="">Nee</option>
+                            <option value="ja">Ja</option>
+                        </select>
+                    </div>
+
+                    <!-- Images section -->
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Bestaande afbeeldingen</label>
+                        <div id="imagesList" class="mb-2"></div>
+                    </div>
+
+                    <!-- Upload zone -->
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Nieuwe foto's uploaden</label>
+                        <div id="uploadZone" class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+                            <div class="mb-2">
+                                <svg width="40" height="40" fill="none" stroke="#667eea" viewBox="0 0 24 24" style="opacity:.7">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 14v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>
+                                </svg>
+                            </div>
+                            <p class="mb-1 fw-medium">Klik of sleep foto's hierheen</p>
+                            <p class="small text-secondary mb-0">JPEG, PNG, WebP of GIF — wordt automatisch verwerkt naar 1600px full + 400×300 thumbnail</p>
+                        </div>
+                        <div id="uploadProgress" class="upload-progress mt-2 d-none">
+                            <div id="uploadProgressBar" class="upload-progress-bar" style="width:0%"></div>
+                        </div>
+                        <div id="uploadStatus" class="small mt-2"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer px-4 py-3">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+                <button type="button" onclick="submitForm()" class="btn btn-primary btn-lg px-5">Opslaan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ CONFIRM DELETE MODAL ═══════════════ -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow text-center p-4">
+            <h5 class="fw-bold mb-2">Concert verwijderen?</h5>
+            <p id="deleteText" class="text-secondary mb-4"></p>
+            <div class="d-flex justify-content-center gap-3">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+                <button onclick="confirmDelete()" class="btn btn-danger">Verwijderen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div class="toast-container">
+    <div id="liveToast" class="toast align-items-center border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body" id="toastBody"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = 'api.php';
+let concerts = [];
+let deleteIndex = null;
+let csrfToken = '';
+
+const editModalEl = document.getElementById('editModal');
+const editModalBS = new bootstrap.Modal(editModalEl);
+const deleteModalEl = document.getElementById('deleteModal');
+const deleteModalBS = new bootstrap.Modal(deleteModalEl);
+
+// ── Auth ───────────────────────────────────────────────
+document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errBox = document.getElementById('loginError');
+    errBox.classList.add('d-none');
+
+    const res = await fetch(`${API}?action=login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+        errBox.textContent = data.error;
+        errBox.classList.remove('d-none');
+        return;
+    }
+    if (data.csrf_token) csrfToken = data.csrf_token;
+    showAdmin(data.user);
+});
+
+async function checkSession() {
+    const res = await fetch(`${API}?action=status`);
+    const data = await res.json();
+    if (data.loggedIn) {
+        if (data.csrf_token) csrfToken = data.csrf_token;
+        showAdmin(data.user);
+    }
+}
+
+function showAdmin(user) {
+    document.getElementById('loginScreen').classList.add('d-none');
+    document.getElementById('adminPanel').classList.remove('d-none');
+    document.getElementById('currentUser').textContent = user;
+    loadConcerts();
+}
+
+async function doLogout() {
+    await fetch(`${API}?action=logout`);
+    location.reload();
+}
+
+// ── Concert list ───────────────────────────────────────
+async function loadConcerts() {
+    const res = await fetch(`${API}?action=list`);
+    concerts = await res.json();
+    renderList();
+}
+
+function renderList() {
+    const container = document.getElementById('concertList');
+    container.innerHTML = concerts.map((c, i) => `
+        <div class="concert-card p-3 mb-2 d-flex align-items-center justify-content-between fade-in">
+            <div class="flex-grow-1 text-truncate me-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-secondary font-monospace">${c.year} ${c.season}</span>
+                    <span class="fw-semibold text-truncate">${escHtml(c.title)}</span>
+                </div>
+                <div class="small text-secondary mt-1 text-truncate">
+                    ${escHtml(c.director || '')}${c.dates ? ' — ' + escHtml(c.dates) : ''} ${c.locations ? '@ ' + escHtml(c.locations) : ''}
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-shrink-0">
+                <button onclick="openEditForm(${i})" class="btn btn-sm btn-outline-primary" title="Bewerken">✏️</button>
+                <button onclick="openDeleteModal(${i})" class="btn btn-sm btn-outline-danger" title="Verwijderen">🗑️</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ── Edit / Add modal ───────────────────────────────────
+const FIELDS = ['year','season','title','slug','director','director_url','dates','locations','postcard_img','text','Repertoire','coorporation_label','coorporation','coorporation_url','pdf'];
+
+function openEditForm(index) {
+    const c = concerts[index];
+    document.getElementById('editIndex').value = index;
+    document.getElementById('modalTitle').textContent = 'Concert bewerken';
+    FIELDS.forEach(f => {
+        const el = document.querySelector(`#concertForm [name="${f}"]`);
+        if (el) el.value = c[f] || '';
+    });
+    renderImages(c.images || []);
+    clearUploadState();
+    editModalBS.show();
+}
+
+function openAddForm() {
+    document.getElementById('editIndex').value = '';
+    document.getElementById('modalTitle').textContent = 'Nieuw concert';
+    document.getElementById('concertForm').reset();
+    renderImages([]);
+    clearUploadState();
+    editModalBS.show();
+}
+
+function clearUploadState() {
+    document.getElementById('uploadStatus').innerHTML = '';
+    document.getElementById('uploadProgress').classList.add('d-none');
+}
+
+// Image rows — display existing images with thumbnail preview
+function renderImages(images) {
+    const cont = document.getElementById('imagesList');
+    cont.innerHTML = '';
+    if (images.length === 0) {
+        cont.innerHTML = '<div class="text-secondary small fst-italic">Nog geen afbeeldingen</div>';
+        return;
+    }
+    images.forEach((img, idx) => {
+        const row = document.createElement('div');
+        row.className = 'row g-2 mb-2 align-items-center';
+        row.dataset.thumb = img.thumb;
+        row.dataset.full = img.full;
+        // Build thumbnail src — concert folder derived from year_slug
+        const folder = getConcertFolder();
+        const thumbSrc = folder ? `../concerts/${folder}/${img.thumb}` : '';
+        row.innerHTML = `
+            <div class="col-auto">
+                ${thumbSrc ? `<img src="${escAttr(thumbSrc)}" class="thumb-preview" onerror="this.style.display='none'">` : ''}
+            </div>
+            <div class="col">
+                <input type="text" value="${escAttr(img.thumb)}" class="form-control form-control-sm img-thumb" readonly>
+            </div>
+            <div class="col">
+                <input type="text" value="${escAttr(img.full)}" class="form-control form-control-sm img-full" readonly>
+            </div>
+            <div class="col-auto">
+                <button type="button" onclick="this.closest('.row').remove()" class="btn btn-sm btn-outline-danger" title="Verwijderen">✕</button>
+            </div>
+        `;
+        cont.appendChild(row);
+    });
+}
+
+function addImageRow(thumb, full) {
+    const cont = document.getElementById('imagesList');
+    // Remove "no images" placeholder if present
+    const placeholder = cont.querySelector('.fst-italic');
+    if (placeholder) placeholder.remove();
+
+    const folder = getConcertFolder();
+    const thumbSrc = folder ? `../concerts/${folder}/${thumb}` : '';
+    const row = document.createElement('div');
+    row.className = 'row g-2 mb-2 align-items-center fade-in';
+    row.dataset.thumb = thumb;
+    row.dataset.full = full;
+    row.innerHTML = `
+        <div class="col-auto">
+            ${thumbSrc ? `<img src="${escAttr(thumbSrc)}" class="thumb-preview">` : ''}
+        </div>
+        <div class="col">
+            <input type="text" value="${escAttr(thumb)}" class="form-control form-control-sm img-thumb" readonly>
+        </div>
+        <div class="col">
+            <input type="text" value="${escAttr(full)}" class="form-control form-control-sm img-full" readonly>
+        </div>
+        <div class="col-auto">
+            <button type="button" onclick="this.closest('.row').remove()" class="btn btn-sm btn-outline-danger" title="Verwijderen">✕</button>
+        </div>
+    `;
+    cont.appendChild(row);
+}
+
+function getConcertFolder() {
+    const year = document.querySelector('#concertForm [name="year"]')?.value || '';
+    const slug = document.querySelector('#concertForm [name="slug"]')?.value || '';
+    return (year && slug) ? `${year}_${slug}` : '';
+}
+
+// ── Upload handling ────────────────────────────────────
+const uploadZone = document.getElementById('uploadZone');
+const fileInput  = document.getElementById('fileInput');
+
+// Drag & drop
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) handleUpload(e.dataTransfer.files);
+});
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) handleUpload(fileInput.files);
+    fileInput.value = ''; // reset so same file can be re-selected
+});
+
+async function handleUpload(files) {
+    const folder = getConcertFolder();
+    if (!folder) {
+        toast('Vul eerst Jaar en Slug in vóór je foto\'s uploadt', 'warning');
+        return;
+    }
+
+    const progressWrap = document.getElementById('uploadProgress');
+    const progressBar  = document.getElementById('uploadProgressBar');
+    const statusEl     = document.getElementById('uploadStatus');
+
+    progressWrap.classList.remove('d-none');
+    progressBar.style.width = '0%';
+    statusEl.innerHTML = `<span class="text-info">⏳ ${files.length} foto('s) uploaden en verwerken...</span>`;
+
+    const formData = new FormData();
+    formData.append('folder', folder);
+    for (let i = 0; i < files.length; i++) {
+        formData.append('images[]', files[i]);
+    }
+
+    try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${API}?action=upload`);
+        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+
+        xhr.upload.addEventListener('progress', e => {
+            if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = pct + '%';
+            }
+        });
+
+        const result = await new Promise((resolve, reject) => {
+            xhr.onload = () => {
+                try { resolve(JSON.parse(xhr.responseText)); }
+                catch { reject(new Error('Ongeldig antwoord')); }
+            };
+            xhr.onerror = () => reject(new Error('Netwerkfout'));
+            xhr.send(formData);
+        });
+
+        progressWrap.classList.add('d-none');
+
+        if (!result.ok) {
+            statusEl.innerHTML = `<span class="text-danger">❌ ${escHtml(result.error)}</span>`;
+            return;
+        }
+
+        let successCount = 0;
+        let errors = [];
+        result.images.forEach(img => {
+            if (img.error) {
+                errors.push(img.error);
+            } else {
+                addImageRow(img.thumb, img.full);
+                successCount++;
+            }
+        });
+
+        let msg = `<span class="text-success">✅ ${successCount} foto('s) verwerkt</span>`;
+        if (errors.length) {
+            msg += `<br><span class="text-danger">⚠️ ${errors.join(', ')}</span>`;
+        }
+        statusEl.innerHTML = msg;
+        setTimeout(() => statusEl.innerHTML = '', 5000);
+
+    } catch (err) {
+        progressWrap.classList.add('d-none');
+        statusEl.innerHTML = `<span class="text-danger">❌ ${escHtml(err.message)}</span>`;
+    }
+}
+
+// ── Form submit ────────────────────────────────────────
+function submitForm() {
+    const form = document.getElementById('concertForm');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    doSubmit();
+}
+
+async function doSubmit() {
+    const form = document.getElementById('concertForm');
+    const indexVal = document.getElementById('editIndex').value;
+    const isEdit = indexVal !== '';
+
+    const data = {};
+    FIELDS.forEach(f => {
+        data[f] = form.querySelector(`[name="${f}"]`).value;
+    });
+
+    const thumbs = form.querySelectorAll('#imagesList .row');
+    data.images = [];
+    thumbs.forEach(row => {
+        const th = row.dataset.thumb || row.querySelector('.img-thumb')?.value?.trim() || '';
+        const fl = row.dataset.full || row.querySelector('.img-full')?.value?.trim() || '';
+        if (th || fl) data.images.push({ thumb: th, full: fl });
+    });
+
+    let res;
+    if (isEdit) {
+        res = await fetch(`${API}?action=update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            body: JSON.stringify({ index: parseInt(indexVal), data })
+        });
+    } else {
+        res = await fetch(`${API}?action=add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            body: JSON.stringify(data)
+        });
+    }
+
+    const result = await res.json();
+    if (!res.ok) { toast(result.error, 'danger'); return; }
+
+    editModalBS.hide();
+    toast(isEdit ? 'Concert bijgewerkt!' : 'Concert toegevoegd!', 'success');
+    loadConcerts();
+}
+
+// ── Delete ─────────────────────────────────────────────
+function openDeleteModal(index) {
+    deleteIndex = index;
+    document.getElementById('deleteText').textContent = `"${concerts[index].title}" wordt permanent verwijderd.`;
+    deleteModalBS.show();
+}
+
+async function confirmDelete() {
+    if (deleteIndex === null) return;
+    const res = await fetch(`${API}?action=delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify({ index: deleteIndex })
+    });
+    const result = await res.json();
+    deleteModalBS.hide();
+    if (!res.ok) { toast(result.error, 'danger'); return; }
+    toast('Concert verwijderd', 'success');
+    deleteIndex = null;
+    loadConcerts();
+}
+
+// ── Toast ──────────────────────────────────────────────
+function toast(msg, type = 'success') {
+    const el = document.getElementById('liveToast');
+    el.className = `toast align-items-center border-0 text-bg-${type}`;
+    document.getElementById('toastBody').textContent = msg;
+    bootstrap.Toast.getOrCreateInstance(el, { delay: 3000 }).show();
+}
+
+// ── Helpers ────────────────────────────────────────────
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function escAttr(s) { return s.replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+// ── Init ───────────────────────────────────────────────
+checkSession();
+</script>
+
+</body>
+</html>

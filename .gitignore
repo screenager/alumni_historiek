@@ -1,0 +1,11 @@
+# Private data — never commit
+private/passwd
+private/audit.log
+private/rate_limits.json
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -115,6 +115,27 @@
             margin-top: -325px;
             pointer-events: auto;
             filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.25));
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+        }
+
+        /* Faster transitions during rapid keyboard navigation */
+        .coverflow-wrapper.rapid-nav .postcard {
+            transition: transform 0.15s ease-out, 
+                        opacity 0.1s ease-out,
+                        z-index 0s !important;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2)) !important;
+        }
+        .coverflow-wrapper.rapid-nav .postcard.focused {
+            transition: transform 0.15s ease-out, 
+                        opacity 0.1s ease-out,
+                        z-index 0s !important;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2)) !important;
+        }
+        /* Disable hover effects during rapid scroll to prevent extra repaints */
+        .coverflow-wrapper.rapid-nav .postcard:not(.focused):hover {
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2)) !important;
+            transform: none;
         }
 
         .postcard.focused {
@@ -1089,60 +1110,94 @@
                 $wrapper.append(generatePostcard(concert, index));
             });
 
+            // Flip hint timeout handle
+            let flipHintTimer = null;
+            // History debounce timer
+            let historyTimer = null;
+            // Rapid navigation state
+            let rapidNavTimer = null;
+
+            // Cache postcard DOM elements once after they're created
+            let postcardEls = null;
+            function getPostcardEls() {
+                if (!postcardEls) {
+                    postcardEls = document.querySelectorAll('.postcard');
+                }
+                return postcardEls;
+            }
+
             // Position postcards in coverflow style
             function updateCoverflow() {
-                $('.postcard').each(function(index) {
-                    const $card = $(this);
-                    const offset = index - currentIndex;
+                const cards = getPostcardEls();
+                const len = cards.length;
+                // Only update cards within visible range (±6), skip far-away ones
+                const visibleRange = 6;
+
+                for (let i = 0; i < len; i++) {
+                    const el = cards[i];
+                    const offset = i - currentIndex;
                     const absOffset = Math.abs(offset);
 
-                    // Calculate transform values - improved for better visibility and clicking
-                    let translateX = offset * 350; // Horizontal spacing for portrait cards
-                    let translateZ = -absOffset * 50; // Much less depth so side cards are more accessible
-                    let rotateY = offset < 0 ? 30 : (offset > 0 ? -30 : 0); // Less rotation
-                    let scale = offset === 0 ? 1 : Math.max(0.75, 0.9 - (absOffset * 0.05)); // Better scale for side cards
-                    let opacity = absOffset > 4 ? 0 : Math.max(0.5, 1 - (absOffset * 0.1)); // Better opacity
+                    // Hide far-away cards immediately and skip expensive work
+                    if (absOffset > visibleRange) {
+                        el.style.opacity = '0';
+                        el.style.pointerEvents = 'none';
+                        el.style.zIndex = '0';
+                        el.classList.remove('focused');
+                        continue;
+                    }
+
+                    // Calculate transform values
+                    let translateX = offset * 350;
+                    let translateZ = -absOffset * 50;
+                    let rotateY = offset < 0 ? 30 : (offset > 0 ? -30 : 0);
+                    let scale = offset === 0 ? 1 : Math.max(0.75, 0.9 - (absOffset * 0.05));
+                    let opacity = absOffset > 4 ? 0 : Math.max(0.5, 1 - (absOffset * 0.1));
                     let zIndex = 100 - absOffset;
 
-                    // Center card has no rotation, stays at z=0
                     if (offset === 0) {
                         rotateY = 0;
                         translateX = 0;
-                        translateZ = 0; // Keep at 0 to not block side cards
+                        translateZ = 0;
                     }
 
-                    $card.css({
-                        'transform': `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
-                        'opacity': opacity,
-                        'z-index': zIndex,
-                        '--tx': `${translateX}px`,
-                        '--tz': `${translateZ}px`,
-                        '--ry': `${rotateY}deg`,
-                        '--scale': scale,
-                        'pointer-events': absOffset <= 4 ? 'auto' : 'none'
-                    });
+                    // Write all style properties in one batch via direct DOM
+                    const s = el.style;
+                    s.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
+                    s.opacity = opacity;
+                    s.zIndex = zIndex;
+                    s.pointerEvents = absOffset <= 4 ? 'auto' : 'none';
+                    // CSS custom props for hover state
+                    s.setProperty('--tx', `${translateX}px`);
+                    s.setProperty('--tz', `${translateZ}px`);
+                    s.setProperty('--ry', `${rotateY}deg`);
+                    s.setProperty('--scale', scale);
 
                     // Toggle focused class
                     if (offset === 0) {
-                        $card.addClass('focused');
+                        el.classList.add('focused');
                     } else {
-                        $card.removeClass('focused');
-                        $card.removeClass('flipped'); // Unflip non-focused cards
+                        el.classList.remove('focused');
+                        el.classList.remove('flipped');
                     }
-                });
+                }
 
-                // Show/hide flip hint
-                const $focusedCard = $('.postcard.focused');
-                if ($focusedCard.length && !$focusedCard.hasClass('flipped')) {
-                    setTimeout(() => {
+                // Show/hide flip hint (clear previous timer to avoid stacking)
+                if (flipHintTimer) clearTimeout(flipHintTimer);
+                const focusedEl = cards[currentIndex];
+                if (focusedEl && !focusedEl.classList.contains('flipped')) {
+                    flipHintTimer = setTimeout(() => {
                         $flipHint.addClass('visible');
                     }, 600);
                 } else {
                     $flipHint.removeClass('visible');
                 }
 
-                // Update URL hash to persist focused card
-                history.replaceState(null, null, '#' + concertData[currentIndex].slug);
+                // Debounce URL hash update to avoid micro-hangs during rapid navigation
+                if (historyTimer) clearTimeout(historyTimer);
+                historyTimer = setTimeout(() => {
+                    history.replaceState(null, null, '#' + concertData[currentIndex].slug);
+                }, 150);
             }
 
             // Navigate to specific index
@@ -1254,34 +1309,95 @@
             });
 
             // Helper: navigate while flipped — unflip current, move, auto-flip new card
-            function navigateWhileFlipped(direction) {
+            let flipAfterNavTimer = null;
+            function navigateWhileFlipped(direction, skipReflip) {
                 const canGo = direction === 'next' ? currentIndex < totalCards - 1 : currentIndex > 0;
                 if (!canGo) return;
+                // Cancel any pending auto-flip from a previous call
+                if (flipAfterNavTimer) { clearTimeout(flipAfterNavTimer); flipAfterNavTimer = null; }
                 $('.postcard.focused').removeClass('flipped');
                 if (direction === 'next') goNext(); else goPrev();
-                // Auto-flip the new focused card after coverflow transition settles
-                setTimeout(function() {
-                    $('.postcard.focused').addClass('flipped');
-                    $flipHint.removeClass('visible');
-                }, 650);
+                // Only auto-flip the new card if this is a single-step navigation (not held key)
+                if (!skipReflip) {
+                    flipAfterNavTimer = setTimeout(function() {
+                        $('.postcard.focused').addClass('flipped');
+                        $flipHint.removeClass('visible');
+                        flipAfterNavTimer = null;
+                    }, 650);
+                }
             }
 
-            // Keyboard navigation
+            // Keyboard navigation — throttled via requestAnimationFrame for smooth held-key scrolling
+            let navRafPending = false;
+            let pendingNavAction = null;
+            let wasFlippedBeforeHold = false; // tracks if we were flipped when key-hold started
+
+            function enterRapidNav() {
+                $wrapper.addClass('rapid-nav');
+                if (rapidNavTimer) clearTimeout(rapidNavTimer);
+                rapidNavTimer = setTimeout(() => {
+                    $wrapper.removeClass('rapid-nav');
+                }, 300);
+            }
+
             $(document).on('keydown', function(e) {
                 if (lightboxOpen) return;
-                const $focusedCard = $('.postcard.focused');
-                const isFlipped = $focusedCard.length && $focusedCard.hasClass('flipped');
-                
-                if (e.key === 'ArrowLeft') {
-                    if (isFlipped) { navigateWhileFlipped('prev'); }
-                    else { goPrev(); }
-                } else if (e.key === 'ArrowRight') {
-                    if (isFlipped) { navigateWhileFlipped('next'); }
-                    else { goNext(); }
+
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+
+                    const isRepeat = e.repeat;
+                    if (isRepeat) {
+                        enterRapidNav();
+                    } else {
+                        // First keydown — remember if currently flipped
+                        const $fc = $('.postcard.focused');
+                        wasFlippedBeforeHold = $fc.length && $fc.hasClass('flipped');
+                    }
+
+                    // Store the desired action; only schedule one rAF at a time
+                    pendingNavAction = { key: e.key, repeat: isRepeat };
+                    if (!navRafPending) {
+                        navRafPending = true;
+                        requestAnimationFrame(function() {
+                            navRafPending = false;
+                            const action = pendingNavAction;
+                            pendingNavAction = null;
+                            if (!action) return;
+
+                            const $fc = $('.postcard.focused');
+                            const flipped = $fc.length && $fc.hasClass('flipped');
+                            const dir = action.key === 'ArrowLeft' ? 'prev' : 'next';
+
+                            if (flipped || wasFlippedBeforeHold) {
+                                // Holding key: just unflip & scroll, don't re-flip
+                                navigateWhileFlipped(dir, action.repeat);
+                            } else {
+                                if (dir === 'prev') goPrev(); else goNext();
+                            }
+                        });
+                    }
                 } else if (e.key === ' ' || e.key === 'Enter') {
                     e.preventDefault();
+                    const $focusedCard = $('.postcard.focused');
                     $focusedCard.toggleClass('flipped');
                     $flipHint.removeClass('visible');
+                }
+            });
+
+            // When the user releases the arrow key after holding while flipped, auto-flip the new card
+            $(document).on('keyup', function(e) {
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    if (wasFlippedBeforeHold) {
+                        // Small delay so the last coverflow slide settles
+                        if (flipAfterNavTimer) clearTimeout(flipAfterNavTimer);
+                        flipAfterNavTimer = setTimeout(function() {
+                            $('.postcard.focused').addClass('flipped');
+                            $flipHint.removeClass('visible');
+                            flipAfterNavTimer = null;
+                        }, 400);
+                    }
+                    wasFlippedBeforeHold = false;
                 }
             });
 

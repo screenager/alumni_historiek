@@ -423,8 +423,8 @@
                 }
 
                 const bgStyle = useColorOverlay
-                    ? `background-image: url('postcards/${concert.postcard_img}'); background-color: #${color};`
-                    : `background-image: url('postcards/${concert.postcard_img}');`;
+                    ? `background-image: url('concerts/${concert.postcard_img}'); background-color: #${color};`
+                    : `background-image: url('concerts/${concert.postcard_img}');`;
 
                 return `
                     <div class="concert-box ${boxClass}" data-slug="${concert.slug}" style="${bgStyle}">
@@ -449,7 +449,7 @@
                                     ${coorporationHtml}
                                 </div>
                                 <div class="concert-expanded-image">
-                                    <img src="postcards/${concert.postcard_img}" alt="${concert.title} postcard">
+                                    <img src="concerts/${concert.postcard_img}" alt="${concert.title} postcard">
                                 </div>
                                 <div class="modal-nav">
                                     <button class="modal-nav-btn" data-action="prev" title="Vorige (←)">

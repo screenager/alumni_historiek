@@ -978,11 +978,12 @@
                 const imgs = concert.images || [];
                 const seed = concert.slug || concert.title.replace(/\s+/g, '');
                 let imagesHtml = '';
+                const concertDir = concert.postcard_img.split('/')[0];
                 for (let i = 0; i < 3; i++) {
                     if (imgs[i]) {
                         // Use original (large) version from originals/ folder for lightbox
-                        const thumbSrc = 'postcards/' + imgs[i];
-                        const fullSrc = 'postcards/originals/' + imgs[i];
+                        const thumbSrc = 'concerts/' + concertDir + '/' + imgs[i];
+                        const fullSrc = 'concerts/' + concertDir + '/' + imgs[i];
                         imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${concert.title} foto ${i+1}">`;
                     } else {
                         // Random picsum image seeded per concert+slot for consistency
@@ -996,7 +997,7 @@
                     <div class="postcard" data-index="${index}">
                         <div class="postcard-inner">
                             <div class="postcard-front">
-                                <img src="postcards/${concert.postcard_img}" alt="${concert.title}">
+                                <img src="concerts/${concert.postcard_img}" alt="${concert.title}">
                                 <div class="stamp">
                                     <span>${concert.season}<br>${concert.year}</span>
                                 </div>

@@ -18,6 +18,10 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --flip-scale: 1.3;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: url('aula_wideshot.jpg') no-repeat center center fixed;
@@ -125,6 +129,7 @@
 
         .postcard.focused.flipped {
             filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3));
+            transform: translateX(0) translateZ(300px) rotateY(0) scale(1) !important;
         }
 
         .postcard:not(.focused) {
@@ -148,7 +153,7 @@
         }
 
         .postcard.flipped .postcard-inner {
-            transform: rotateY(180deg) rotateZ(90deg);
+            transform: rotateY(180deg) rotateZ(90deg) scale(var(--flip-scale));
         }
 
         /* Flip hint icon */
@@ -342,10 +347,94 @@
             height: 100%;
             overflow: hidden;
             padding-right: 1.5rem;
-            font-size: 1.1rem;
-            line-height: 1.5;
+            font-size: 0.85rem;
+            line-height: 1.4;
             display: flex;
             flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .postcard-back-left .text-repertoire-spacer {
+            flex-shrink: 0;
+            height: 0.6rem;
+        }
+
+        .postcard-back-text {
+            font-size: 0.82rem;
+            color: #444;
+            line-height: 1.35;
+            flex: 0 1 auto;
+            max-height: 35%;
+            min-height: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .postcard-back-text p {
+            margin-bottom: 0.15rem;
+        }
+
+        .postcard-back-repertoire {
+            font-size: 0.78rem;
+            color: #555;
+            line-height: 1.3;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .postcard-back-repertoire p {
+            margin-bottom: 0.15rem;
+        }
+
+        .postcard-back-repertoire-label,
+        .postcard-back-text-label {
+            font-family: 'Caveat', cursive;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 0.1rem;
+            flex-shrink: 0;
+        }
+
+        .postcard-back-bottom-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-shrink: 0;
+            border-top: 1px solid #ccc;
+            padding-top: 0.35rem;
+            margin-top: auto;
+        }
+
+        .postcard-back-director {
+            flex: 1;
+            font-size: 0.75rem;
+            color: #444;
+            line-height: 1.3;
+            overflow: hidden;
+            position: relative;
+            max-height: 50px;
+        }
+
+        .postcard-back-coorporation {
+            flex: 1;
+            font-size: 0.75rem;
+            color: #444;
+            line-height: 1.3;
+            overflow: hidden;
+            position: relative;
+            max-height: 50px;
+        }
+
+        .postcard-back-director .bottom-label,
+        .postcard-back-coorporation .bottom-label {
+            font-weight: 600;
+            color: #1a1a2e;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.1rem;
         }
 
         .postcard-back-right {
@@ -360,52 +449,24 @@
 
         .postcard-back-title {
             font-family: 'Caveat', cursive;
-            font-size: 2rem;
+            font-size: 1.7rem;
             font-weight: 600;
             color: #1a1a2e;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
+            text-align: right;
         }
 
         .postcard-back-date {
-            font-size: 1.1rem;
+            font-size: 0.85rem;
             color: #666;
-            margin-bottom: 0.75rem;
-            font-style: italic;
-        }
-
-        .postcard-back-director {
-            font-size: 1.2rem;
-            color: #444;
             margin-bottom: 0.5rem;
-        }
-
-        .postcard-back-repertoire {
-            font-size: 0.95rem;
-            color: #555;
-            line-height: 1.4;
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-        }
-
-        .postcard-back-repertoire p {
-            margin-bottom: 0.2rem;
-        }
-
-        .address-lines {
-            margin-bottom: auto;
-            width: 100%;
-        }
-
-        .address-line {
-            border-bottom: 2px solid #999;
-            height: 35px;
-            margin-bottom: 6px;
+            font-style: italic;
+            text-align: right;
         }
 
         .postmark {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border: 3px solid #c0392b;
             border-radius: 50%;
             display: flex;
@@ -413,16 +474,137 @@
             align-items: center;
             justify-content: center;
             color: #c0392b;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             text-align: center;
             transform: rotate(-15deg);
             opacity: 0.7;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
         }
 
         .postmark-city {
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Right side images container */
+        .postcard-back-images {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            min-height: 0;
+        }
+
+        .postcard-back-images .concert-img {
+            position: absolute;
+            border-radius: 4px;
+            object-fit: cover;
+            box-shadow: 2px 3px 10px rgba(0,0,0,0.25);
+            border: 3px solid #fff;
+            background: #ddd;
+        }
+
+        .postcard-back-images .concert-img:nth-child(1) {
+            width: 55%;
+            height: 52%;
+            top: 5%;
+            left: 0;
+            transform: rotate(-4deg);
+            z-index: 2;
+        }
+
+        .postcard-back-images .concert-img:nth-child(2) {
+            width: 48%;
+            height: 46%;
+            top: 8%;
+            right: 0;
+            transform: rotate(5deg);
+            z-index: 1;
+        }
+
+        .postcard-back-images .concert-img:nth-child(3) {
+            width: 52%;
+            height: 48%;
+            bottom: 2%;
+            left: 22%;
+            transform: rotate(-2deg);
+            z-index: 3;
+        }
+
+        .postcard-back-images .concert-img-placeholder {
+            position: absolute;
+            border-radius: 4px;
+            border: 2px dashed #bbb;
+            background: rgba(200, 200, 200, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 0.65rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .postcard-back-images .concert-img-placeholder:nth-child(1) {
+            width: 55%;
+            height: 52%;
+            top: 5%;
+            left: 0;
+            transform: rotate(-4deg);
+            z-index: 2;
+        }
+
+        .postcard-back-images .concert-img-placeholder:nth-child(2) {
+            width: 48%;
+            height: 46%;
+            top: 8%;
+            right: 0;
+            transform: rotate(5deg);
+            z-index: 1;
+        }
+
+        .postcard-back-images .concert-img-placeholder:nth-child(3) {
+            width: 52%;
+            height: 48%;
+            bottom: 2%;
+            left: 22%;
+            transform: rotate(-2deg);
+            z-index: 3;
+        }
+
+        /* Concert image clickable */
+        .postcard-back-images .concert-img {
+            cursor: pointer;
+            transition: filter 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .postcard-back-images .concert-img:hover {
+            filter: brightness(1.1);
+            box-shadow: 3px 5px 15px rgba(0,0,0,0.4);
+        }
+
+        /* Lightbox overlay */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+        }
+
+        .lightbox-img {
+            max-width: 88vw;
+            max-height: 88vh;
+            border-radius: 6px;
+            /* box-shadow: 0 20px 60px rgba(0,0,0,0.6); */
+            border: 4px solid #fff;
+            object-fit: contain;
+            z-index: 10001;
         }
 
         /* Navigation arrows */
@@ -504,7 +686,20 @@
             }
 
             .postcard-back-title {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
+            }
+
+            .postcard-back-text {
+                font-size: 0.72rem;
+            }
+
+            .postcard-back-repertoire {
+                font-size: 0.68rem;
+            }
+
+            .postcard-back-director,
+            .postcard-back-coorporation {
+                font-size: 0.65rem;
             }
 
             .stamp {
@@ -514,13 +709,13 @@
             }
 
             .postmark {
-                width: 80px;
-                height: 80px;
-                font-size: 0.8rem;
+                width: 65px;
+                height: 65px;
+                font-size: 0.7rem;
             }
 
             .postmark-city {
-                font-size: 0.9rem;
+                font-size: 0.8rem;
             }
         }
 
@@ -555,24 +750,29 @@
             }
 
             .postcard-back-left {
-                font-size: 0.85rem;
-                padding-right: 0.75rem;
+                font-size: 0.7rem;
+                padding-right: 0.5rem;
             }
 
             .postcard-back-title {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
             }
 
             .postcard-back-date {
-                font-size: 0.8rem;
+                font-size: 0.65rem;
             }
 
-            .postcard-back-director {
-                font-size: 0.9rem;
+            .postcard-back-text {
+                font-size: 0.65rem;
             }
 
             .postcard-back-repertoire {
-                font-size: 0.75rem;
+                font-size: 0.6rem;
+            }
+
+            .postcard-back-director,
+            .postcard-back-coorporation {
+                font-size: 0.6rem;
             }
 
             .stamp {
@@ -584,14 +784,14 @@
             }
 
             .postmark {
-                width: 55px;
-                height: 55px;
-                font-size: 0.55rem;
+                width: 50px;
+                height: 50px;
+                font-size: 0.5rem;
                 border-width: 2px;
             }
 
             .postmark-city {
-                font-size: 0.65rem;
+                font-size: 0.6rem;
             }
 
             .flip-icon {
@@ -625,28 +825,57 @@
             }
         }
 
-        /* Scrollbar for postcard back */
-        .postcard-back-left {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(100, 100, 100, 0.5) transparent;
+        /* Custom scrollbar – always visible */
+        .custom-scroll-wrapper {
+            position: relative;
+            overflow: hidden;
+            height: 100%;
         }
 
-        .postcard-back-left::-webkit-scrollbar {
+        .custom-scroll-content {
+            height: 100%;
+            overflow-y: scroll;
+            padding-right: 14px; /* room for the custom track */
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .custom-scroll-content::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        .custom-scroll-track {
+            position: absolute;
+            top: 0;
+            right: 0;
             width: 6px;
-        }
-
-        .postcard-back-left::-webkit-scrollbar-track {
-            background: rgba(200, 200, 200, 0.2);
+            height: 100%;
+            background: rgba(180, 170, 150, 0.25);
             border-radius: 3px;
         }
 
-        .postcard-back-left::-webkit-scrollbar-thumb {
-            background: rgba(100, 100, 100, 0.5);
+        .custom-scroll-thumb {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            min-height: 18px;
+            background: rgba(100, 90, 70, 0.5);
             border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.15s ease;
         }
 
-        .postcard-back-left::-webkit-scrollbar-thumb:hover {
-            background: rgba(100, 100, 100, 0.7);
+        .custom-scroll-thumb:hover,
+        .custom-scroll-thumb.dragging {
+            background: rgba(80, 70, 50, 0.75);
+        }
+
+        .custom-scroll-track.hidden {
+            display: none;
+        }
+
+        .custom-scroll-thumb.hidden {
+            display: none;
         }
     </style>
 </head>
@@ -698,9 +927,27 @@
                     .map(item => `<p>${item.trim()}</p>`)
                     .join('');
 
-                const coorporationHtml = concert.coorporation && concert.coorporation !== '-' 
-                    ? `<p style="margin-top: 0.5rem; font-weight: 600;">${concert.coorporation}</p>` 
+                const textHtml = concert.text
+                    ? concert.text.split('\n').filter(l => l.trim()).map(l => `<p>${l.trim()}</p>`).join('')
                     : '';
+
+                // Build images HTML: use provided images, or random picsum images seeded per concert
+                const imgs = concert.images || [];
+                const seed = concert.slug || concert.title.replace(/\s+/g, '');
+                let imagesHtml = '';
+                for (let i = 0; i < 3; i++) {
+                    if (imgs[i]) {
+                        // Use original (large) version from originals/ folder for lightbox
+                        const thumbSrc = 'postcards/' + imgs[i];
+                        const fullSrc = 'postcards/originals/' + imgs[i];
+                        imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${concert.title} foto ${i+1}">`;
+                    } else {
+                        // Random picsum image seeded per concert+slot for consistency
+                        const thumbSrc = `https://picsum.photos/seed/${seed}${i}/200/150`;
+                        const fullSrc = `https://picsum.photos/seed/${seed}${i}/800/600`;
+                        imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${concert.title} foto ${i+1}">`;
+                    }
+                }
 
                 return `
                     <div class="postcard" data-index="${index}">
@@ -724,19 +971,29 @@
                             <div class="postcard-back">
                                 <div class="postcard-back-content">
                                     <div class="postcard-back-left">
-
-                                        ${repertoireHtml ? `<div class="postcard-back-repertoire">${repertoireHtml}</div>` : '<p class="postcard-back-repertoire">Geen repertoire beschikbaar.</p>'}
-                                        ${coorporationHtml}
+                                        ${textHtml ? `<div class="postcard-back-text" data-custom-scroll>${textHtml}</div><div class="text-repertoire-spacer"></div>` : ''}
+                                        <div class="postcard-back-repertoire-label">Repertoire</div>
+                                        ${repertoireHtml ? `<div class="postcard-back-repertoire" data-custom-scroll>${repertoireHtml}</div>` : '<div class="postcard-back-repertoire" data-custom-scroll><p>Geen repertoire beschikbaar.</p></div>'}
+                                        <div class="postcard-back-bottom-row">
+                                            <div class="postcard-back-director">
+                                                <div class="bottom-label">Dirigent</div>
+                                                ${concert.director}
+                                            </div>
+                                            <div class="postcard-back-coorporation">
+                                                <div class="bottom-label">Medewerking</div>
+                                                ${concert.coorporation || '—'}
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="postcard-back-right">
                                         <div class="postmark">
                                             <span class="postmark-city">LEUVEN</span>
                                             <span>${concert.year}</span>
                                         </div>
-                                        <div class=" postcard-back-title">${concert.title}</div>
-                                        <div class="address-lines">
-                                            <div class="address-line postcard-back-date">${concert.dates} - ${concert.locations}</div>
-                                            <div class="address-line postcard-back-director">Dirigent: ${concert.director}</div>
+                                        <div class="postcard-back-title">${concert.title}</div>
+                                        <div class="postcard-back-date">${concert.dates} - ${concert.locations}</div>
+                                        <div class="postcard-back-images">
+                                            ${imagesHtml}
                                         </div>
                                     </div>
                                 </div>
@@ -846,9 +1103,13 @@
             });
 
             // Click handler using manual hit detection for better 3D support
+            let lightboxOpen = false;
             $('.coverflow-container').on('click', function(e) {
                 // Don't handle clicks on navigation buttons
                 if ($(e.target).closest('.coverflow-nav, .flip-hint').length) return;
+                // Don't flip card if lightbox is open or click came from an image/lightbox
+                if (lightboxOpen) return;
+                if ($(e.target).closest('.postcard-back-images').length) return;
 
                 const containerRect = this.getBoundingClientRect();
                 const clickX = e.clientX - containerRect.left;
@@ -905,15 +1166,30 @@
                 }
             });
 
+            // Helper: navigate while flipped — unflip current, move, auto-flip new card
+            function navigateWhileFlipped(direction) {
+                const canGo = direction === 'next' ? currentIndex < totalCards - 1 : currentIndex > 0;
+                if (!canGo) return;
+                $('.postcard.focused').removeClass('flipped');
+                if (direction === 'next') goNext(); else goPrev();
+                // Auto-flip the new focused card after coverflow transition settles
+                setTimeout(function() {
+                    $('.postcard.focused').addClass('flipped');
+                    $flipHint.removeClass('visible');
+                }, 650);
+            }
+
             // Keyboard navigation
             $(document).on('keydown', function(e) {
                 const $focusedCard = $('.postcard.focused');
                 const isFlipped = $focusedCard.length && $focusedCard.hasClass('flipped');
                 
-                if (e.key === 'ArrowLeft' && !isFlipped) {
-                    goPrev();
-                } else if (e.key === 'ArrowRight' && !isFlipped) {
-                    goNext();
+                if (e.key === 'ArrowLeft') {
+                    if (isFlipped) { navigateWhileFlipped('prev'); }
+                    else { goPrev(); }
+                } else if (e.key === 'ArrowRight') {
+                    if (isFlipped) { navigateWhileFlipped('next'); }
+                    else { goNext(); }
                 } else if (e.key === ' ' || e.key === 'Enter') {
                     e.preventDefault();
                     $focusedCard.toggleClass('flipped');
@@ -924,9 +1200,15 @@
             // Touch/swipe support
             let touchStartX = 0;
             let touchEndX = 0;
+            let touchStartY = 0;
+            let touchInsideScroll = false;
 
             $wrapper.on('touchstart', function(e) {
-                touchStartX = e.originalEvent.changedTouches[0].screenX;
+                const t = e.originalEvent.changedTouches[0];
+                touchStartX = t.screenX;
+                touchStartY = t.screenY;
+                // Check if the touch started inside a custom-scroll-content
+                touchInsideScroll = !!($(e.target).closest('.custom-scroll-content').length);
             });
 
             $wrapper.on('touchend', function(e) {
@@ -935,20 +1217,19 @@
             });
 
             function handleSwipe() {
-                // Don't navigate if a card is flipped
+                // If the touch originated inside a scrollable area, don't navigate
+                if (touchInsideScroll) return;
                 const $focusedCard = $('.postcard.focused');
-                if ($focusedCard.length && $focusedCard.hasClass('flipped')) {
-                    return;
-                }
+                const isFlipped = $focusedCard.length && $focusedCard.hasClass('flipped');
                 
                 const swipeThreshold = 50;
                 const diff = touchStartX - touchEndX;
 
                 if (Math.abs(diff) > swipeThreshold) {
-                    if (diff > 0) {
-                        goNext();
+                    if (isFlipped) {
+                        navigateWhileFlipped(diff > 0 ? 'next' : 'prev');
                     } else {
-                        goPrev();
+                        if (diff > 0) { goNext(); } else { goPrev(); }
                     }
                 }
             }
@@ -958,13 +1239,39 @@
             let lastWheelTime = 0;
             const wheelCooldown = 300; // ms between card changes
 
+            // Scroll-lock: when the user scrolls inside a custom-scroll area,
+            // block ALL card navigation (including accidental horizontal leakage)
+            // for a grace period after the last scroll event inside that area.
+            let scrollLockUntil = 0;
+            const scrollLockGrace = 400; // ms
+
             $wrapper.on('wheel', function(e) {
-                // If a card is flipped, allow native scrolling on the back content
-                const $focusedCard = $('.postcard.focused');
-                if ($focusedCard.length && $focusedCard.hasClass('flipped')) {
-                    // Don't prevent default - allow vertical scrolling on repertoire
+                // If the wheel event originates inside a scrollable custom area,
+                // let it scroll that content instead of navigating cards.
+                const $scrollContent = $(e.target).closest('.custom-scroll-content');
+                if ($scrollContent.length) {
+                    const el = $scrollContent[0];
+                    if (el.scrollHeight > el.clientHeight) {
+                        const atTop = el.scrollTop <= 0 && e.originalEvent.deltaY < 0;
+                        const atBottom = (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) && e.originalEvent.deltaY > 0;
+                        if (!atTop && !atBottom) {
+                            // Refresh the scroll lock timer
+                            scrollLockUntil = Date.now() + scrollLockGrace;
+                            return;  // let content scroll, don't navigate
+                        }
+                    }
+                    // Even at edges, refresh lock to avoid accidental horizontal nav
+                    scrollLockUntil = Date.now() + scrollLockGrace;
+                }
+
+                // If scroll lock is active, eat the event entirely
+                if (Date.now() < scrollLockUntil) {
+                    e.preventDefault();
                     return;
                 }
+
+                const $focusedCard = $('.postcard.focused');
+                const isFlipped = $focusedCard.length && $focusedCard.hasClass('flipped');
                 
                 // Prevent page scroll
                 e.preventDefault();
@@ -979,12 +1286,48 @@
                 
                 if (Math.abs(delta) > 10) {
                     lastWheelTime = now;
-                    if (delta > 0) {
-                        goNext();
+                    if (isFlipped) {
+                        navigateWhileFlipped(delta > 0 ? 'next' : 'prev');
                     } else {
-                        goPrev();
+                        if (delta > 0) { goNext(); } else { goPrev(); }
                     }
                 }
+            });
+
+            // ── Lightbox for concert images ──
+            $(document).on('click', '.postcard-back-images .concert-img', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                lightboxOpen = true;
+                const $thumb = $(this);
+                const thumbSrc = $thumb.attr('src');
+                const fullSrc = $thumb.data('full') || thumbSrc;
+
+                // Show overlay with full image instantly (thumbnail as fallback)
+                const $overlay = $('<div class="lightbox-overlay"></div>');
+                const $img = $(`<img class="lightbox-img" src="${thumbSrc}">`);
+                $overlay.append($img);
+                $('body').append($overlay);
+
+                // If there's a different full-res source, preload and swap
+                if (fullSrc !== thumbSrc) {
+                    const preload = new Image();
+                    preload.onload = function() {
+                        $img.attr('src', fullSrc);
+                    };
+                    preload.src = fullSrc;
+                }
+
+                // Close lightbox
+                function closeLightbox() {
+                    $overlay.remove();
+                    lightboxOpen = false;
+                }
+
+                $overlay.on('click', closeLightbox);
+                $(document).one('keydown.lightbox', function(e) {
+                    if (e.key === 'Escape') closeLightbox();
+                });
             });
 
             // Read initial card from URL hash (slug-based)
@@ -995,6 +1338,103 @@
                     currentIndex = idx;
                 }
             }
+
+            // ── Custom scrollbar implementation ──
+            function initCustomScrollbars() {
+                $('[data-custom-scroll]').each(function() {
+                    const $container = $(this);
+                    if ($container.find('.custom-scroll-wrapper').length) return; // already init
+
+                    // Wrap inner content
+                    const inner = $container.html();
+                    $container.html(
+                        '<div class="custom-scroll-wrapper">' +
+                            '<div class="custom-scroll-content">' + inner + '</div>' +
+                            '<div class="custom-scroll-track"><div class="custom-scroll-thumb"></div></div>' +
+                        '</div>'
+                    );
+
+                    const $wrapper  = $container.find('.custom-scroll-wrapper');
+                    const $content  = $container.find('.custom-scroll-content');
+                    const $track    = $container.find('.custom-scroll-track');
+                    const $thumb    = $container.find('.custom-scroll-thumb');
+
+                    function updateThumb() {
+                        const ch = $content[0].clientHeight;
+                        const sh = $content[0].scrollHeight;
+                        if (sh <= ch) {
+                            $track.addClass('hidden');
+                            $thumb.addClass('hidden');
+                            return;
+                        }
+                        $track.removeClass('hidden');
+                        $thumb.removeClass('hidden');
+                        const ratio = ch / sh;
+                        const thumbH = Math.max(18, $track.height() * ratio);
+                        const scrollFrac = $content[0].scrollTop / (sh - ch);
+                        const thumbTop = scrollFrac * ($track.height() - thumbH);
+                        $thumb.css({ height: thumbH + 'px', top: thumbTop + 'px' });
+                    }
+
+                    $content.on('scroll', updateThumb);
+
+                    // Drag support
+                    let dragging = false, startY = 0, startScrollTop = 0;
+
+                    $thumb.on('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dragging = true;
+                        startY = e.clientY;
+                        startScrollTop = $content[0].scrollTop;
+                        $thumb.addClass('dragging');
+                    });
+
+                    $(document).on('mousemove.customscroll', function(e) {
+                        if (!dragging) return;
+                        e.preventDefault();
+                        const sh = $content[0].scrollHeight;
+                        const ch = $content[0].clientHeight;
+                        const trackH = $track.height();
+                        const thumbH = $thumb.height();
+                        const dy = e.clientY - startY;
+                        const scrollRange = sh - ch;
+                        const trackRange = trackH - thumbH;
+                        $content[0].scrollTop = startScrollTop + (dy / trackRange) * scrollRange;
+                    });
+
+                    $(document).on('mouseup.customscroll', function() {
+                        if (dragging) {
+                            dragging = false;
+                            $thumb.removeClass('dragging');
+                        }
+                    });
+
+                    // Click on track to jump
+                    $track.on('click', function(e) {
+                        e.stopPropagation();
+                        const trackRect = $track[0].getBoundingClientRect();
+                        const clickY = e.clientY - trackRect.top;
+                        const ratio = clickY / $track.height();
+                        const sh = $content[0].scrollHeight;
+                        const ch = $content[0].clientHeight;
+                        $content[0].scrollTop = ratio * (sh - ch);
+                    });
+
+                    // Observe size changes
+                    if (window.ResizeObserver) {
+                        new ResizeObserver(updateThumb).observe($content[0]);
+                    }
+
+                    // Initial update after a small delay (card might not be visible yet)
+                    setTimeout(updateThumb, 100);
+                });
+            }
+
+            // Re-init scrollbars whenever a card is flipped
+            $(document).on('transitionend', '.postcard-inner', function() {
+                setTimeout(initCustomScrollbars, 50);
+            });
 
             // Initialize coverflow
             updateCoverflow();
@@ -1011,8 +1451,8 @@
     <nav class="nav-bar">
         <div class="nav-links">
             <a href="tegels.html">Idee 1: Tegels</a>
-            <a href="postcards.html" class="active">Idee 2: Postkaartjes v1</a>
-            <a href="postcards2.html">Idee 2: Postkaartjes v2</a>
+            <a href="postcards.html">Idee 2: Postkaartjes v1</a>
+            <a href="postcards2.html" class="active">Idee 2: Postkaartjes v2</a>
         </div>
     </nav>
 </body>

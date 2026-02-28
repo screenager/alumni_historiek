@@ -1232,6 +1232,10 @@
                     $flipHint.removeClass('visible');
                 }
 
+                // Hide nav buttons at edges
+                $('#prevBtn').toggle(currentIndex > 0);
+                $('#nextBtn').toggle(currentIndex < totalCards - 1);
+
                 // Debounce URL hash update to avoid micro-hangs during rapid navigation
                 if (historyTimer) clearTimeout(historyTimer);
                 historyTimer = setTimeout(() => {

@@ -105,7 +105,12 @@
         "Repertoire": "La noche de Maya - Revueltas\nConga del Fuego - Marquez\nThe Mission - Morricone\nParsifal Ouverture - Wagner\nVlaamse dansen - Jan Blockx\nThe Chronicals of Narnia - Harry Gregson Williams, Steve Barton\nForrest Gump Suite - Alan Silvestri, Calvin Custer",
         "coorporation": "",
         "pdf": "",
-        "images": []
+        "images": [
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" }
+        ]
     },
     {
         "year": "2023",

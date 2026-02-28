@@ -1082,10 +1082,10 @@
                                                 <div class="bottom-label">Dirigent</div>
                                                 ${concert.director}
                                             </div>
-                                            <div class="postcard-back-coorporation">
-                                                <div class="bottom-label">Medewerking</div>
-                                                ${concert.coorporation || '—'}
-                                            </div>
+                                            ${concert.coorporation ? `<div class="postcard-back-coorporation">
+                                                <div class="bottom-label">${concert.coorporation_label || 'Medewerking'}</div>
+                                                ${concert.coorporation}
+                                            </div>` : ''}
                                         </div>
                                     </div>
                                     <div class="postcard-back-right">

@@ -25,7 +25,8 @@
         "locations": "MTC",
         "text": "",
         "Repertoire": "L'Italiana in Algeri - Rossini\nPrince of Egypt - Schwartz\nEgyptischer Marsch - Strauss\nIndiana Jones - Williams\nClarinet Concerto in A; Adagio - Mozart\nOut of Africa Soundtrack - Barry\nAfrica - Toto",
-        "coorporation": "Solist: Arne Herman (klarinet)",
+        "coorporation_label": "Solist",
+        "coorporation": "Arne Herman (klarinet)",
         "pdf": "",
         "images": []
     },
@@ -55,7 +56,8 @@
         "locations": "PDS",
         "text": "",
         "Repertoire": "Also Sprach Zarathustra - Strauss\nSymfonie nr. 9 'Uit de Nieuwe Wereld': delen 2, 4 - Dvorak\nThe Lark ascending - Vaughan Williams\nClair de lune - Debussy\nStar Wars main title – John Williams\nNimrod from 'enigma' variations - Elgar",
-        "coorporation": "Solist: Eva Lievens (viool)",
+        "coorporation_label": "Solist",
+        "coorporation": "Eva Lievens (viool)",
         "pdf": "",
         "images": []
     },
@@ -85,7 +87,8 @@
         "locations": "PDS, Kapelle-op-den-Bos",
         "text": "Geniet van het virtuoze Concierto de Aranjuez, op gitaar gebracht door Maarten Vandenbemden. Beweeg ook mee op de ritmische dansen en passionele symfonische muziek van Manuel de Falla, James Horner en José Pablo Moncayo.",
         "Repertoire": "Concierto de Aranjuez,\nEl sombrero de tres picos - Manuel de Falla,\n1ste suite: introductie, afternoon, dance of the miller's wife\n2de suite: dance of the miller, final dance\nThe mask of Zorro suite - James Horner\nHuapango - José Pablo Moncayo",
-        "coorporation": "Solist: Maarten Vandenbemden (gitaar)",
+        "coorporation_label": "Solist",
+        "coorporation": "Maarten Vandenbemden (gitaar)",
         "pdf": "",
         "images": []
     },
@@ -130,7 +133,8 @@
         "locations": "PDS",
         "text": "Met mezzo-sopraan Lara Cannaert, panellid van DeZes|LesSix van Klara tijdens de Koningin Elisabethwedstrijd 2018, als Carmen en tenor Manuel Murabito, lid van het koor van De Munt, als Don José bracht het Alumni Arenbergorkest een concertopvoering van de opera Carmen.",
         "Repertoire": "Uit opera en Carmen suites\nAct 1\n- Prelude\n- La Garde montante (5de deel van Suite II)\n- Habanera (Carmen)\n- Seguidilla (Carmen + Don Jose)\n- Entracte Nr 1\n\nAct 2\n- Gypsy song\n- Toreador song (4de deel van Suite II)\n- Exit van Escamillo\n- Don Jose Halte qui voila\n- Duet Danse Carmen + (Don Jose + Carmen)\n- Finale Act 2\n- Entracte Nr 2\n\nAct 3\n- Marche des contrebandiers (1ste deel van Suite No. II)\n- Nocturne (3de deel van Suite II)\n- Entracte Nr 3\n\nAct 4\n- Finale",
-        "coorporation": "Solisten: Lara Cannaert & Manuel Murabito",
+        "coorporation_label": "Solisten",
+        "coorporation": "Lara Cannaert & Manuel Murabito",
         "pdf": "",
         "images": []
     },
@@ -145,7 +149,8 @@
         "locations": "Vesalius",
         "text": "Iedereen kent het gevoel van angst, maar wat is het nu echt? Wat gebeurt er in je hoofd en lichaam als je bang bent? Wat denk je, voel je, en doe je? \n\nOntdek ons ‘wetenschappelijk verantwoord’ concert op zaterdag 14 december om 20u en zondag 15 december om 15u in Aula Vesalius te Leuven. \n\nProfessor Bram Vervliet (KU Leuven), auteur van het boek ‘Waarom we bang zijn’, neemt je mee in de fascinerende wereld van angstbeleving.",
         "Repertoire": "Suite from Jaws, The Shark Theme - John Williams\nDanse Macabre - Camille Saint-Saëns\nSymfonie No. 5, deel 2 - Pjotr Iljitsj Tsjaikovski\nPictures at exhibition - Modest Moessorgski\nLa vita è bella suite - Nicola Piovani",
-        "coorporation": "Verteller: prof. Bram Vervliet",
+        "coorporation_label": "Verteller",
+        "coorporation": "prof. Bram Vervliet",
         "pdf": "ja",
         "images": []
     },
@@ -160,7 +165,8 @@
         "locations": "PDS",
         "text": "Stap binnen in de wereld van Leuven in het jaar 1426, waar het Alumni Arenbergorkest u meeneemt op een onvergetelijke muzikale reis.\nVolg de avonturen van een dappere held die door de straten van Leuven dwaalt. Maar dit is geen gewoon verhaal - u bepaalt de koers!\n\nTijdens het concert krijgt u verschillende keuzes voorgeschoteld die het verloop van het verhaal beïnvloeden en onze held vorm geven.\n\nMis deze kans niet om deel uit te maken van een interactieve en meeslepende muzikale ervaring.\nWe gebruiken de muziek van The Rock en Man of Steel van Hans Zimmer, Japanse Suite van Gustav Holst en Symphonie Fantastique van Hector Berlioz om het heldenverhaal te begeleiden. ",
         "Repertoire": "Japanse suite - Gustav Holst\nMan of steel - Hans Zimmer\nSymphonie Fantastique Op. 14, deel 3 t.e.m. deel 5 - Hector Berlioz\nThe Rock - Hans Zimmer",
-        "coorporation": "Verteller: Eva Fernandez Gonzalez",
+        "coorporation_label": "Verteller",
+        "coorporation": "Eva Fernandez Gonzalez",
         "pdf": "ja",
         "images": []
     },
@@ -176,7 +182,8 @@
         "locations": "PDS",
         "text": "Een familieconcert over samen op tocht gaan, schrik overwinnen en dromen najagen.\nLaat je meevoeren door de vertelling van acteur Frans Van der Aa op muziek gebracht door het Alumni Arenbergorkest.\nEen betoverende reis door het verhaal van Hansje en Griet zoals je het nooit eerder hoorde, voor jonge en iets oudere oortjes.\n",
         "Repertoire": "Engelbert Humperdinck, arrangement door Thomas Dorsch",
-        "coorporation": "Verteller: Frans Van Der Aa",
+        "coorporation_label": "Verteller",
+        "coorporation": "Frans Van Der Aa",
         "coorporation_url": "",
         "pdf": "ja",
         "images": [

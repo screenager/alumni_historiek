@@ -59,7 +59,12 @@
         "coorporation_label": "Solist",
         "coorporation": "Eva Lievens (viool)",
         "pdf": "",
-        "images": []
+        "images": [
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" }
+        ]
     },
     {
         "year": "2022",

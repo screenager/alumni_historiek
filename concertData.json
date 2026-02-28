@@ -90,7 +90,12 @@
         "coorporation_label": "Solist",
         "coorporation": "Maarten Vandenbemden (gitaar)",
         "pdf": "",
-        "images": []
+        "images": [
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
+            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg" }
+        ]
     },
     {
         "year": "2023",

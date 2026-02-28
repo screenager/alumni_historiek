@@ -650,6 +650,40 @@
             transform: scale(1.1);
         }
 
+        .lightbox-nav-btn {
+            position: absolute;
+            bottom: 16px;
+            width: 70px;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 2rem;
+            font-weight: 300;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10002;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .lightbox-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: scale(1.1);
+        }
+
+        .lightbox-nav-btn.prev {
+            right: 188px;
+        }
+
+        .lightbox-nav-btn.next {
+            right: 102px;
+        }
+
         /* Navigation arrows */
         .coverflow-nav {
             position: absolute;
@@ -981,9 +1015,10 @@
                 const concertDir = concert.postcard_img.split('/')[0];
                 for (let i = 0; i < 3; i++) {
                     if (imgs[i]) {
-                        // Use original (large) version from originals/ folder for lightbox
-                        const thumbSrc = 'concerts/' + concertDir + '/' + imgs[i];
-                        const fullSrc = 'concerts/' + concertDir + '/' + imgs[i];
+                        // Use thumb for display & full original for lightbox
+                        const img = imgs[i];
+                        const thumbSrc = 'concerts/' + concertDir + '/' + (img.thumb || img);
+                        const fullSrc = 'concerts/' + concertDir + '/' + (img.full || img);
                         imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${concert.title} foto ${i+1}">`;
                     } else {
                         // Random picsum image seeded per concert+slot for consistency
@@ -1225,6 +1260,7 @@
 
             // Keyboard navigation
             $(document).on('keydown', function(e) {
+                if (lightboxOpen) return;
                 const $focusedCard = $('.postcard.focused');
                 const isFlipped = $focusedCard.length && $focusedCard.hasClass('flipped');
                 
@@ -1343,44 +1379,68 @@
                 e.stopPropagation();
                 e.preventDefault();
                 lightboxOpen = true;
-                const $thumb = $(this);
-                const thumbSrc = $thumb.attr('src');
-                const fullSrc = $thumb.data('full') || thumbSrc;
 
-                // Show overlay with full image instantly (thumbnail as fallback)
+                // Collect all images in the same card's back
+                const $allImgs = $(this).closest('.postcard-back-images').find('.concert-img');
+                let lightboxIndex = $allImgs.index(this);
+
+                // Build the overlay
                 const $overlay = $('<div class="lightbox-overlay"></div>');
                 const $wrapper = $('<div class="lightbox-content"></div>');
-                const $img = $(`<img class="lightbox-img" src="${thumbSrc}">`);
+                const $img = $('<img class="lightbox-img">');
                 const $closeBtn = $('<button class="lightbox-close-btn" title="Sluiten">&times;</button>');
-                $wrapper.append($img).append($closeBtn);
+                const $prevBtn = $('<button class="lightbox-nav-btn prev" title="Vorige">&#8249;</button>');
+                const $nextBtn = $('<button class="lightbox-nav-btn next" title="Volgende">&#8250;</button>');
+                $wrapper.append($img).append($prevBtn).append($nextBtn).append($closeBtn);
                 $overlay.append($wrapper);
                 $('body').append($overlay);
 
-                // If there's a different full-res source, preload and swap
-                if (fullSrc !== thumbSrc) {
-                    const preload = new Image();
-                    preload.onload = function() {
-                        $img.attr('src', fullSrc);
-                    };
-                    preload.src = fullSrc;
+                function showImage(idx) {
+                    const $target = $allImgs.eq(idx);
+                    const thumbSrc = $target.attr('src');
+                    const fullSrc = $target.data('full') || thumbSrc;
+                    $img.attr('src', thumbSrc);
+                    // Preload and swap to full-res if available
+                    if (fullSrc !== thumbSrc) {
+                        const preload = new Image();
+                        preload.onload = function() { $img.attr('src', fullSrc); };
+                        preload.src = fullSrc;
+                    }
+                    // Hide/show nav buttons at boundaries
+                    const hasMultiple = $allImgs.length > 1;
+                    $prevBtn.toggle(hasMultiple);
+                    $nextBtn.toggle(hasMultiple);
                 }
 
-                // Close lightbox
+                showImage(lightboxIndex);
+
                 function closeLightbox() {
                     $overlay.remove();
                     lightboxOpen = false;
+                    $(document).off('keydown.lightbox');
                 }
 
                 $closeBtn.on('click', function(e) {
                     e.stopPropagation();
                     closeLightbox();
                 });
-                // Click on overlay background (outside image) also closes
+                $prevBtn.on('click', function(e) {
+                    e.stopPropagation();
+                    lightboxIndex = (lightboxIndex - 1 + $allImgs.length) % $allImgs.length;
+                    showImage(lightboxIndex);
+                });
+                $nextBtn.on('click', function(e) {
+                    e.stopPropagation();
+                    lightboxIndex = (lightboxIndex + 1) % $allImgs.length;
+                    showImage(lightboxIndex);
+                });
                 $overlay.on('click', function(e) {
                     if ($(e.target).hasClass('lightbox-overlay')) closeLightbox();
                 });
-                $(document).one('keydown.lightbox', function(e) {
+                $(document).on('keydown.lightbox', function(e) {
                     if (e.key === 'Escape') closeLightbox();
+                    if (e.key === 'ArrowLeft') { lightboxIndex = (lightboxIndex - 1 + $allImgs.length) % $allImgs.length; showImage(lightboxIndex); }
+                    if (e.key === 'ArrowRight') { lightboxIndex = (lightboxIndex + 1) % $allImgs.length; showImage(lightboxIndex); }
                 });
             });
 

@@ -558,9 +558,18 @@
             width: 52%;
             height: 48%;
             bottom: 2%;
-            left: 22%;
+            left: 8%;
             transform: rotate(-2deg);
             z-index: 3;
+        }
+
+        .postcard-back-images .concert-img:nth-child(4) {
+            width: 46%;
+            height: 44%;
+            bottom: 0%;
+            right: 2%;
+            transform: rotate(3deg);
+            z-index: 4;
         }
 
         .postcard-back-images .concert-img-placeholder {
@@ -598,9 +607,18 @@
             width: 52%;
             height: 48%;
             bottom: 2%;
-            left: 22%;
+            left: 8%;
             transform: rotate(-2deg);
             z-index: 3;
+        }
+
+        .postcard-back-images .concert-img-placeholder:nth-child(4) {
+            width: 46%;
+            height: 44%;
+            bottom: 0%;
+            right: 2%;
+            transform: rotate(3deg);
+            z-index: 4;
         }
 
         /* Concert image clickable */
@@ -1032,24 +1050,16 @@
                     ? concert.text.split('\n').filter(l => l.trim()).map(l => `<p>${l.trim()}</p>`).join('')
                     : '';
 
-                // Build images HTML: use provided images, or random picsum images seeded per concert
+                // Build images HTML: use images from concertData (max 4)
                 const imgs = concert.images || [];
-                const seed = concert.slug || concert.title.replace(/\s+/g, '');
                 let imagesHtml = '';
                 const concertDir = concert.postcard_img.split('/')[0];
-                for (let i = 0; i < 3; i++) {
-                    if (imgs[i]) {
-                        // Use thumb for display & full original for lightbox
-                        const img = imgs[i];
-                        const thumbSrc = 'concerts/' + concertDir + '/' + (img.thumb || img);
-                        const fullSrc = 'concerts/' + concertDir + '/' + (img.full || img);
-                        imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${concert.title} foto ${i+1}">`;
-                    } else {
-                        // Random picsum image seeded per concert+slot for consistency
-                        const thumbSrc = `https://picsum.photos/seed/${seed}${i}/200/150`;
-                        const fullSrc = `https://picsum.photos/seed/${seed}${i}/800/600`;
-                        imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${concert.title} foto ${i+1}">`;
-                    }
+                const maxThumbs = Math.min(imgs.length, 4);
+                for (let i = 0; i < maxThumbs; i++) {
+                    const img = imgs[i];
+                    const thumbSrc = 'concerts/' + concertDir + '/' + (img.thumb || img);
+                    const fullSrc = 'concerts/' + concertDir + '/' + (img.full || img);
+                    imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${concert.title} foto ${i+1}">`;
                 }
 
                 return `

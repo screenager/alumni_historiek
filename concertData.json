@@ -219,7 +219,8 @@
         "images": [
             { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
             { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" }
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" },
+            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg" }
         ]
     }
 ]

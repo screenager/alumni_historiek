@@ -370,6 +370,16 @@
             position: relative;
         }
 
+        /* Equal heights: when text has enough content, both sections share space equally */
+        .postcard-back-left.equal-heights .postcard-back-text {
+            flex: 1 1 0;
+            max-height: none;
+        }
+
+        .postcard-back-left.equal-heights .postcard-back-repertoire {
+            flex: 1 1 0;
+        }
+
         .postcard-back-text p {
             margin-bottom: 0.15rem;
         }
@@ -1003,7 +1013,7 @@
                             </div>
                             <div class="postcard-back">
                                 <div class="postcard-back-content">
-                                    <div class="postcard-back-left">
+                                    <div class="postcard-back-left${textHtml && concert.text.trim().length >= 50 ? ' equal-heights' : ''}">
                                         ${textHtml ? `<div class="postcard-back-text" data-custom-scroll>${textHtml}</div><div class="text-repertoire-spacer"></div>` : ''}
                                         <div class="postcard-back-repertoire-label">Repertoire</div>
                                         ${repertoireHtml ? `<div class="postcard-back-repertoire" data-custom-scroll>${repertoireHtml}</div>` : '<div class="postcard-back-repertoire" data-custom-scroll><p>Geen repertoire beschikbaar.</p></div>'}

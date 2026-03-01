@@ -66,6 +66,10 @@
             opacity: 0.8;
         }
 
+        .mobile-br {
+            display: none;
+        }
+
         .nav-link {
             display: inline-block;
             margin-top: 1rem;
@@ -864,7 +868,7 @@
             }
 
             .focused-label {
-                font-size: 0.9rem;
+                font-size: 1.75rem;
             }
 
             .postmark {
@@ -879,6 +883,16 @@
         }
 
         @media (max-width: 768px) {
+            .swipe-hint {
+                font-size: 1rem;
+                margin-top: 1.25rem;
+                margin-bottom: -0.5rem;
+            }
+
+            .mobile-br {
+                display: block;
+            }
+            
             .postcard {
                 width: 280px;
                 height: 381px;
@@ -934,9 +948,13 @@
                 font-size: 0.6rem;
             }
 
-            .focused-label {
-                font-size: 0.8rem;
+            .flip-hint {
                 bottom: 5px;
+            }
+
+            .focused-label {
+                font-size: 1.75rem;
+                bottom: 52px;
             }
 
             .postmark {
@@ -1161,7 +1179,7 @@
     <header>
         <img src="logo.png" alt="Logo van het Alumni Arenbergconcert" class="logo">
         <h1 class="sr-only">Onze voorbije concerten - Alumni Arenbergconcert</h1>
-        <p>Blader door herinneringen aan onze eerdere optredens</p>
+        <p class="swipe-hint">Blader door herinneringen <span class="mobile-br"></span>aan onze eerdere optredens</p>
     </header>
 
     <main>

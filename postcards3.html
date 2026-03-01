@@ -736,6 +736,48 @@
             transform: scale(1.1);
         }
 
+        /* Card close button (on flipped card back) */
+        .card-close-btn {
+            position: absolute;
+            bottom: -14px;
+            left: -14px;
+            width: 27px;
+            height: 27px;
+            background: rgba(192, 57, 43, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: #ffffffb5;
+            font-size: 1.1rem;
+            font-weight: 400;
+            line-height: 1;
+            padding: 0;
+            padding-bottom: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: background 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .postcard.flipped .card-close-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .card-close-btn:hover {
+            background: rgba(192, 57, 43, 0.7);
+            color: #fff;
+            transform: scale(1.15);
+        }
+
+        .card-close-btn:focus-visible {
+            outline: 3px solid #f8b500;
+            outline-offset: 3px;
+        }
+
         .lightbox-nav-btn {
             position: absolute;
             bottom: 16px;
@@ -978,6 +1020,14 @@
             .flip-icon svg {
                 width: 35px;
                 height: 35px;
+            }
+
+            .card-close-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 0.9rem;
+                bottom: -12px;
+                left: -12px;
             }
 
             .coverflow-nav {
@@ -1273,6 +1323,7 @@
                                 </div>
                             </div>
                             <div class="postcard-back">
+                                <button class="card-close-btn" aria-label="Kaart terugdraaien" title="Terugdraaien">&times;</button>
                                 <div class="postcard-back-content">
                                     <div class="postcard-back-left${textHtml && concert.text.trim().length >= 50 ? ' equal-heights' : ''}">
                                         ${textHtml ? `<div class="postcard-back-text" data-custom-scroll>${textHtml}</div><div class="text-repertoire-spacer"></div>` : ''}
@@ -1516,8 +1567,8 @@
             // Click handler using manual hit detection for better 3D support
             let lightboxOpen = false;
             $('.coverflow-container').on('click', function(e) {
-                // Don't handle clicks on navigation buttons
-                if ($(e.target).closest('.coverflow-nav, .flip-hint').length) return;
+                // Don't handle clicks on navigation buttons or card close button
+                if ($(e.target).closest('.coverflow-nav, .flip-hint, .card-close-btn').length) return;
                 // Don't flip card if lightbox is open or click came from an image/lightbox
                 if (lightboxOpen) return;
                 if ($(e.target).closest('.postcard-back-images').length) return;
@@ -1578,6 +1629,16 @@
                     // Navigate to clicked card
                     goToIndex(targetIndex);
                 }
+            });
+
+            // Card close button click handler (unflip card)
+            $(document).on('click', '.card-close-btn', function(e) {
+                e.stopPropagation();
+                const $card = $(this).closest('.postcard');
+                $card.removeClass('flipped');
+                updateFlippedImageTabindex($card);
+                updateLabelVisibility();
+                updateHash();
             });
 
             // Helper: navigate while flipped — unflip current, move, auto-flip new card

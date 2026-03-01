@@ -1228,6 +1228,9 @@
             let currentIndex = 0;
             let totalCards = concertData.length;
 
+            // Configuration: set to true to auto-flip the new card when swiping while flipped
+            const autoFlipOnSwipe = false;
+
             // Generate postcard HTML
             function generatePostcard(concert, index) {
                 const repertoireHtml = concert.Repertoire
@@ -1588,8 +1591,8 @@
                 updateFlippedImageTabindex($('.postcard.focused'));
                 updateLabelVisibility();
                 if (direction === 'next') goNext(); else goPrev();
-                // Only auto-flip the new card if this is a single-step navigation (not held key)
-                if (!skipReflip) {
+                // Only auto-flip the new card if this is a single-step navigation (not held key) and autoFlipOnSwipe is enabled
+                if (!skipReflip && autoFlipOnSwipe) {
                     flipAfterNavTimer = setTimeout(function() {
                         const $fc = $('.postcard.focused');
                         $fc.addClass('flipped');
@@ -1688,6 +1691,8 @@
             let touchEndX = 0;
             let touchStartY = 0;
             let touchInsideScroll = false;
+            let lastSwipeTime = 0;
+            const swipeCooldown = 500; // ms between swipe navigations
 
             $wrapper.on('touchstart', function(e) {
                 const t = e.originalEvent.changedTouches[0];
@@ -1707,6 +1712,10 @@
                 if (lightboxOpen) return;
                 // If the touch originated inside a scrollable area, don't navigate
                 if (touchInsideScroll) return;
+                // Cooldown to prevent skipping cards on hard swipes
+                const now = Date.now();
+                if (now - lastSwipeTime < swipeCooldown) return;
+                
                 const $focusedCard = $('.postcard.focused');
                 const isFlipped = $focusedCard.length && $focusedCard.hasClass('flipped');
                 
@@ -1714,6 +1723,7 @@
                 const diff = touchStartX - touchEndX;
 
                 if (Math.abs(diff) > swipeThreshold) {
+                    lastSwipeTime = now;
                     if (isFlipped) {
                         navigateWhileFlipped(diff > 0 ? 'next' : 'prev');
                     } else {
@@ -1725,7 +1735,7 @@
             // Wheel/trackpad scroll support
             let wheelTimeout = null;
             let lastWheelTime = 0;
-            const wheelCooldown = 300; // ms between card changes
+            const wheelCooldown = 500; // ms between card changes (increase to prevent skipping cards on hard swipes)
 
             // Scroll-lock: when the user scrolls inside a custom-scroll area,
             // block ALL card navigation (including accidental horizontal leakage)

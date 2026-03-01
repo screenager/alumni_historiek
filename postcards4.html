@@ -2497,22 +2497,32 @@
                 const scaleForW = availW / (backH * perspFactor);  // backH becomes visual width
                 const scaleForH = availH / (backW * perspFactor);  // backW becomes visual height
                 
-                // For mobile and short viewports, allow larger scale
-                let maxScale;
+                // Force scale to maxScale (may overflow viewport)
+                let flipScale;
                 if (vh <= 550) {
-                    maxScale = 2.0;
+                    flipScale = 2.0;
                 } else if (vh <= 650) {
-                    maxScale = 1.8;
+                    flipScale = 1.8;
                 } else if (vw <= 768) {
-                    // Mobile: allow up to 1.4x to fill screen better
-                    maxScale = 1.4;
+                    // Mobile: force 1.4x
+                    flipScale = 1.4;
                 } else {
-                    maxScale = 1.3;
+                    // Desktop: use 1.3x (original behavior)
+                    flipScale = 1.3;
                 }
                 
-                const flipScale = Math.min(maxScale, scaleForW, scaleForH);
+                console.log('Flip dimensions calc:', {
+                    vw, vh,
+                    backW, backH,
+                    availW: availW.toFixed(0), 
+                    availH: availH.toFixed(0),
+                    perspFactor: perspFactor.toFixed(2),
+                    scaleForW: scaleForW.toFixed(2),
+                    scaleForH: scaleForH.toFixed(2),
+                    forcedScale: flipScale
+                });
 
-                document.documentElement.style.setProperty('--flip-scale', Math.max(0.9, flipScale));
+                document.documentElement.style.setProperty('--flip-scale', flipScale);
                 document.documentElement.style.setProperty('--flip-tz', flipTZ + 'px');
             }
 

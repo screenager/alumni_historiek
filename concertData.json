@@ -43,7 +43,12 @@
         "Repertoire": "The Gadfly Suite: Ouverture - Shostakovich\nOuverture op 3 Russische thema's - Rimsky Korsakov\nSchone slaapster: Wals - Tchaikovsky\nDe notenkraker: Trepak - Tchaikovsky\nOuverture 1812 - Tchaikovsky (arr. Carter)\nHet zwanenmeer: Danses des cygnes - Tchaikovsky\nFinlandia - Sibelius\nAnastasia - Flaherty (arr. Custer)\nHet zwanenmeer: Scène - Tchaikovsky",
         "coorporation": "",
         "pdf": "",
-        "images": []
+        "images": [
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "foto van een van de vertellers" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "foto van enkele blazers" },
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "foto dirigent" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "overzichtsfoto orkest" }
+        ]
     },
     {
         "year": "2021",

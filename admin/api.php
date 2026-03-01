@@ -68,10 +68,14 @@ function saveConcerts(array $concerts): void {
     $json = json_encode($concerts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 
     // Compact image objects onto single lines to match original format:
-    //   { "thumb": "...", "full": "..." }
+    //   { "thumb": "...", "full": "..." }  or  { "thumb": "...", "full": "...", "alt": "..." }
     $json = preg_replace_callback(
-        '/\{\s*"thumb":\s*"([^"]*)",\s*"full":\s*"([^"]*)"\s*\}/s',
-        fn($m) => '{ "thumb": "' . $m[1] . '", "full": "' . $m[2] . '" }',
+        '/\{\s*"thumb":\s*"([^"]*)"\,\s*"full":\s*"([^"]*)"(?:\,\s*"alt":\s*"([^"]*)")?\s*\}/s',
+        function($m) {
+            $line = '{ "thumb": "' . $m[1] . '", "full": "' . $m[2] . '"';
+            if (!empty($m[3])) $line .= ', "alt": "' . $m[3] . '"';
+            return $line . ' }';
+        },
         $json
     );
 

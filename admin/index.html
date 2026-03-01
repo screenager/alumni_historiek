@@ -415,6 +415,9 @@ function renderImages(images) {
             <div class="col">
                 <input type="text" value="${escAttr(img.full)}" class="form-control form-control-sm img-full" readonly>
             </div>
+            <div class="col">
+                <input type="text" value="${escAttr(img.alt || '')}" class="form-control form-control-sm img-alt" placeholder="Alt tekst">
+            </div>
             <div class="col-auto">
                 <button type="button" onclick="this.closest('.row').remove()" class="btn btn-sm btn-outline-danger" title="Verwijderen">✕</button>
             </div>
@@ -447,6 +450,9 @@ function addImageRow(thumb, full) {
         </div>
         <div class="col">
             <input type="text" value="${escAttr(full)}" class="form-control form-control-sm img-full" readonly>
+        </div>
+        <div class="col">
+            <input type="text" value="" class="form-control form-control-sm img-alt" placeholder="Alt tekst">
         </div>
         <div class="col-auto">
             <button type="button" onclick="this.closest('.row').remove()" class="btn btn-sm btn-outline-danger" title="Verwijderen">✕</button>
@@ -682,7 +688,12 @@ async function doSubmit() {
     thumbs.forEach(row => {
         const th = row.dataset.thumb || row.querySelector('.img-thumb')?.value?.trim() || '';
         const fl = row.dataset.full || row.querySelector('.img-full')?.value?.trim() || '';
-        if (th || fl) data.images.push({ thumb: th, full: fl });
+        const alt = row.querySelector('.img-alt')?.value?.trim() || '';
+        if (th || fl) {
+            const imgObj = { thumb: th, full: fl };
+            if (alt) imgObj.alt = alt;
+            data.images.push(imgObj);
+        }
     });
 
     let res;

@@ -313,30 +313,24 @@
             text-shadow: 0 3px 6px rgba(0,0,0,0.5);
         }
 
-        /* Stamp effect */
-        .stamp {
+        /* Season/Year label below focused card */
+        .focused-label {
             position: absolute;
-            top: 25px;
-            right: 25px;
-            width: 100px;
-            height: 120px;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            transition: opacity 0.3s ease;
-            border: 4px dashed #fff;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: white;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffffff;
+            font-family: 'Caveat', cursive;
+            font-weight: 500;
+            font-size: 1.75rem;
             text-align: center;
-            transform: rotate(5deg);
-            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-            z-index: 10;
+            z-index: 110;
+            white-space: nowrap;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
         }
 
-        .postcard.flipped .stamp {
+        .focused-label.hidden {
             opacity: 0;
         }
 
@@ -870,10 +864,8 @@
                 font-size: 0.65rem;
             }
 
-            .stamp {
-                width: 80px;
-                height: 96px;
-                font-size: 1rem;
+            .focused-label {
+                font-size: 0.9rem;
             }
 
             .postmark {
@@ -943,12 +935,9 @@
                 font-size: 0.6rem;
             }
 
-            .stamp {
-                width: 50px;
-                height: 60px;
-                font-size: 0.7rem;
-                top: 12px;
-                right: 12px;
+            .focused-label {
+                font-size: 0.8rem;
+                bottom: 5px;
             }
 
             .postmark {
@@ -1194,6 +1183,7 @@
         </button>
 
         <div class="flip-hint" id="flipHint" aria-hidden="true">Klik op het postkaartje!</div>
+        <div class="focused-label" id="focusedLabel"></div>
     </div>
     <div id="concertAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     </main>
@@ -1247,13 +1237,10 @@
                 }
 
                 return `
-                    <div class="postcard" data-index="${index}" role="group" aria-roledescription="slide" aria-label="${concert.title} - ${concert.year}">
+                    <div class="postcard" data-index="${index}" data-season="${concert.season}" data-year="${concert.year}" role="group" aria-roledescription="slide" aria-label="${concert.title} - ${concert.year}">
                         <div class="postcard-inner">
                             <div class="postcard-front">
                                 <img src="concerts/${concert.postcard_img}" alt="${concert.title}">
-                                <div class="stamp">
-                                    <span>${concert.season}<br>${concert.year}</span>
-                                </div>
                                 ${!concert.postcard_img ? `<div class="postcard-front-overlay">
                                     <span class="postcard-year">${concert.dates || concert.year}</span>
                                     <h3 class="postcard-title-front">${concert.title}</h3>
@@ -1420,8 +1407,15 @@
                 $('#prevBtn').toggle(currentIndex > 0);
                 $('#nextBtn').toggle(currentIndex < totalCards - 1);
 
-                // Update screen reader announcement
+                // Update focused label with season and year
                 const currentConcert = concertData[currentIndex];
+                const focusedLabel = document.getElementById('focusedLabel');
+                if (focusedLabel && currentConcert) {
+                    focusedLabel.textContent = currentConcert.season + ' ' + currentConcert.year;
+                }
+                updateLabelVisibility();
+
+                // Update screen reader announcement
                 const announcer = document.getElementById('concertAnnouncer');
                 if (announcer) {
                     announcer.textContent = currentConcert.title + ', ' + currentConcert.year + ' (' + (currentIndex + 1) + ' van ' + totalCards + ')';
@@ -1440,6 +1434,19 @@
                 const $fc = $(`.postcard[data-index="${currentIndex}"]`);
                 const isFlipped = $fc.length && $fc.hasClass('flipped');
                 history.replaceState(null, null, '#' + slug + (isFlipped ? '/flipped' : ''));
+            }
+
+            // Helper: show/hide label based on focused card flip state
+            function updateLabelVisibility() {
+                const $focusedCard = $(`.postcard[data-index="${currentIndex}"]`);
+                const focusedLabel = document.getElementById('focusedLabel');
+                if (focusedLabel) {
+                    if ($focusedCard.length && $focusedCard.hasClass('flipped')) {
+                        focusedLabel.classList.add('hidden');
+                    } else {
+                        focusedLabel.classList.remove('hidden');
+                    }
+                }
             }
 
             // Navigate to specific index
@@ -1545,6 +1552,7 @@
                     $(`.postcard[data-index="${currentIndex}"]`).toggleClass('flipped');
                     updateFlippedImageTabindex($(`.postcard[data-index="${currentIndex}"]`));
                     $flipHint.removeClass('visible');
+                    updateLabelVisibility();
                     updateHash();
                 } else {
                     // Navigate to clicked card
@@ -1561,6 +1569,7 @@
                 if (flipAfterNavTimer) { clearTimeout(flipAfterNavTimer); flipAfterNavTimer = null; }
                 $('.postcard.focused').removeClass('flipped');
                 updateFlippedImageTabindex($('.postcard.focused'));
+                updateLabelVisibility();
                 if (direction === 'next') goNext(); else goPrev();
                 // Only auto-flip the new card if this is a single-step navigation (not held key)
                 if (!skipReflip) {
@@ -1569,6 +1578,7 @@
                         $fc.addClass('flipped');
                         updateFlippedImageTabindex($fc);
                         $flipHint.removeClass('visible');
+                        updateLabelVisibility();
                         flipAfterNavTimer = null;
                         updateHash();
                     }, 650);
@@ -1631,6 +1641,7 @@
                     $focusedCard.toggleClass('flipped');
                     updateFlippedImageTabindex($focusedCard);
                     $flipHint.removeClass('visible');
+                    updateLabelVisibility();
                     updateHash();
                 }
             });
@@ -1646,6 +1657,7 @@
                             $fc.addClass('flipped');
                             updateFlippedImageTabindex($fc);
                             $flipHint.removeClass('visible');
+                            updateLabelVisibility();
                             flipAfterNavTimer = null;
                             updateHash();
                         }, 400);
@@ -2057,8 +2069,8 @@
         <div class="nav-links">
             <a href="tegels.html">Idee 1: Tegels</a>
             <a href="postcards.html">Idee 2: Postkaartjes v1</a>
-            <a href="postcards2.html" class="active">Idee 2: Postkaartjes v2</a>
-            <a href="postcards3.html">Idee 2: Postkaartjes v3</a>
+            <a href="postcards2.html">Idee 2: Postkaartjes v2</a>
+            <a href="postcards3.html" class="active">Idee 2: Postkaartjes v3</a>
         </div>
     </nav>
 </body>

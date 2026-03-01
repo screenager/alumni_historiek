@@ -198,7 +198,9 @@
         "coorporation_label": "Verteller",
         "coorporation": "Eva Fernandez Gonzalez",
         "pdf": "ja",
-        "images": []
+        "images": [
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" }
+        ]
     },
     {
         "year": "2025",

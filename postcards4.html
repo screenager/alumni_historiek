@@ -2462,25 +2462,27 @@
                 const vw = window.innerWidth;
                 const vh = window.innerHeight;
 
-                // Card dimensions based on current CSS breakpoint (considering both width and height)
-                let cardW, cardH;
+                // Back content dimensions based on current CSS breakpoint
+                // These are what actually need to fit when flipped (rotated 90deg)
+                let backW, backH;
                 if (vh <= 550) {
-                    // Very short viewport - cards are tiny, use smaller base
-                    cardW = 180; cardH = 245;
+                    // Very short viewport
+                    backW = 260; backH = 180;
                 } else if (vh <= 650) {
-                    cardW = 280; cardH = 380;
+                    backW = 400; backH = 280;
                 } else if (vh <= 800) {
-                    cardW = 380; cardH = 520;
+                    backW = 520; backH = 380;
                 } else if (vw <= 768) {
-                    cardW = 280; cardH = 381;
+                    // Mobile: back content is 400x280
+                    backW = 400; backH = 280;
                 } else if (vw <= 1200) {
-                    cardW = 380; cardH = 550;
+                    backW = 550; backH = 380;
                 } else {
-                    cardW = 450; cardH = 623;
+                    backW = 623; backH = 450;
                 }
 
                 const perspective = 1200;
-                const padding = 0.92;
+                const padding = 0.95;
                 const headerH = vh <= 550 ? 60 : (vh <= 650 ? 100 : (vh <= 800 ? 140 : 100));
 
                 // On small screens, reduce translateZ to avoid excessive perspective magnification
@@ -2490,14 +2492,27 @@
                 const availW = vw * padding;
                 const availH = (vh - headerH) * padding;
 
-                // After rotateZ(90deg): visual width = cardH * flipScale * perspFactor
-                const scaleForW = availW / (cardH * perspFactor);
-                const scaleForH = availH / (cardW * perspFactor);
-                // For short viewports, allow much larger scale (up to 2x) since cards are tiny
-                const maxScale = vh <= 550 ? 2.0 : (vh <= 650 ? 1.8 : 1.3);
+                // After rotateZ(90deg): visual width = backW, visual height = backH
+                // But we need to flip these because of the 90deg rotation
+                const scaleForW = availW / (backH * perspFactor);  // backH becomes visual width
+                const scaleForH = availH / (backW * perspFactor);  // backW becomes visual height
+                
+                // For mobile and short viewports, allow larger scale
+                let maxScale;
+                if (vh <= 550) {
+                    maxScale = 2.0;
+                } else if (vh <= 650) {
+                    maxScale = 1.8;
+                } else if (vw <= 768) {
+                    // Mobile: allow up to 1.4x to fill screen better
+                    maxScale = 1.4;
+                } else {
+                    maxScale = 1.3;
+                }
+                
                 const flipScale = Math.min(maxScale, scaleForW, scaleForH);
 
-                document.documentElement.style.setProperty('--flip-scale', Math.max(0.7, flipScale));
+                document.documentElement.style.setProperty('--flip-scale', Math.max(0.9, flipScale));
                 document.documentElement.style.setProperty('--flip-tz', flipTZ + 'px');
             }
 

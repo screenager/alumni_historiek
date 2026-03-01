@@ -7,25 +7,38 @@
     -webkit-user-drag: none;
 }
 
-/* Navigation Bar */
+/* Navigation Bar - hidden by default, toggled by hamburger */
 .nav-bar {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    top: 15px;
+    left: 15px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     z-index: 1000;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
-    padding: 12px 16px;
+    padding-top: 60px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 12px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
 }
 
-/* Hamburger button - hidden on desktop */
+.nav-bar.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Hamburger button - always visible */
 .nav-hamburger {
-    display: none;
+    display: flex;
     position: fixed;
     top: 15px;
     left: 15px;
@@ -91,28 +104,4 @@
 .nav-bar a.active {
     background-color: rgba(248, 181, 0, 0.3);
     color: #f8b500;
-}
-
-/* Mobile styles */
-@media (max-width: 768px) {
-    .nav-hamburger {
-        display: flex;
-    }
-
-    .nav-bar {
-        top: 15px;
-        left: 15px;
-        bottom: auto;
-        padding-top: 60px;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-    }
-
-    .nav-bar.open {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
 }

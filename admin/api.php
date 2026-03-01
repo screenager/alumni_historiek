@@ -339,27 +339,18 @@ switch ($action) {
         $concert = $concerts[(int)$index];
         $title = $concert['title'] ?? '(onbekend)';
 
-        // Delete associated image files from disk
+        // Delete entire concert directory from disk
         $concertFolder = ($concert['year'] ?? '') . '_' . ($concert['slug'] ?? '');
         if ($concertFolder !== '_') {
-            foreach ($concert['images'] ?? [] as $img) {
-                foreach (['thumb', 'full'] as $k) {
-                    $rel = $img[$k] ?? '';
-                    if ($rel) {
-                        $absPath = CONCERTS_DIR . '/' . $concertFolder . '/' . $rel;
-                        if (file_exists($absPath)) {
-                            unlink($absPath);
-                        }
-                    }
+            $dirPath = CONCERTS_DIR . '/' . $concertFolder;
+            if (is_dir($dirPath)) {
+                $it = new RecursiveDirectoryIterator($dirPath, RecursiveDirectoryIterator::SKIP_DOTS);
+                $files = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST);
+                foreach ($files as $file) {
+                    $file->isDir() ? rmdir($file->getRealPath()) : unlink($file->getRealPath());
                 }
-            }
-            // Delete poster
-            $poster = $concert['postcard_img'] ?? '';
-            if ($poster) {
-                $posterPath = CONCERTS_DIR . '/' . $poster;
-                if (file_exists($posterPath)) {
-                    unlink($posterPath);
-                }
+                rmdir($dirPath);
+                auditLog($user, 'delete_directory', "folder=$concertFolder");
             }
         }
 

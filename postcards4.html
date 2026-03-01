@@ -119,7 +119,6 @@
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
                         left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275),
                         opacity 0.4s ease,
-                        filter 0.3s ease,
                         z-index 0s;
             left: 50%;
             top: 50%;
@@ -128,6 +127,8 @@
             pointer-events: auto;
             filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.25));
             will-change: transform, opacity;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
 
         /* Initial fade-in on page load */
@@ -165,7 +166,6 @@
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
                         left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275),
                         opacity 0.4s ease,
-                        filter 1s ease,
                         z-index 0s;
         }
 
@@ -1058,6 +1058,342 @@
             }
         }
 
+        @media (max-height: 1200px) {
+            .focused-label {
+                bottom: 74px;
+            }}
+        }
+
+        /* Short viewport: scale header and postcards proportionally */
+        @media (max-height: 900px) {
+            header {
+                padding: 1rem 0.5rem;
+            }
+
+            header .logo {
+                max-width: 200px;
+            }
+
+            header p {
+                font-size: 1.8rem;
+                margin-top: 2rem;
+            }
+
+            .coverflow-container {
+                height: calc(100vh - 200px);
+                min-height: 400px;
+            }
+
+            .postcard {
+                width: min(380px, 50vh);
+                height: min(520px, 68vh);
+                margin-left: calc(min(380px, 50vh) / -2);
+                margin-top: calc(min(520px, 68vh) / -2);
+            }
+
+            .postcard-front {
+                border-width: 14px;
+            }
+
+            .postcard-title-front {
+                font-size: 1.6rem;
+            }
+
+            .postcard-year {
+                font-size: 0.9rem;
+            }
+
+            .postcard-back-content {
+                width: min(520px, 68vh);
+                height: min(380px, 50vh);
+                padding: 1.25rem;
+            }
+
+            .postcard-back-left {
+                font-size: 0.75rem;
+                padding-right: 1rem;
+            }
+
+            .postcard-back-title {
+                font-size: 1.2rem;
+            }
+
+            .postcard-back-date {
+                font-size: 0.7rem;
+            }
+
+            .postcard-back-text,
+            .postcard-back-repertoire {
+                font-size: 0.7rem;
+            }
+
+            .postmark {
+                width: 55px;
+                height: 55px;
+                font-size: 0.6rem;
+                border-width: 2px;
+            }
+
+            .postmark-city {
+                font-size: 0.7rem;
+            }
+
+            .focused-label {
+                font-size: 1.5rem;
+                bottom: -10px;
+            }
+
+            .flip-hint {
+                display: none;
+            }
+
+            .coverflow-nav {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
+            }
+
+            .flip-icon {
+                width: 50px;
+                height: 50px;
+                bottom: 12px;
+                right: 12px;
+            }
+
+            .flip-icon svg {
+                width: 32px;
+                height: 32px;
+            }
+        }
+
+        /* Medium-short viewport */
+        @media (max-height: 900px) {
+            header {
+                padding: 0.5rem 0.5rem;
+            }
+
+            header .logo {
+                max-width: 150px;
+            }
+
+            header p {
+                font-size: 1.4rem;
+                margin-top: 1.2rem;
+            }
+
+            .coverflow-container {
+                height: calc(100vh - 100px);
+                min-height: 320px;
+            }
+
+            .postcard {
+                width: min(280px, 42vh);
+                height: min(380px, 58vh);
+                margin-left: calc(min(280px, 42vh) / -2);
+                margin-top: calc(min(380px, 58vh) / -2);
+            }
+
+            .postcard-front {
+                border-width: 10px;
+            }
+
+            .postcard-title-front {
+                font-size: 1.3rem;
+            }
+
+            .postcard-year {
+                font-size: 0.8rem;
+            }
+
+            .postcard-back-content {
+                width: min(400px, 60vh);
+                height: min(280px, 42vh);
+                padding: 1rem;
+            }
+
+            .postcard-back-left {
+                font-size: 0.65rem;
+                padding-right: 0.6rem;
+            }
+
+            .postcard-back-title {
+                font-size: 1rem;
+            }
+
+            .postcard-back-date {
+                font-size: 0.6rem;
+            }
+
+            .postcard-back-text,
+            .postcard-back-repertoire {
+                font-size: 0.6rem;
+            }
+
+            .postmark {
+                width: 45px;
+                height: 45px;
+                font-size: 0.5rem;
+            }
+
+            .postmark-city {
+                font-size: 0.6rem;
+            }
+
+            .focused-label {
+                font-size: 1.3rem;
+                bottom: 38px;
+            }
+
+            .flip-hint {
+                bottom: 6px;
+                font-size: 0.7rem;
+                padding: 0.3em 1.2em;
+            }
+
+            .flip-icon {
+                width: 45px;
+                height: 45px;
+            }
+
+            .flip-icon svg {
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        /* Very short viewport */
+        @media (max-height: 550px) {
+            header p {
+                display: none;
+            }
+
+            header .logo {
+                max-width: 120px;
+            }
+
+            header {
+                padding: 0.3rem 0.5rem;
+            }
+
+            .coverflow-container {
+                height: calc(100vh - 60px);
+                min-height: 250px;
+            }
+
+            .postcard {
+                width: min(180px, 32vh);
+                height: min(245px, 44vh);
+                margin-left: calc(min(180px, 32vh) / -2);
+                margin-top: calc(min(245px, 44vh) / -2);
+            }
+
+            .postcard-front {
+                border-width: 6px;
+            }
+
+            .postcard-back-content {
+                width: min(260px, 47vh);
+                height: min(180px, 32vh);
+                padding: 0.4rem;
+            }
+
+            .postcard-back-left {
+                font-size: 0.45rem;
+                padding-right: 0.3rem;
+                gap: 0.15rem;
+            }
+
+            .postcard-back-title {
+                font-size: 0.7rem;
+            }
+
+            .postcard-back-date {
+                font-size: 0.4rem;
+            }
+
+            .postcard-back-text,
+            .postcard-back-repertoire {
+                font-size: 0.4rem;
+                line-height: 1.2;
+            }
+
+            .postcard-back-repertoire-label,
+            .postcard-back-text-label {
+                font-size: 0.55rem;
+            }
+
+            .postcard-back-bottom-row {
+                padding-top: 0.2rem;
+                gap: 0.4rem;
+            }
+
+            .postcard-back-director,
+            .postcard-back-coorporation {
+                font-size: 0.4rem;
+                max-height: 30px;
+            }
+
+            .postcard-back-director .bottom-label,
+            .postcard-back-coorporation .bottom-label {
+                font-size: 0.55rem;
+            }
+
+            .postcard-back-right {
+                gap: 0.2rem;
+            }
+
+            .postcard-back-images {
+                gap: 0.15rem;
+            }
+
+            .postcard-back-images img {
+                max-width: 50px;
+                max-height: 35px;
+            }
+
+            .postmark {
+                width: 30px;
+                height: 30px;
+                font-size: 0.3rem;
+                border-width: 1px;
+                top: 3px;
+                right: 3px;
+            }
+
+            .postmark-city {
+                font-size: 0.4rem;
+            }
+
+            .focused-label {
+                font-size: 1.6rem;
+                bottom: 48px;
+            }
+
+            .flip-hint {
+                bottom: 20px;
+            }
+
+            .flip-icon {
+                width: 30px;
+                height: 30px;
+                bottom: 6px;
+                right: 6px;
+            }
+
+            .flip-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .card-close-btn {
+                width: 18px;
+                height: 18px;
+                font-size: 0.7rem;
+                bottom: -9px;
+                left: -9px;
+            }
+        }
+
         /* Custom scrollbar – always visible */
         .custom-scroll-wrapper {
             position: relative;
@@ -1419,6 +1755,17 @@
                 const len = cards.length;
                 // Only update cards within visible range (±6), skip far-away ones
                 const visibleRange = 6;
+                
+                // Responsive spacing based on viewport height
+                const vh = window.innerHeight;
+                let cardSpacing = 350;
+                if (vh <= 550) {
+                    cardSpacing = 120; // Tight, overlapping
+                } else if (vh <= 650) {
+                    cardSpacing = 200;
+                } else if (vh <= 800) {
+                    cardSpacing = 280;
+                }
 
                 for (let i = 0; i < len; i++) {
                     const el = cards[i];
@@ -1436,7 +1783,7 @@
                     }
 
                     // Calculate transform values
-                    let translateX = offset * 350;
+                    let translateX = offset * cardSpacing;
                     let translateZ = -absOffset * 50;
                     let rotateY = offset < 0 ? 30 : (offset > 0 ? -30 : 0);
                     let scale = offset === 0 ? 1 : Math.max(0.75, 0.9 - (absOffset * 0.05));
@@ -1586,7 +1933,16 @@
                 const clickX = e.clientX - containerRect.left;
                 const centerX = containerRect.width / 2;
                 const cardWidth = 450;
-                const spacing = 350;
+                // Responsive spacing based on viewport height
+                const vh = window.innerHeight;
+                let spacing = 350;
+                if (vh <= 550) {
+                    spacing = 120;
+                } else if (vh <= 650) {
+                    spacing = 200;
+                } else if (vh <= 800) {
+                    spacing = 280;
+                }
                 const deadZone = cardWidth / 2; // The center area where clicks go to focused card
 
                 // Get all postcards at this click point
@@ -2106,9 +2462,16 @@
                 const vw = window.innerWidth;
                 const vh = window.innerHeight;
 
-                // Card dimensions based on current CSS breakpoint
+                // Card dimensions based on current CSS breakpoint (considering both width and height)
                 let cardW, cardH;
-                if (vw <= 768) {
+                if (vh <= 550) {
+                    // Very short viewport - cards are tiny, use smaller base
+                    cardW = 180; cardH = 245;
+                } else if (vh <= 650) {
+                    cardW = 280; cardH = 380;
+                } else if (vh <= 800) {
+                    cardW = 380; cardH = 520;
+                } else if (vw <= 768) {
                     cardW = 280; cardH = 381;
                 } else if (vw <= 1200) {
                     cardW = 380; cardH = 550;
@@ -2118,10 +2481,10 @@
 
                 const perspective = 1200;
                 const padding = 0.92;
-                const headerH = 100;
+                const headerH = vh <= 550 ? 60 : (vh <= 650 ? 100 : (vh <= 800 ? 140 : 100));
 
                 // On small screens, reduce translateZ to avoid excessive perspective magnification
-                let flipTZ = vw <= 768 ? 0 : (vw <= 1200 ? 150 : 300);
+                let flipTZ = (vw <= 768 || vh <= 650) ? 0 : (vw <= 1200 ? 150 : 300);
                 const perspFactor = perspective / (perspective - flipTZ);
 
                 const availW = vw * padding;
@@ -2130,14 +2493,19 @@
                 // After rotateZ(90deg): visual width = cardH * flipScale * perspFactor
                 const scaleForW = availW / (cardH * perspFactor);
                 const scaleForH = availH / (cardW * perspFactor);
-                const flipScale = Math.min(1.3, scaleForW, scaleForH);
+                // For short viewports, allow much larger scale (up to 2x) since cards are tiny
+                const maxScale = vh <= 550 ? 2.0 : (vh <= 650 ? 1.8 : 1.3);
+                const flipScale = Math.min(maxScale, scaleForW, scaleForH);
 
                 document.documentElement.style.setProperty('--flip-scale', Math.max(0.7, flipScale));
                 document.documentElement.style.setProperty('--flip-tz', flipTZ + 'px');
             }
 
             // Update flip dimensions on resize
-            $(window).on('resize', updateFlipDimensions);
+            $(window).on('resize', function() {
+                updateFlipDimensions();
+                updateCoverflow(); // Update card spacing for responsive layout
+            });
             updateFlipDimensions();
 
             // Initialize coverflow
@@ -2168,8 +2536,8 @@
             <a href="tegels.html">Idee 1: Tegels</a>
             <a href="postcards.html">Idee 2: Postkaartjes v1</a>
             <a href="postcards2.html">Idee 2: Postkaartjes v2</a>
-            <a href="postcards3.html" class="active">Idee 2: Postkaartjes v3</a>
-            <a href="postcards4.html">Idee 2: Postkaartjes v4 (improved scaling)</a>
+            <a href="postcards3.html">Idee 2: Postkaartjes v3</a>
+            <a href="postcards4.html" class="active">Idee 2: Postkaartjes v4 (improved scaling)</a>
         </div>
     </nav>
 </body>

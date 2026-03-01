@@ -12,7 +12,9 @@
         "Repertoire": "",
         "coorporation": "",
         "pdf": "",
-        "images": []
+        "images": [
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "groepsfoto" }
+        ]
     },
     {
         "year": "2019",

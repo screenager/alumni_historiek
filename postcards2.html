@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +16,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
         }
 
         :root {
@@ -640,6 +644,13 @@
             box-shadow: 3px 5px 15px rgba(0,0,0,0.4);
         }
 
+        .postcard-back-images .concert-img:focus-visible {
+            outline: 3px solid #f8b500;
+            outline-offset: 2px;
+            filter: brightness(1.1);
+            box-shadow: 3px 5px 15px rgba(0,0,0,0.4);
+        }
+
         /* Lightbox overlay */
         .lightbox-overlay {
             position: fixed;
@@ -1005,35 +1016,169 @@
         .custom-scroll-thumb.hidden {
             display: none;
         }
+
+        /* Screen reader only utility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Visible focus indicators */
+        button:focus-visible,
+        a:focus-visible,
+        [tabindex]:focus-visible {
+            outline: 3px solid #f8b500;
+            outline-offset: 2px;
+        }
+
+        .coverflow-container:focus-visible {
+            outline: 3px solid #f8b500;
+            outline-offset: -3px;
+            border-radius: 4px;
+        }
+
+        .coverflow-nav:focus-visible {
+            outline: 3px solid #f8b500;
+            outline-offset: 3px;
+        }
+
+        .lightbox-nav-btn:focus-visible,
+        .lightbox-close-btn:focus-visible {
+            outline: 3px solid #f8b500;
+            outline-offset: 3px;
+        }
+
+        /* ── Reduced motion: disable animations for vestibular safety ── */
+        @media (prefers-reduced-motion: reduce) {
+            /* Disable all card transitions (slide, fade, 3D) */
+            .postcard {
+                transition: none !important;
+            }
+
+            .postcard.focused {
+                transition: none !important;
+            }
+
+            /* Disable flip animation */
+            .postcard-inner {
+                transition: none !important;
+            }
+
+            /* Disable hover transforms on side cards */
+            .postcard:not(.focused):hover {
+                transform: none !important;
+                filter: brightness(1.15) !important;
+            }
+
+            /* Kill pulsing flip icon animations */
+            .flip-icon svg {
+                animation: none !important;
+            }
+
+            .flip-icon::after {
+                animation: none !important;
+            }
+
+            /* Disable fade-in on load */
+            .postcard.fade-in-init {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+
+            .postcard.fade-in-ready {
+                transition: none !important;
+            }
+
+            /* Disable rapid-nav transition override */
+            .coverflow-wrapper.rapid-nav .postcard {
+                transition: none !important;
+            }
+
+            /* Simplify nav button hover */
+            .coverflow-nav:hover {
+                transform: translateY(-50%) translateZ(0) !important;
+            }
+
+            /* Simplify lightbox button hover */
+            .lightbox-close-btn:hover,
+            .lightbox-nav-btn:hover {
+                transform: none !important;
+            }
+
+            /* Disable concert image hover transform */
+            .postcard-back-images .concert-img:hover {
+                filter: brightness(1.1);
+            }
+        }
+        /* Skip-to-content link */
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f8b500;
+            color: #1a1a2e;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0 0 8px 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            z-index: 10000;
+            text-decoration: none;
+            transition: top 0.2s ease;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
     </style>
 </head>
 <body>
+    <a href="#concertCarousel" class="skip-link">Ga naar concerten</a>
     <header>
-        <img src="logo.png" alt="Orchestra Logo" class="logo">
+        <img src="logo.png" alt="Logo van het Alumni Arenbergconcert" class="logo">
+        <h1 class="sr-only">Onze voorbije concerten - Alumni Arenbergconcert</h1>
         <p>Blader door herinneringen aan onze eerdere optredens</p>
-        <!--<a href="tegels.html" class="nav-link">← Back to Grid View</a>-->
     </header>
 
-    <div class="coverflow-container">
+    <main>
+    <div class="coverflow-container" role="region" aria-roledescription="carousel" aria-label="Concert overzicht" tabindex="0" id="concertCarousel">
         <div class="coverflow-wrapper" id="coverflowWrapper">
             <!-- Postcards will be dynamically inserted here -->
         </div>
 
-        <button class="coverflow-nav prev" id="prevBtn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="coverflow-nav prev" id="prevBtn" aria-label="Vorig concert">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
         </button>
-        <button class="coverflow-nav next" id="nextBtn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="coverflow-nav next" id="nextBtn" aria-label="Volgend concert">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
         </button>
 
-        <div class="flip-hint" id="flipHint">Klik op het postkaartje!</div>
+        <div class="flip-hint" id="flipHint" aria-hidden="true">Klik op het postkaartje!</div>
     </div>
+    <div id="concertAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    </main>
 
     <script>
+        // Prevent browser auto-scroll from shifting the 3D coverflow layout
+        // when focus moves to elements inside perspective containers
+        window.addEventListener('scroll', function() {
+            if (window.scrollX !== 0) window.scrollTo(0, window.scrollY);
+        });
+        document.addEventListener('scroll', function(e) {
+            if (e.target !== document && e.target.scrollLeft) e.target.scrollLeft = 0;
+        }, true);
+
         $(document).ready(function() {
         // Load concert data from external JSON file
         $.getJSON('concertData.json', function(concertData) {
@@ -1068,11 +1213,12 @@
                     const img = imgs[i];
                     const thumbSrc = 'concerts/' + concertDir + '/' + (img.thumb || img);
                     const fullSrc = 'concerts/' + concertDir + '/' + (img.full || img);
-                    imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${concert.title} foto ${i+1}">`;
+                    const imgAlt = img.alt || (concert.title + ' foto ' + (i+1));
+                    imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${imgAlt}" role="button" tabindex="-1">`;
                 }
 
                 return `
-                    <div class="postcard" data-index="${index}">
+                    <div class="postcard" data-index="${index}" role="group" aria-roledescription="slide" aria-label="${concert.title} - ${concert.year}">
                         <div class="postcard-inner">
                             <div class="postcard-front">
                                 <img src="concerts/${concert.postcard_img}" alt="${concert.title}">
@@ -1083,7 +1229,7 @@
                                     <span class="postcard-year">${concert.dates || concert.year}</span>
                                     <h3 class="postcard-title-front">${concert.title}</h3>
                                 </div>` : ''}
-                                <div class="flip-icon">
+                                <div class="flip-icon" aria-hidden="true">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                                         <path d="M3 3v5h5"></path>
@@ -1149,6 +1295,12 @@
                 }, 1200);
             });
 
+            // Helper: toggle tabindex on concert images when card is flipped/unflipped
+            function updateFlippedImageTabindex($card) {
+                const isFlipped = $card.hasClass('flipped');
+                $card.find('.concert-img[role="button"]').attr('tabindex', isFlipped ? '0' : '-1');
+            }
+
             // Flip hint timeout handle
             let flipHintTimer = null;
             // History debounce timer
@@ -1182,6 +1334,7 @@
                         el.style.opacity = '0';
                         el.style.pointerEvents = 'none';
                         el.style.zIndex = '0';
+                        el.setAttribute('aria-hidden', 'true');
                         el.classList.remove('focused');
                         continue;
                     }
@@ -1212,12 +1365,14 @@
                     s.setProperty('--ry', `${rotateY}deg`);
                     s.setProperty('--scale', scale);
 
-                    // Toggle focused class
+                    // Toggle focused class and ARIA state
                     if (offset === 0) {
                         el.classList.add('focused');
+                        el.setAttribute('aria-hidden', 'false');
                     } else {
                         el.classList.remove('focused');
                         el.classList.remove('flipped');
+                        el.setAttribute('aria-hidden', absOffset > 4 ? 'true' : 'false');
                     }
                 }
 
@@ -1235,6 +1390,13 @@
                 // Hide nav buttons at edges
                 $('#prevBtn').toggle(currentIndex > 0);
                 $('#nextBtn').toggle(currentIndex < totalCards - 1);
+
+                // Update screen reader announcement
+                const currentConcert = concertData[currentIndex];
+                const announcer = document.getElementById('concertAnnouncer');
+                if (announcer) {
+                    announcer.textContent = currentConcert.title + ', ' + currentConcert.year + ' (' + (currentIndex + 1) + ' van ' + totalCards + ')';
+                }
 
                 // Debounce URL hash update to avoid micro-hangs during rapid navigation
                 if (historyTimer) clearTimeout(historyTimer);
@@ -1352,6 +1514,7 @@
                 if (targetIndex === currentIndex) {
                     // Focused card - flip it
                     $(`.postcard[data-index="${currentIndex}"]`).toggleClass('flipped');
+                    updateFlippedImageTabindex($(`.postcard[data-index="${currentIndex}"]`));
                     $flipHint.removeClass('visible');
                     updateHash();
                 } else {
@@ -1368,11 +1531,14 @@
                 // Cancel any pending auto-flip from a previous call
                 if (flipAfterNavTimer) { clearTimeout(flipAfterNavTimer); flipAfterNavTimer = null; }
                 $('.postcard.focused').removeClass('flipped');
+                updateFlippedImageTabindex($('.postcard.focused'));
                 if (direction === 'next') goNext(); else goPrev();
                 // Only auto-flip the new card if this is a single-step navigation (not held key)
                 if (!skipReflip) {
                     flipAfterNavTimer = setTimeout(function() {
-                        $('.postcard.focused').addClass('flipped');
+                        const $fc = $('.postcard.focused');
+                        $fc.addClass('flipped');
+                        updateFlippedImageTabindex($fc);
                         $flipHint.removeClass('visible');
                         flipAfterNavTimer = null;
                         updateHash();
@@ -1434,6 +1600,7 @@
                     e.preventDefault();
                     const $focusedCard = $('.postcard.focused');
                     $focusedCard.toggleClass('flipped');
+                    updateFlippedImageTabindex($focusedCard);
                     $flipHint.removeClass('visible');
                     updateHash();
                 }
@@ -1446,7 +1613,9 @@
                         // Small delay so the last coverflow slide settles
                         if (flipAfterNavTimer) clearTimeout(flipAfterNavTimer);
                         flipAfterNavTimer = setTimeout(function() {
-                            $('.postcard.focused').addClass('flipped');
+                            const $fc = $('.postcard.focused');
+                            $fc.addClass('flipped');
+                            updateFlippedImageTabindex($fc);
                             $flipHint.removeClass('visible');
                             flipAfterNavTimer = null;
                             updateHash();
@@ -1555,6 +1724,14 @@
                 }
             });
 
+            // Keyboard activation for concert images (Enter/Space opens lightbox)
+            $(document).on('keydown', '.concert-img[role="button"]', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    $(this).trigger('click');
+                }
+            });
+
             // ── Lightbox for concert images ──
             $(document).on('click', '.postcard-back-images .concert-img', function(e) {
                 e.stopPropagation();
@@ -1566,21 +1743,39 @@
                 let lightboxIndex = $allImgs.index(this);
 
                 // Build the overlay
-                const $overlay = $('<div class="lightbox-overlay"></div>');
+                const $triggerEl = $(this).closest('.postcard');
+                const $overlay = $('<div class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="Foto weergave"></div>');
                 const $wrapper = $('<div class="lightbox-content"></div>');
-                const $img = $('<img class="lightbox-img">');
-                const $closeBtn = $('<button class="lightbox-close-btn" title="Sluiten">&times;</button>');
-                const $prevBtn = $('<button class="lightbox-nav-btn prev" title="Vorige">&#8249;</button>');
-                const $nextBtn = $('<button class="lightbox-nav-btn next" title="Volgende">&#8250;</button>');
+                const $img = $('<img class="lightbox-img" alt="">');
+                const $closeBtn = $('<button class="lightbox-close-btn" aria-label="Sluiten" title="Sluiten">&times;</button>');
+                const $prevBtn = $('<button class="lightbox-nav-btn prev" aria-label="Vorige foto" title="Vorige">&#8249;</button>');
+                const $nextBtn = $('<button class="lightbox-nav-btn next" aria-label="Volgende foto" title="Volgende">&#8250;</button>');
                 $wrapper.append($img).append($prevBtn).append($nextBtn).append($closeBtn);
                 $overlay.append($wrapper);
                 $('body').append($overlay);
+
+                // Trap focus within the lightbox dialog
+                $overlay.on('keydown.lightboxTrap', function(e) {
+                    if (e.key === 'Tab') {
+                        const focusable = $overlay.find('button:visible');
+                        const first = focusable.first()[0];
+                        const last = focusable.last()[0];
+                        if (e.shiftKey && document.activeElement === first) {
+                            e.preventDefault();
+                            last.focus();
+                        } else if (!e.shiftKey && document.activeElement === last) {
+                            e.preventDefault();
+                            first.focus();
+                        }
+                    }
+                });
 
                 function showImage(idx) {
                     const $target = $allImgs.eq(idx);
                     const thumbSrc = $target.attr('src');
                     const fullSrc = $target.data('full') || thumbSrc;
                     $img.attr('src', thumbSrc);
+                    $img.attr('alt', $target.attr('alt') || 'Concert foto ' + (idx + 1));
                     // Preload and swap to full-res if available
                     if (fullSrc !== thumbSrc) {
                         const preload = new Image();
@@ -1594,11 +1789,14 @@
                 }
 
                 showImage(lightboxIndex);
+                $closeBtn.focus();
 
                 function closeLightbox() {
+                    $overlay.off('keydown.lightboxTrap');
                     $overlay.remove();
                     lightboxOpen = false;
                     $(document).off('keydown.lightbox');
+                    if ($triggerEl && $triggerEl.length) $triggerEl.focus();
                 }
 
                 $closeBtn.on('click', function(e) {
@@ -1810,7 +2008,9 @@
             // If the hash indicated flipped state, flip the focused card after rendering
             if (initialFlipped) {
                 setTimeout(function() {
-                    $(`.postcard[data-index="${currentIndex}"]`).addClass('flipped');
+                    const $card = $(`.postcard[data-index="${currentIndex}"]`);
+                    $card.addClass('flipped');
+                    updateFlippedImageTabindex($card);
                     $flipHint.removeClass('visible');
                 }, 100);
             }
@@ -1819,12 +2019,12 @@
     </script>
 
     <!-- Navigation Bar -->
-    <button class="nav-hamburger" onclick="document.querySelector('.nav-bar').classList.toggle('open'); this.classList.toggle('open')">
+    <button class="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mainNav" onclick="document.querySelector('.nav-bar').classList.toggle('open'); this.classList.toggle('open'); this.setAttribute('aria-expanded', this.classList.contains('open'))">
         <span></span>
         <span></span>
         <span></span>
     </button>
-    <nav class="nav-bar">
+    <nav class="nav-bar" id="mainNav" aria-label="Navigatie">
         <div class="nav-links">
             <a href="tegels.html">Idee 1: Tegels</a>
             <a href="postcards.html">Idee 2: Postkaartjes v1</a>

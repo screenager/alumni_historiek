@@ -60,10 +60,10 @@
         "coorporation": "Eva Lievens (viool)",
         "pdf": "",
         "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" }
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van het orkest tijdens de staande ovatie" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de blazers" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de solist Eva Lievens tijdens haar performance" }
         ]
     },
     {
@@ -80,10 +80,10 @@
         "coorporation": "",
         "pdf": "",
         "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" }
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Sfeervolle overzichtsfoto van het orkest" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Foto van de docoratie in de zaal" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de dirigent" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de 2 vertellers tijdens hun performance" }
         ]
     },
     {
@@ -101,10 +101,10 @@
         "coorporation": "Maarten Vandenbemden (gitaar)",
         "pdf": "",
         "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
-            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg" }
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van de achterste rij 2de violen en blazers" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Zijdelingse foto van het orkest" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van solist Maarten Vandenbemden tijdens zijn performance" },
+            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "Foto van een blazer muzikant met een sombrero op zijn hoofd" }
         ]
     },
     {
@@ -121,10 +121,10 @@
         "coorporation": "",
         "pdf": "",
         "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" }
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Overzichtsfoto van het orkest" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest met focus op de altviolen" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de verteller Andreas" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de blazers en percussie achterin het orkest" }
         ]
     },
     {
@@ -157,10 +157,10 @@
         "coorporation": "Lara Cannaert & Manuel Murabito",
         "pdf": "",
         "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" }
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Overzichtsfoto van het orkest met focus op de eerste rijen" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Sfeerfoto van Carmen die aan het zingen tijdens de scene aan tafel met wijn" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Sfeerfoto van Carmen die enthousiast aan het zingen is samen met de andere zangers" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Sfeerfoto van Carmen die enthousiast aan het zingen is samen met de andere zangers" }
         ]
     },
     {
@@ -178,10 +178,10 @@
         "coorporation": "prof. Bram Vervliet",
         "pdf": "ja",
         "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" }
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van Bram Vervliet die aan het vertellen is" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Zijdelingse foto van de eerste violen met zicht op dirigent" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Zijdelingse foto van de cello's en een foto van een volle maan als projectie achteraan" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Overzichtsfoto van het orkest, met een volle maan als projectie achteraan" }
         ]
     },
     {
@@ -217,10 +217,10 @@
         "coorporation_url": "",
         "pdf": "ja",
         "images": [
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg" },
-            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg" }
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Verticale foto van het orkest" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Overzichtsfoto van het orkest" },
+            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "Foto van de verteller Frans tijdens het lezen uit het sprookjesboek" }
         ]
     }
 ]

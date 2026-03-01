@@ -151,7 +151,10 @@
         "coorporation": "",
         "pdf": "",
         "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "foto staande ovatie" }
+            { "thumb": "pictures/foto6_thumb.jpeg", "full": "pictures/foto6.jpeg", "alt": "foto van een van de vertellers" },
+            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "overzichtsfoto orkest" },
+            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "foto eerste violen" },
+            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "foto van enkele blazers" }
         ]
     },
     {

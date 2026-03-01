@@ -421,6 +421,7 @@
             min-height: 0;
             overflow: hidden;
             position: relative;
+            margin-bottom: 10px;
         }
 
         .postcard-back-repertoire p,
@@ -1273,7 +1274,7 @@
                                             <span>${concert.year}</span>
                                         </div>
                                         <div class="postcard-back-title">${concert.title}</div>
-                                        <div class="postcard-back-date">${[concert.dates, concert.season, concert.year].filter(Boolean).join(' ')}${concert.locations ? ' - ' + concert.locations : ''}</div>
+                                        <div class="postcard-back-date">${[concert.dates, concert.year].filter(Boolean).join(' ')}${concert.locations ? ' - ' + concert.locations : ''}</div>
                                         <div class="postcard-back-images">
                                             ${imagesHtml}
                                         </div>

@@ -140,7 +140,9 @@
         "Repertoire": "The Lion King - Hans Zimmer, Elton John, arr. Brad Kelley\nGame of Thrones - Ramin Djawadi arr. Sean Fearnley\nJurassic Park - John Williams arr. Calvin Custe\nCoriolanus Ouverture - Beethoven\nLord of The Rings (Fellowship, Two Towers) - Howard Shore, arr. John Whitney\nSymfonie 7 deel 2 - Beethoven\nValse Triste - Sibelius\nKodaly Zoltan - Intermezzo",
         "coorporation": "",
         "pdf": "",
-        "images": []
+        "images": [
+            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "foto staande ovatie" }
+        ]
     },
     {
         "year": "2024",

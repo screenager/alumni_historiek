@@ -909,6 +909,56 @@ h3.postcard-back-text-label {
     opacity: 1;
 }
 
+/* Custom scrollbar – always visible */
+.custom-scroll-wrapper {
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.custom-scroll-content {
+    height: 100%;
+    overflow-y: scroll;
+    padding-right: 14px; /* room for the custom track */
+    scrollbar-width: none; /* Firefox */
+}
+
+.custom-scroll-content::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.custom-scroll-track {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    background: rgba(180, 170, 150, 0.25);
+    border-radius: 3px;
+}
+
+.custom-scroll-thumb {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    min-height: 18px;
+    background: rgba(100, 90, 70, 0.5);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.custom-scroll-thumb:hover,
+.custom-scroll-thumb.dragging {
+    background: rgba(80, 70, 50, 0.75);
+}
+
+.custom-scroll-track.hidden,
+.custom-scroll-thumb.hidden {
+    display: none;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     :root {
@@ -1093,6 +1143,15 @@ h3.postcard-back-text-label {
         min-height: 400px;
     }
 
+    .swipe-hint {
+        margin-top: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .focused-label.at-bottom {
+        bottom: -7px;
+    }
+
     .postcard-title-front {
         font-size: 1.6rem;
     }
@@ -1192,6 +1251,10 @@ h3.postcard-back-text-label {
         font-size: 0.54rem;
     }
 
+    .postcard-back-bottom-row dd {
+        font-size: 0.55rem;
+    }
+
     .flip-hint {
         font-size: 0.7rem;
         padding: 0.3em 1.2em;
@@ -1232,7 +1295,7 @@ h3.postcard-back-text-label {
     }
 
     header .logo {
-        max-width: 120px;
+        max-width: 190px;
     }
 
     header {
@@ -1264,6 +1327,14 @@ h3.postcard-back-text-label {
         line-height: 1.2;
     }
 
+    .postcard-back-left h3 {
+        margin-left: 5px;
+    }
+
+    .custom-scroll-content {
+        padding-left: 5px;
+    }
+
     .postcard-back-repertoire-label,
     .postcard-back-text-label {
         font-size: 0.55rem;
@@ -1285,6 +1356,16 @@ h3.postcard-back-text-label {
         font-size: 0.55rem;
     }
 
+    .postcard-back-bottom-row {
+        padding-left: 5px;
+    }
+    .postcard-back-bottom-row dt {
+        font-size: 0.45rem;
+    }
+    .postcard-back-bottom-row dd {
+        font-size: 0.35rem;
+    }
+
     .postcard-back-right {
         gap: 0.2rem;
     }
@@ -1298,61 +1379,17 @@ h3.postcard-back-text-label {
         max-height: 35px;
     }
 
+    .focused-label {
+        font-size: 1rem;
+    }
+
     .postmark {
         top: 3px;
         right: 3px;
     }
 }
 
-/* Custom scrollbar – always visible */
-.custom-scroll-wrapper {
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-}
 
-.custom-scroll-content {
-    height: 100%;
-    overflow-y: scroll;
-    padding-right: 14px; /* room for the custom track */
-    scrollbar-width: none; /* Firefox */
-}
-
-.custom-scroll-content::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
-}
-
-.custom-scroll-track {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 6px;
-    height: 100%;
-    background: rgba(180, 170, 150, 0.25);
-    border-radius: 3px;
-}
-
-.custom-scroll-thumb {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 6px;
-    min-height: 18px;
-    background: rgba(100, 90, 70, 0.5);
-    border-radius: 3px;
-    cursor: pointer;
-    transition: background 0.15s ease;
-}
-
-.custom-scroll-thumb:hover,
-.custom-scroll-thumb.dragging {
-    background: rgba(80, 70, 50, 0.75);
-}
-
-.custom-scroll-track.hidden,
-.custom-scroll-thumb.hidden {
-    display: none;
-}
 
 /* Screen reader only utility */
 .sr-only {

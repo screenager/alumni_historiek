@@ -21,3 +21,6 @@ tegels.html can be ignored, this was an early idea of the project.
     - Copy the highest version
     - Increment the number
     - Work only on the new highest version
+
+
+When making a new change or feature, always suggest to also support the mobile view of the page, and support for accessibility.

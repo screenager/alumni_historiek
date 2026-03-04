@@ -545,8 +545,8 @@
         }
 
         .postmark {
-            width: 80px;
-            height: 102px;
+            width: 110px;
+            height: 140px;
             border: none;
             border-radius: 0;
             display: flex;
@@ -561,6 +561,7 @@
             margin-bottom: 0.5rem;
             flex-shrink: 0;
             position: relative;
+            overflow: hidden;
             /* Stamp paper */
             background: #f2e8d0;
             /* 'Glued at an angle' shadow */
@@ -583,12 +584,33 @@
             mask-composite: add;
         }
 
+        /* Blurry floral illustration behind the stamp text */
+        .postmark::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='140' viewBox='0 0 110 140'%3E%3Crect width='110' height='140' fill='%23f5e6c8'/%3E%3Ccircle cx='55' cy='82' r='16' fill='%23d4607a' opacity='.9'/%3E%3Ccircle cx='55' cy='82' r='8' fill='%23f5c842' opacity='.95'/%3E%3Cellipse cx='55' cy='63' rx='6' ry='12' fill='%23e87a9a' opacity='.85'/%3E%3Cellipse cx='55' cy='101' rx='6' ry='12' fill='%23e87a9a' opacity='.85'/%3E%3Cellipse cx='36' cy='82' rx='12' ry='6' fill='%23e87a9a' opacity='.85'/%3E%3Cellipse cx='74' cy='82' rx='12' ry='6' fill='%23e87a9a' opacity='.85'/%3E%3Cellipse cx='42' cy='69' rx='7' ry='12' fill='%23d46080' opacity='.75' transform='rotate(45 42 69)'/%3E%3Cellipse cx='68' cy='69' rx='7' ry='12' fill='%23d46080' opacity='.75' transform='rotate(-45 68 69)'/%3E%3Cellipse cx='42' cy='95' rx='7' ry='12' fill='%23d46080' opacity='.75' transform='rotate(-45 42 95)'/%3E%3Cellipse cx='68' cy='95' rx='7' ry='12' fill='%23d46080' opacity='.75' transform='rotate(45 68 95)'/%3E%3Cline x1='55' y1='98' x2='55' y2='128' stroke='%23588050' stroke-width='2.5'/%3E%3Cline x1='55' y1='116' x2='38' y2='130' stroke='%23588050' stroke-width='2'/%3E%3Cline x1='55' y1='116' x2='72' y2='132' stroke='%23588050' stroke-width='2'/%3E%3Cellipse cx='44' cy='110' rx='12' ry='6' fill='%23588050' opacity='.8' transform='rotate(-35 44 110)'/%3E%3Cellipse cx='66' cy='114' rx='12' ry='6' fill='%23588050' opacity='.8' transform='rotate(35 66 114)'/%3E%3Ccircle cx='22' cy='28' r='8' fill='%23e87aac' opacity='.8'/%3E%3Ccircle cx='22' cy='28' r='3.5' fill='%23f5c842' opacity='.9'/%3E%3Cellipse cx='22' cy='17' rx='4' ry='7' fill='%23f09abe' opacity='.8'/%3E%3Cellipse cx='22' cy='39' rx='4' ry='7' fill='%23f09abe' opacity='.8'/%3E%3Cellipse cx='11' cy='28' rx='7' ry='4' fill='%23f09abe' opacity='.8'/%3E%3Cellipse cx='33' cy='28' rx='7' ry='4' fill='%23f09abe' opacity='.8'/%3E%3Ccircle cx='88' cy='22' r='7' fill='%23f07060' opacity='.8'/%3E%3Ccircle cx='88' cy='22' r='3' fill='%23f5c842' opacity='.9'/%3E%3Cellipse cx='88' cy='12' rx='3.5' ry='6' fill='%23f09080' opacity='.8'/%3E%3Cellipse cx='88' cy='32' rx='3.5' ry='6' fill='%23f09080' opacity='.8'/%3E%3Cellipse cx='78' cy='22' rx='6' ry='3.5' fill='%23f09080' opacity='.8'/%3E%3Cellipse cx='98' cy='22' rx='6' ry='3.5' fill='%23f09080' opacity='.8'/%3E%3Cellipse cx='15' cy='58' rx='10' ry='5' fill='%23588050' opacity='.7' transform='rotate(-40 15 58)'/%3E%3Cellipse cx='95' cy='52' rx='10' ry='5' fill='%23588050' opacity='.7' transform='rotate(40 95 52)'/%3E%3Cellipse cx='10' cy='102' rx='9' ry='4.5' fill='%23588050' opacity='.65' transform='rotate(20 10 102)'/%3E%3Cellipse cx='100' cy='98' rx='9' ry='4.5' fill='%23588050' opacity='.65' transform='rotate(-20 100 98)'/%3E%3Cellipse cx='55' cy='13' rx='8' ry='6' fill='%23e87a9a' opacity='.85'/%3E%3Cellipse cx='55' cy='8' rx='6' ry='5' fill='%23c85070' opacity='.9'/%3E%3Cline x1='55' y1='19' x2='55' y2='66' stroke='%23588050' stroke-width='2'/%3E%3Cellipse cx='38' cy='38' rx='11' ry='5' fill='%23588050' opacity='.7' transform='rotate(-25 38 38)'/%3E%3Cellipse cx='72' cy='43' rx='11' ry='5' fill='%23588050' opacity='.7' transform='rotate(25 72 43)'/%3E%3C/svg%3E");
+            background-size: cover;
+            background-position: center;
+            filter: blur(1.8px);
+            opacity: 0.42;
+            z-index: 0;
+            pointer-events: none;
+        }
+
         .postmark::before {
             content: '';
             position: absolute;
             inset: 8px;
             border: 1.5px solid rgba(150, 60, 20, 0.55);
             pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Keep text above the blurred background */
+        .postmark span {
+            position: relative;
+            z-index: 1;
         }
 
         .postmark-city {
@@ -953,8 +975,8 @@
             }
 
             .postmark {
-                width: 70px;
-                height: 88px;
+                width: 90px;
+                height: 114px;
                 font-size: 0.65rem;
             }
 
@@ -1045,8 +1067,8 @@
             }
 
             .postmark {
-                width: 56px;
-                height: 70px;
+                width: 74px;
+                height: 94px;
                 font-size: 0.5rem;
             }
 
@@ -1164,8 +1186,8 @@
             }
 
             .postmark {
-                width: 62px;
-                height: 78px;
+                width: 82px;
+                height: 104px;
                 font-size: 0.6rem;
             }
 
@@ -1267,8 +1289,8 @@
             }
 
             .postmark {
-                width: 48px;
-                height: 62px;
+                width: 66px;
+                height: 84px;
                 font-size: 0.5rem;
             }
 
@@ -1389,8 +1411,8 @@
             }
 
             .postmark {
-                width: 34px;
-                height: 43px;
+                width: 46px;
+                height: 58px;
                 font-size: 0.3rem;
                 top: 3px;
                 right: 3px;

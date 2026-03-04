@@ -66,6 +66,37 @@
     </nav>
 
     <div class="container py-4" style="max-width:960px;">
+        <!-- Header text management -->
+        <div class="card mb-4 concert-card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold mb-3 d-flex align-items-center gap-2" style="color: rgb(224, 224, 224)">
+                   Vaste labels
+                </h2>
+                <form id="headerForm" onsubmit="event.preventDefault(); submitHeader();">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Hoofdtitel (H1)</label>
+                            <input name="h1" type="text" class="form-control" placeholder="Onze voorbije concerten...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary">Klik hint</label>
+                            <input name="flip_hint" type="text" class="form-control" placeholder="Klik op het postkaartje!">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-12">
+                            <label class="form-label small text-secondary">Swipe hint</label>
+                            <input name="swipe_hint" class="form-control" placeholder="Blader door herinneringen...">
+                            <div class="form-text text-secondary x-small" style="font-size: 0.75rem;">HTML toegestaan</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Opslaan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h4 fw-semibold mb-0">Concerten</h2>
             <button onclick="openAddForm()" class="btn btn-success d-flex align-items-center gap-2">
@@ -306,8 +337,37 @@ async function doLogout() {
 // ── Concert list ───────────────────────────────────────
 async function loadConcerts() {
     const res = await fetch(`${API}?action=list`);
-    concerts = await res.json();
+    const data = await res.json();
+    concerts = data.concerts || [];
     renderList();
+    fillHeaderForm(data.header || {});
+}
+
+function fillHeaderForm(header) {
+    const form = document.getElementById('headerForm');
+    if (form) {
+        form.querySelector('[name="h1"]').value = header.h1 || '';
+        form.querySelector('[name="swipe_hint"]').value = header.swipe_hint || '';
+        form.querySelector('[name="flip_hint"]').value = header.flip_hint || '';
+    }
+}
+
+async function submitHeader() {
+    const form = document.getElementById('headerForm');
+    const header = {
+        h1: form.querySelector('[name="h1"]').value,
+        swipe_hint: form.querySelector('[name="swipe_hint"]').value,
+        flip_hint: form.querySelector('[name="flip_hint"]').value
+    };
+
+    const res = await fetch(`${API}?action=update_header`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify({ header })
+    });
+    const result = await res.json();
+    if (!res.ok) { toast(result.error, 'danger'); return; }
+    toast('Header tekst bijgewerkt!', 'success');
 }
 
 const MONTH_ORDER = {jan:1,feb:2,mrt:3,apr:4,mei:5,jun:6,jul:7,aug:8,sep:9,okt:10,nov:11,dec:12};

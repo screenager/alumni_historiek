@@ -74,6 +74,19 @@
             margin-top: 3.5rem;
             line-height: 1.3rem;
             font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #mainTitle {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .header-ready .swipe-hint,
+        .header-ready #mainTitle,
+        .header-ready #flipHint {
+            opacity: 1;
         }
 
         .mobile-br {
@@ -1169,7 +1182,7 @@
         @media (max-height: 1200px) {
             .focused-label {
                 bottom: 74px;
-            }}
+            }
         }
 
         /* Short viewport: scale header and postcards proportionally */
@@ -1703,8 +1716,8 @@
     <a href="#concertCarousel" class="skip-link">Ga naar concerten</a>
     <header>
         <img src="logo.png" alt="Logo van het Alumni Arenbergconcert" class="logo">
-        <h1 class="sr-only">Onze voorbije concerten - Alumni Arenbergconcert</h1>
-        <p class="swipe-hint">Blader door herinneringen <span class="mobile-br"></span>aan onze eerdere optredens</p>
+        <h1 class="sr-only" id="mainTitle">Onze voorbije concerten - Alumni Arenbergconcert</h1>
+        <p class="swipe-hint" id="swipeHintText">Blader door herinneringen <span class="mobile-br"></span>aan onze eerdere optredens</p>
     </header>
 
     <main>
@@ -1742,7 +1755,19 @@
 
         $(document).ready(function() {
         // Load concert data from external JSON file
-        $.getJSON('concertData.json', function(concertData) {
+        $.getJSON('concertData.json', function(data) {
+            const concertData = data.concerts || data; // fallback if it's still just an array
+            const headerData = data.header || {};
+
+            if (headerData.h1) {
+                $('#mainTitle').text(headerData.h1);
+                // Also update aria-label if it's based on the title
+            }
+            if (headerData.swipe_hint) $('#swipeHintText').html(headerData.swipe_hint);
+            if (headerData.flip_hint) $('#flipHint').text(headerData.flip_hint);
+
+            // Reveal header once data is applied
+            $('body').addClass('header-ready');
 
             // revert order
             concertData.reverse();
@@ -2713,6 +2738,9 @@
                     updateLabelVisibility();
                 }, 100);
             }
+        }).fail(function() {
+            // Reveal header even on failure to show hardcoded text
+            $('body').addClass('header-ready');
         }); // end $.getJSON
         }); // end document.ready
     </script>
@@ -2731,6 +2759,7 @@
             <a href="postcards3.html">Idee 2: Postkaartjes v3</a>
             <a href="postcards4.html">Idee 2: Postkaartjes v4 (improved scaling)</a>
             <a href="postcards5.html" class="active">Idee 2: Postkaartjes v5 (font main website)</a>
+            <a href="admin/index.html">Admin</a>
         </div>
     </nav>
 </body>

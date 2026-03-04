@@ -59,13 +59,35 @@ function requireAuth(): string {
     return $_SESSION['admin_user'];
 }
 
+function loadData(): array {
+    $raw = @file_get_contents(DATA_FILE);
+    $decoded = json_decode($raw, true);
+
+    if (!is_array($decoded)) {
+        return ['header' => ['h1' => '', 'swipe_hint' => ''], 'concerts' => []];
+    }
+
+    // Handle old format: plain array of concerts (no 'concerts' key)
+    if (!array_key_exists('concerts', $decoded)) {
+        return ['header' => ['h1' => '', 'swipe_hint' => ''], 'concerts' => $decoded];
+    }
+
+    return $decoded;
+}
+
 function loadConcerts(): array {
-    $raw = file_get_contents(DATA_FILE);
-    return json_decode($raw, true) ?? [];
+    $data = loadData();
+    return $data['concerts'] ?? [];
 }
 
 function saveConcerts(array $concerts): void {
-    $json = json_encode($concerts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    $data = loadData();
+    $data['concerts'] = $concerts;
+    saveData($data);
+}
+
+function saveData(array $data): void {
+    $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 
     // Compact image objects onto single lines to match original format:
     //   { "thumb": "...", "full": "..." }  or  { "thumb": "...", "full": "...", "alt": "..." }
@@ -216,7 +238,25 @@ switch ($action) {
     // ── LIST CONCERTS ────────────────────────────────────
     case 'list':
         requireAuth();
-        jsonResponse(loadConcerts());
+        jsonResponse(loadData());
+        break;
+
+    // ── UPDATE HEADER ────────────────────────────────────
+    case 'update_header':
+        if ($method !== 'POST') jsonResponse(['error' => 'POST vereist'], 405);
+        $user = requireAuth();
+        requireCsrf();
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $header = $input['header'] ?? null;
+        if ($header === null) jsonResponse(['error' => 'header vereist'], 400);
+
+        $data = loadData();
+        $data['header'] = $header;
+        saveData($data);
+
+        auditLog($user, 'update_header', "h1=" . ($header['h1'] ?? ''));
+        jsonResponse(['ok' => true]);
         break;
 
     // ── GET SINGLE CONCERT ───────────────────────────────

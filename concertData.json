@@ -1,243 +1,250 @@
-[
-    {
-        "year": "2018",
-        "season": "nov",
-        "title": "Gaudeamus",
-        "slug": "gaudeamus",
-        "postcard_img": "2018_gaudeamus/poster.jpg",
-        "director": "Kurt Bikkembergs",
-        "dates": "30 nov, 2 dec",
-        "locations": "MTC",
-        "text": "HOERA! \nGaudeamus is het feestelijke startconcert van het Alumni Arenbergorkest!\nVeertig KUL-alumni en “ouwe zakken” van het Arenbergorkest vonden elkaar in de zomer van 2018  en zetten sindsdien wekelijks hun tanden in een reeks symfonische stukken. \nOnze instrumenten zijn opgeblonken, de partituren staan klaar en het dirigeerstokje zwaait als nooit tevoren. \nKomt dat zien!",
-        "Repertoire": "Academic festival ouverture  - J. Brahms\nComedians Gallop - D. Kabalevsky\nEntry of the gladiators - J. Fucik\nLord of the dance - M. Flatley",
-        "coorporation": "",
-        "pdf": "",
-        "images": [
-            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "overzichtsfoto orkest" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "foto van de dirigent" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "foto van de violen" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "overzichtsfoto van de blazers" }
-        ]
+{
+    "header": {
+        "h1": "Onze voorbije concerten",
+        "swipe_hint": "Blader door herinneringen <span class=\"mobile-br\"></span>aan onze eerdere optredens",
+        "flip_hint": "Klik op het postkaartje!"
     },
-    {
-        "year": "2019",
-        "season": "mei",
-        "title": "Source of the Nile",
-        "slug": "sourceofthenile",
-        "postcard_img": "2019_sourceofthenile/poster.jpg",
-        "director": "Thomas Geudens",
-        "dates": "28 april, 3 mei",
-        "locations": "MTC",
-        "text": "HABARI! \nHet Alumni Arenbergorkest is op ontdekkingsreis naar de bron van de Nijl. Indiana Jones gewijs vertrekken we op avontuur en belanden we in het paleis van Bey, ontmoeten we een prins uit Egypte en voelen we ons gezegend door de regen. \nBenieuwd welke muzikale inspiratie we nog vinden terwijl we verder de rivier opvaren... Kom zeker horen naar het volledige relaas van onze tocht!\nAvontuurlijke groeten uit Oost-Afrika!",
-        "Repertoire": "L'Italiana in Algeri - G. Rossini \nAdagio klarinet Concerto in A - W.A. Mozart\nEgyptischer Marsch - J. Strauss\nThe prince of Egypt - S. Schwartz\nRaider's March - J. Williams\nOut of Africa Soundtrack - J. Barry (arr. N. Raine)\nAfrica - Toto (arr. T. Geudens)",
-        "coorporation_label": "Solist",
-        "coorporation": "Arne Herman (klarinet)",
-        "pdf": "",
-        "images": []
-    },
-    {
-        "year": "2019",
-        "season": "nov",
-        "title": "Land van Macht,<br />Land van Pracht",
-        "slug": "landvanmachtpracht",
-        "postcard_img": "2019_landvanmachtpracht/poster.jpg",
-        "director": "Stijn Paredis",
-        "dates": "15, 16 nov",
-        "locations": "MTC",
-        "text": "Привет\nOp Rusland krijgt het brein geen vat\nZij gaat gewone norm te boven\nZij meet zich met een eigen lat\nin Rusland kan men slechts geloven.",
-        "Repertoire": "The Gadfly Suite - D. Shostakovich\nOuverture op 3 Russische thema’s - R. Korsakov\nOuverture 1812 - P. Tchaikovsky\nFinlandia - j. Sibelius\nAnastasia Suite - S. Flaherty (arr. C. Custer)",
-        "coorporation": "",
-        "pdf": "",
-        "images": [
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "foto van een van de vertellers" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "foto van enkele blazers" },
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "foto dirigent" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "overzichtsfoto orkest" }
-        ]
-    },
-    {
-        "year": "2021",
-        "season": "okt",
-        "title": "Awakening",
-        "slug": "awakening",
-        "postcard_img": "2021_awakening/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "dates": "29, 31 okt",
-        "locations": "PDS",
-        "text": "EUREKA! \nProfessor Georges Lemaître zette in 1931 met zijn revolutionaire bigbangtheorie de wereld op zijn kop. \nNegentig jaar later zetten wij graag, samen met u deze zaal een beetje op zijn kop met ontwakende melodieën. \nVlij u neer, lay back en relax.",
-        "Repertoire": "Also sprach Zarathustra - R. Strauss\nSymfonie nr. 9 'Uit de Nieuwe Wereld': delen 2, 4 - A. Dvorak\nClair de lune - C. Debussy\nNimrod 'enigma variaties' - E.Elgar\nThe lark ascending - V. Williams\nStar Wars main title – J. Williams",
-        "coorporation_label": "Solist",
-        "coorporation": "Eva Lievens (viool)",
-        "pdf": "",
-        "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van het orkest tijdens de staande ovatie" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de blazers" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de solist Eva Lievens tijdens haar performance" }
-        ]
-    },
-    {
-        "year": "2022",
-        "season": "mei",
-        "title": "Belle Epoque",
-        "slug": "belleepoque",
-        "postcard_img": "2022_belleepoque/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "dates": "7, 8 mei",
-        "locations": "Vesalius",
-        "text": "Salutations!\nStap aan boord van onze White Star Line en vaar met ons naar Amerika! \nHerbeleef de Belle Époque, een tijd van vooruitgang, vernieuwing en culturele ontwikkeling.\nAll aboard!",
-        "Repertoire": "Dahomeense Rhapsodie - A. De Boeck\nDe Moldau - B. Smetana\nCavalleria rusticana: Intermezzo - P. Mascagni \nPavane - G. Faure\nSheherazade deel 1 - N.K. Korsakov\nTitanic Suite – J.Horner (arr. J. Moss)",
-        "coorporation": "",
-        "pdf": "",
-        "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Sfeervolle overzichtsfoto van het orkest" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Foto van de docoratie in de zaal" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de dirigent" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de 2 vertellers tijdens hun performance" }
-        ]
-    },
-    {
-        "year": "2022",
-        "season": "dec",
-        "title": "Fandango",
-        "slug": "fadango",
-        "postcard_img": "2022_fadango/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "dates": "3, 4 dec",
-        "locations": "PDS, Kapelle-op-den-Bos",
-        "text": "Hola! \nHet Alumni Arenbergorkest organiseert een Spaanse fiësta! \nStilzitten is geen optie tijdens het luisteren van onze passionele flamenco's met klapperende castagnetten en gitaar virtuoos Maarten! \nDus stop met die siësta en kom genieten van onze fiësta! \nNos vemos allí!",
-        "Repertoire": "Concierto de Aranjuez - J. Rodrigo\nEl sombrero de tres picos - M. De Falla\nHuapango - J.P. Moncayo\nThe mask of Zorro suite - J. Horner",
-        "coorporation_label": "Solist",
-        "coorporation": "Maarten Vandenbemden (gitaar)",
-        "pdf": "",
-        "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van de achterste rij 2de violen en blazers" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Zijdelingse foto van het orkest" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van solist Maarten Vandenbemden tijdens zijn performance" },
-            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "Foto van een blazer muzikant met een sombrero op zijn hoofd" }
-        ]
-    },
-    {
-        "year": "2023",
-        "season": "mei",
-        "title": "Chocolat",
-        "slug": "chocolat",
-        "postcard_img": "2023_chocolat/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "dates": "20, 21 mei",
-        "locations": "PDS",
-        "text": "Bon-bonsoir! \nLaat u meeslepen in de ambacht van onze chocolatier, terwijl u geniet van muziek die u meeneemt naar de herkomst van dit zwarte goud! \nEen zoet herrinnering is gegarandeerd op ons verukkelijk concert.",
-        "Repertoire": "La noche de los Mayas - S. Revueltas\nConga del Fuego - A. Marquez\nParsifal Ouverture - R. Wagner \nVlaamse dansen - J. Blockx\nThe Mission - E. Morricone\nThe Chronicles of Narnia - H. Gregson-Williams & S. Barton\nForrest Gump Suite - A. Silvestri (arr. C. Custer)",
-        "coorporation": "",
-        "pdf": "",
-        "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Overzichtsfoto van het orkest" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest met focus op de altviolen" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de verteller Andreas" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de blazers en percussie achterin het orkest" }
-        ]
-    },
-    {
-        "year": "2023",
-        "season": "nov",
-        "title": "Musician's Choice",
-        "slug": "musicianschoice",
-        "postcard_img": "2023_musicianschoice/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "dates": "25, 26 nov",
-        "locations": "Vesalius",
-        "text": "Welkom! \nDe keuze werd deze keer volledig aan de muzikanten gelaten. Wij stelden hen de vraag: “Welke muziek zouden jullie graag willen spelen op een volgend concert?”, en zo geschiede! \nShuffle mee door onze playplist der favorieten.",
-        "Repertoire": "Symfonie no.7 deel 2 - L. Beethoven \nCoriolanus ouverture - L. Beethoven\nValse Triste - J. Sibelius\nIntermezzo - Z. Kodály\nThe Lion King - H.Zimmer & E.John (arr. B. Kelley)\nGame of Thrones - Ramin Djawadi arr. Sean Fearnley\nJurassic Park - J. Williams (arr. C. Custe)\nLord of The Rings: The fellowshop of the ring- H. Shore (arr. J. Whitney)",
-        "coorporation": "",
-        "pdf": "",
-        "images": [
-            { "thumb": "pictures/foto6_thumb.jpeg", "full": "pictures/foto6.jpeg", "alt": "foto van een van de vertellers" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "overzichtsfoto orkest" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "foto eerste violen" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "foto van enkele blazers" }
-        ]
-    },
-    {
-        "year": "2024",
-        "season": "mei",
-        "title": "Carmen",
-        "slug": "carmen",
-        "postcard_img": "2024_carmen/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "dates": "25, 26 mei",
-        "locations": "PDS",
-        "text": "Buenos Dias! \nBloeinde sinaasappelbomen, passionele dansen, liefde en verraad, een toreador en opzwepende klanken uit Sevilla!\nDe operetta Carmen van Bizet heeft het allemaal!",
-        "Repertoire": "Carmen Suites - G. Bizet\n- Habanera\n- Les Toréadors\n- Chanson du Toréador\n- Danse Bohème\n- Séguedille",
-        "coorporation_label": "Solisten",
-        "coorporation": "Lara Cannaert<br />Manuel Murabito",
-        "pdf": "",
-        "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Overzichtsfoto van het orkest met focus op de eerste rijen" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Sfeerfoto van Carmen die aan het zingen tijdens de scene aan tafel met wijn" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Sfeerfoto van Carmen die enthousiast aan het zingen is samen met de andere zangers" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Sfeerfoto van Carmen die enthousiast aan het zingen is samen met de andere zangers" }
-        ]
-    },
-    {
-        "year": "2024",
-        "season": "dec",
-        "title": "Anxiety",
-        "slug": "anxiety",
-        "postcard_img": "2024_anxiety/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "dates": "14, 15 dec",
-        "locations": "Vesalius",
-        "text": "BOE! \nAngst, iedereen kent het gevoel maar wat is het nu echt?  Wat gebeurt er in ons hoofd en lichaam als we bang zijn? \nSamen met professor Bram Vervliet onderzochten we dit verder in ons 'wetenschappelijk verantwoord' concert.",
-        "Repertoire": "Danse macabre - C. Saint-Saëns\nSymfonie No. 5, deel 2 -  P. Tchaikovsky\nSchilderijen van een tentoonstelling- M. Moessorgski\nJaws suite - J. Williams\nLa vita è bella suite - N. Piovani",
-        "coorporation_label": "Verteller",
-        "coorporation": "prof. Bram Vervliet<br />(KU Leuven)",
-        "pdf": "ja",
-        "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van Bram Vervliet die aan het vertellen is" },
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Zijdelingse foto van de eerste violen met zicht op dirigent" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Zijdelingse foto van de cello's en een foto van een volle maan als projectie achteraan" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Overzichtsfoto van het orkest, met een volle maan als projectie achteraan" }
-        ]
-    },
-    {
-        "year": "2025",
-        "season": "mei",
-        "title": "Leuven by Knightfall",
-        "slug": "knightfall",
-        "postcard_img": "2025_knightfall/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "dates": "17, 18 mei",
-        "locations": "PDS",
-        "text": "Gegroet! \nHet jaar is 1426 en we volgen de epische avonturen van een dappere held die door de straten van Leuven dwaalt. \nIn deze interactieve queste vol spanning, mysterie en goeie muziek bepaalt ons publiek de uitkomst. ",
-        "Repertoire": "Japanese suite - G. Holst\nSymfonie Fantastique Op. 14, deel 3 t.e.m. deel 5 - H. Berlioz\nMan of steel - H. Zimmer\nThe Rock - H. Zimmer",
-        "coorporation_label": "Verteller",
-        "coorporation": "Eva Fernandez Gonzalez",
-        "pdf": "ja",
-        "images": [
-            { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" }
-        ]
-    },
-    {
-        "year": "2025",
-        "season": "nov",
-        "title": "Hansje en Griet",
-        "slug": "hansjegriet",
-        "postcard_img": "2025_hansjegriet/poster.jpg",
-        "director": "Joris Decolvenaer",
-        "director_url": "",
-        "dates": "29, 30 nov",
-        "locations": "PDS",
-        "text": "Knibbel Knabbel Knuistje\nIn dit familieconcert gaan we samen op tocht om we onze schrik te overwinnen en onze dromen na te jagen. \nEen betoverende reis door het verhaal van Hansje en Griet zoals je het nog nooit eerder hoorde, voor jonge en iets oudere oortjes.",
-        "Repertoire": "Hänsel und Gretel suite - E. Humperdinck (arr. T. Dorsch)",
-        "coorporation_label": "Verteller",
-        "coorporation": "Frans Van Der Aa",
-        "coorporation_url": "",
-        "pdf": "ja",
-        "images": [
-            { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest" },
-            { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Verticale foto van het orkest" },
-            { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Overzichtsfoto van het orkest" },
-            { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "Foto van de verteller Frans tijdens het lezen uit het sprookjesboek" }
-        ]
-    }
-]
+    "concerts": [
+        {
+            "year": "2018",
+            "season": "nov",
+            "title": "Gaudeamus",
+            "slug": "gaudeamus",
+            "postcard_img": "2018_gaudeamus/poster.jpg",
+            "director": "Kurt Bikkembergs",
+            "dates": "30 nov, 2 dec",
+            "locations": "MTC",
+            "text": "HOERA! \nGaudeamus is het feestelijke startconcert van het Alumni Arenbergorkest!\nVeertig KUL-alumni en “ouwe zakken” van het Arenbergorkest vonden elkaar in de zomer van 2018  en zetten sindsdien wekelijks hun tanden in een reeks symfonische stukken. \nOnze instrumenten zijn opgeblonken, de partituren staan klaar en het dirigeerstokje zwaait als nooit tevoren. \nKomt dat zien!",
+            "Repertoire": "Academic festival ouverture  - J. Brahms\nComedians Gallop - D. Kabalevsky\nEntry of the gladiators - J. Fucik\nLord of the dance - M. Flatley",
+            "coorporation": "",
+            "pdf": "",
+            "images": [
+                { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "overzichtsfoto orkest" },
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "foto van de dirigent" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "foto van de violen" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "overzichtsfoto van de blazers" }
+            ]
+        },
+        {
+            "year": "2019",
+            "season": "mei",
+            "title": "Source of the Nile",
+            "slug": "sourceofthenile",
+            "postcard_img": "2019_sourceofthenile/poster.jpg",
+            "director": "Thomas Geudens",
+            "dates": "28 april, 3 mei",
+            "locations": "MTC",
+            "text": "HABARI! \nHet Alumni Arenbergorkest is op ontdekkingsreis naar de bron van de Nijl. Indiana Jones gewijs vertrekken we op avontuur en belanden we in het paleis van Bey, ontmoeten we een prins uit Egypte en voelen we ons gezegend door de regen. \nBenieuwd welke muzikale inspiratie we nog vinden terwijl we verder de rivier opvaren... Kom zeker horen naar het volledige relaas van onze tocht!\nAvontuurlijke groeten uit Oost-Afrika!",
+            "Repertoire": "L'Italiana in Algeri - G. Rossini \nAdagio klarinet Concerto in A - W.A. Mozart\nEgyptischer Marsch - J. Strauss\nThe prince of Egypt - S. Schwartz\nRaider's March - J. Williams\nOut of Africa Soundtrack - J. Barry (arr. N. Raine)\nAfrica - Toto (arr. T. Geudens)",
+            "coorporation_label": "Solist",
+            "coorporation": "Arne Herman (klarinet)",
+            "pdf": "",
+            "images": []
+        },
+        {
+            "year": "2019",
+            "season": "nov",
+            "title": "Land van Macht,<br />Land van Pracht",
+            "slug": "landvanmachtpracht",
+            "postcard_img": "2019_landvanmachtpracht/poster.jpg",
+            "director": "Stijn Paredis",
+            "dates": "15, 16 nov",
+            "locations": "MTC",
+            "text": "Привет\nOp Rusland krijgt het brein geen vat\nZij gaat gewone norm te boven\nZij meet zich met een eigen lat\nin Rusland kan men slechts geloven.",
+            "Repertoire": "The Gadfly Suite - D. Shostakovich\nOuverture op 3 Russische thema’s - R. Korsakov\nOuverture 1812 - P. Tchaikovsky\nFinlandia - j. Sibelius\nAnastasia Suite - S. Flaherty (arr. C. Custer)",
+            "coorporation": "",
+            "pdf": "",
+            "images": [
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "foto van een van de vertellers" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "foto van enkele blazers" },
+                { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "foto dirigent" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "overzichtsfoto orkest" }
+            ]
+        },
+        {
+            "year": "2021",
+            "season": "okt",
+            "title": "Awakening",
+            "slug": "awakening",
+            "postcard_img": "2021_awakening/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "dates": "29, 31 okt",
+            "locations": "PDS",
+            "text": "EUREKA! \nProfessor Georges Lemaître zette in 1931 met zijn revolutionaire bigbangtheorie de wereld op zijn kop. \nNegentig jaar later zetten wij graag, samen met u deze zaal een beetje op zijn kop met ontwakende melodieën. \nVlij u neer, lay back en relax.",
+            "Repertoire": "Also sprach Zarathustra - R. Strauss\nSymfonie nr. 9 'Uit de Nieuwe Wereld': delen 2, 4 - A. Dvorak\nClair de lune - C. Debussy\nNimrod 'enigma variaties' - E.Elgar\nThe lark ascending - V. Williams\nStar Wars main title – J. Williams",
+            "coorporation_label": "Solist",
+            "coorporation": "Eva Lievens (viool)",
+            "pdf": "",
+            "images": [
+                { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van het orkest tijdens de staande ovatie" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de blazers" },
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de solist Eva Lievens tijdens haar performance" }
+            ]
+        },
+        {
+            "year": "2022",
+            "season": "mei",
+            "title": "Belle Epoque",
+            "slug": "belleepoque",
+            "postcard_img": "2022_belleepoque/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "dates": "7, 8 mei",
+            "locations": "Vesalius",
+            "text": "Salutations!\nStap aan boord van onze White Star Line en vaar met ons naar Amerika! \nHerbeleef de Belle Époque, een tijd van vooruitgang, vernieuwing en culturele ontwikkeling.\nAll aboard!",
+            "Repertoire": "Dahomeense Rhapsodie - A. De Boeck\nDe Moldau - B. Smetana\nCavalleria rusticana: Intermezzo - P. Mascagni \nPavane - G. Faure\nSheherazade deel 1 - N.K. Korsakov\nTitanic Suite – J.Horner (arr. J. Moss)",
+            "coorporation": "",
+            "pdf": "",
+            "images": [
+                { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Sfeervolle overzichtsfoto van het orkest" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Foto van de docoratie in de zaal" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de dirigent" },
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de 2 vertellers tijdens hun performance" }
+            ]
+        },
+        {
+            "year": "2022",
+            "season": "dec",
+            "title": "Fandango",
+            "slug": "fadango",
+            "postcard_img": "2022_fadango/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "dates": "3, 4 dec",
+            "locations": "PDS, Kapelle-op-den-Bos",
+            "text": "Hola! \nHet Alumni Arenbergorkest organiseert een Spaanse fiësta! \nStilzitten is geen optie tijdens het luisteren van onze passionele flamenco's met klapperende castagnetten en gitaar virtuoos Maarten! \nDus stop met die siësta en kom genieten van onze fiësta! \nNos vemos allí!",
+            "Repertoire": "Concierto de Aranjuez - J. Rodrigo\nEl sombrero de tres picos - M. De Falla\nHuapango - J.P. Moncayo\nThe mask of Zorro suite - J. Horner",
+            "coorporation_label": "Solist",
+            "coorporation": "Maarten Vandenbemden (gitaar)",
+            "pdf": "",
+            "images": [
+                { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van de achterste rij 2de violen en blazers" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Zijdelingse foto van het orkest" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van solist Maarten Vandenbemden tijdens zijn performance" },
+                { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "Foto van een blazer muzikant met een sombrero op zijn hoofd" }
+            ]
+        },
+        {
+            "year": "2023",
+            "season": "mei",
+            "title": "Chocolat",
+            "slug": "chocolat",
+            "postcard_img": "2023_chocolat/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "dates": "20, 21 mei",
+            "locations": "PDS",
+            "text": "Bon-bonsoir! \nLaat u meeslepen in de ambacht van onze chocolatier, terwijl u geniet van muziek die u meeneemt naar de herkomst van dit zwarte goud! \nEen zoet herrinnering is gegarandeerd op ons verukkelijk concert.",
+            "Repertoire": "La noche de los Mayas - S. Revueltas\nConga del Fuego - A. Marquez\nParsifal Ouverture - R. Wagner \nVlaamse dansen - J. Blockx\nThe Mission - E. Morricone\nThe Chronicles of Narnia - H. Gregson-Williams & S. Barton\nForrest Gump Suite - A. Silvestri (arr. C. Custer)",
+            "coorporation": "",
+            "pdf": "",
+            "images": [
+                { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Overzichtsfoto van het orkest" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest met focus op de altviolen" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Foto van de verteller Andreas" },
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Foto van de blazers en percussie achterin het orkest" }
+            ]
+        },
+        {
+            "year": "2023",
+            "season": "nov",
+            "title": "Musician's Choice",
+            "slug": "musicianschoice",
+            "postcard_img": "2023_musicianschoice/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "dates": "25, 26 nov",
+            "locations": "Vesalius",
+            "text": "Welkom! \nDe keuze werd deze keer volledig aan de muzikanten gelaten. Wij stelden hen de vraag: “Welke muziek zouden jullie graag willen spelen op een volgend concert?”, en zo geschiede! \nShuffle mee door onze playplist der favorieten.",
+            "Repertoire": "Symfonie no.7 deel 2 - L. Beethoven \nCoriolanus ouverture - L. Beethoven\nValse Triste - J. Sibelius\nIntermezzo - Z. Kodály\nThe Lion King - H.Zimmer & E.John (arr. B. Kelley)\nGame of Thrones - Ramin Djawadi arr. Sean Fearnley\nJurassic Park - J. Williams (arr. C. Custe)\nLord of The Rings: The fellowshop of the ring- H. Shore (arr. J. Whitney)",
+            "coorporation": "",
+            "pdf": "",
+            "images": [
+                { "thumb": "pictures/foto6_thumb.jpeg", "full": "pictures/foto6.jpeg", "alt": "foto van een van de vertellers" },
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "overzichtsfoto orkest" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "foto eerste violen" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "foto van enkele blazers" }
+            ]
+        },
+        {
+            "year": "2024",
+            "season": "mei",
+            "title": "Carmen",
+            "slug": "carmen",
+            "postcard_img": "2024_carmen/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "dates": "25, 26 mei",
+            "locations": "PDS",
+            "text": "Buenos Dias! \nBloeinde sinaasappelbomen, passionele dansen, liefde en verraad, een toreador en opzwepende klanken uit Sevilla!\nDe operetta Carmen van Bizet heeft het allemaal!",
+            "Repertoire": "Carmen Suites - G. Bizet\n- Habanera\n- Les Toréadors\n- Chanson du Toréador\n- Danse Bohème\n- Séguedille",
+            "coorporation_label": "Solisten",
+            "coorporation": "Lara Cannaert<br />Manuel Murabito",
+            "pdf": "",
+            "images": [
+                { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Overzichtsfoto van het orkest met focus op de eerste rijen" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Sfeerfoto van Carmen die aan het zingen tijdens de scene aan tafel met wijn" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Sfeerfoto van Carmen die enthousiast aan het zingen is samen met de andere zangers" },
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Sfeerfoto van Carmen die enthousiast aan het zingen is samen met de andere zangers" }
+            ]
+        },
+        {
+            "year": "2024",
+            "season": "dec",
+            "title": "Anxiety",
+            "slug": "anxiety",
+            "postcard_img": "2024_anxiety/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "dates": "14, 15 dec",
+            "locations": "Vesalius",
+            "text": "BOE! \nAngst, iedereen kent het gevoel maar wat is het nu echt?  Wat gebeurt er in ons hoofd en lichaam als we bang zijn? \nSamen met professor Bram Vervliet onderzochten we dit verder in ons 'wetenschappelijk verantwoord' concert.",
+            "Repertoire": "Danse macabre - C. Saint-Saëns\nSymfonie No. 5, deel 2 -  P. Tchaikovsky\nSchilderijen van een tentoonstelling- M. Moessorgski\nJaws suite - J. Williams\nLa vita è bella suite - N. Piovani",
+            "coorporation_label": "Verteller",
+            "coorporation": "prof. Bram Vervliet<br />(KU Leuven)",
+            "pdf": "ja",
+            "images": [
+                { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg", "alt": "Foto van Bram Vervliet die aan het vertellen is" },
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Zijdelingse foto van de eerste violen met zicht op dirigent" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Zijdelingse foto van de cello's en een foto van een volle maan als projectie achteraan" },
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Overzichtsfoto van het orkest, met een volle maan als projectie achteraan" }
+            ]
+        },
+        {
+            "year": "2025",
+            "season": "mei",
+            "title": "Leuven by Knightfall",
+            "slug": "knightfall",
+            "postcard_img": "2025_knightfall/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "dates": "17, 18 mei",
+            "locations": "PDS",
+            "text": "Gegroet! \nHet jaar is 1426 en we volgen de epische avonturen van een dappere held die door de straten van Leuven dwaalt. \nIn deze interactieve queste vol spanning, mysterie en goeie muziek bepaalt ons publiek de uitkomst. ",
+            "Repertoire": "Japanese suite - G. Holst\nSymfonie Fantastique Op. 14, deel 3 t.e.m. deel 5 - H. Berlioz\nMan of steel - H. Zimmer\nThe Rock - H. Zimmer",
+            "coorporation_label": "Verteller",
+            "coorporation": "Eva Fernandez Gonzalez",
+            "pdf": "ja",
+            "images": [
+                { "thumb": "pictures/foto1_thumb.jpeg", "full": "pictures/foto1.jpeg" }
+            ]
+        },
+        {
+            "year": "2025",
+            "season": "nov",
+            "title": "Hansje en Griet",
+            "slug": "hansjegriet",
+            "postcard_img": "2025_hansjegriet/poster.jpg",
+            "director": "Joris Decolvenaer",
+            "director_url": "",
+            "dates": "29, 30 nov",
+            "locations": "PDS",
+            "text": "Knibbel Knabbel Knuistje\nIn dit familieconcert gaan we samen op tocht om we onze schrik te overwinnen en onze dromen na te jagen. \nEen betoverende reis door het verhaal van Hansje en Griet zoals je het nog nooit eerder hoorde, voor jonge en iets oudere oortjes.",
+            "Repertoire": "Hänsel und Gretel suite - E. Humperdinck (arr. T. Dorsch)",
+            "coorporation_label": "Verteller",
+            "coorporation": "Frans Van Der Aa",
+            "coorporation_url": "",
+            "pdf": "ja",
+            "images": [
+                { "thumb": "pictures/foto2_thumb.jpeg", "full": "pictures/foto2.jpeg", "alt": "Overzichtsfoto van het orkest" },
+                { "thumb": "pictures/foto3_thumb.jpeg", "full": "pictures/foto3.jpeg", "alt": "Verticale foto van het orkest" },
+                { "thumb": "pictures/foto4_thumb.jpeg", "full": "pictures/foto4.jpeg", "alt": "Overzichtsfoto van het orkest" },
+                { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "Foto van de verteller Frans tijdens het lezen uit het sprookjesboek" }
+            ]
+        }
+    ]
+}

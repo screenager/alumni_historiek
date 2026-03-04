@@ -679,7 +679,8 @@
     <script>
         $(document).ready(function() {
         // Load concert data from external JSON file
-        $.getJSON('concertData.json', function(concertData) {
+        $.getJSON('concertData.json', function(data) {
+            const concertData = data.concerts || data;
 
             // revert order
             concertData.reverse();

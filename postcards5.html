@@ -348,6 +348,15 @@
             opacity: 0;
         }
 
+        /* When flip-scale is minimum (0.9), move label to bottom */
+        .focused-label.at-bottom {
+            bottom: 0px;
+        }
+
+        .flip-hint.scale-min {
+            display: none;
+        }
+
         /* Postcard Back */
         .postcard-back {
             background: #f5f0e1;
@@ -2602,8 +2611,20 @@
                     finalScale: flipScale.toFixed(2)
                 });
 
-                document.documentElement.style.setProperty('--flip-scale', Math.max(0.9, flipScale));
+                const finalScale = Math.max(0.9, flipScale);
+                document.documentElement.style.setProperty('--flip-scale', finalScale);
                 document.documentElement.style.setProperty('--flip-tz', flipTZ + 'px');
+                
+                // When scale is 0.9 or 1.6, move focusedLabel to flipHint position and hide flipHint
+                const focusedLabelEl = document.getElementById('focusedLabel');
+                const flipHintEl = document.getElementById('flipHint');
+                if (finalScale === 0.9 || finalScale === 1.6) {
+                    if (focusedLabelEl) focusedLabelEl.classList.add('at-bottom');
+                    if (flipHintEl) flipHintEl.classList.add('scale-min');
+                } else {
+                    if (focusedLabelEl) focusedLabelEl.classList.remove('at-bottom');
+                    if (flipHintEl) flipHintEl.classList.remove('scale-min');
+                }
             }
 
             // Update flip dimensions on resize

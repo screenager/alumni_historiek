@@ -392,7 +392,7 @@ function renderList() {
             <div class="flex-grow-1 text-truncate me-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-secondary font-monospace">${c.year} ${c.season}</span>
-                    <span class="fw-semibold text-truncate">${escHtml(c.title)}</span>
+                    <span class="fw-semibold text-truncate">${escHtml(c.title.replace(/<br\s*\/?>/gi, ' '))}</span>
                 </div>
                 <div class="small text-secondary mt-1 text-truncate">
                     ${escHtml(c.director || '')}${c.dates ? ' — ' + escHtml(c.dates) : ''} ${c.locations ? '@ ' + escHtml(c.locations) : ''}

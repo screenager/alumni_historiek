@@ -8,8 +8,13 @@ document.addEventListener('scroll', function(e) {
 }, true);
 
 $(document).ready(function() {
+if (window.HISTORIEK_IS_WORDPRESS) {
+    document.querySelector('.nav-hamburger')?.remove();
+    document.querySelector('.nav-bar')?.remove();
+}
 // Load concert data from external JSON file
-$.getJSON('concertData.json', function(data) {
+const dataUrl = window.HISTORIEK_DATA_URL || 'concertData.json';
+$.getJSON(dataUrl, function(data) {
     const concertData = data.concerts || data; // fallback if it's still just an array
     const headerData = data.header || {};
 
@@ -53,7 +58,8 @@ $.getJSON('concertData.json', function(data) {
         let imagesHtml = '';
         const hasPostcardImage = !!concert.postcard_img;
         const concertDir = (concert.postcard_img || '').split('/')[0];
-        const imageBasePath = 'concerts/' + (concertDir ? concertDir + '/' : '');
+        const concertsBase = window.HISTORIEK_ASSETS_BASE_URL || 'concerts/';
+        const imageBasePath = concertsBase + (concertDir ? concertDir + '/' : '');
         const maxThumbs = Math.min(imgs.length, 4);
         for (let i = 0; i < maxThumbs; i++) {
             const img = imgs[i];
@@ -67,7 +73,7 @@ $.getJSON('concertData.json', function(data) {
             <div class="postcard" data-index="${index}" data-season="${concert.season}" data-year="${concert.year}" role="group" aria-roledescription="slide" aria-label="${concert.title} - ${concert.year}">
                 <div class="postcard-inner">
                     <div class="postcard-front">
-                        ${hasPostcardImage ? `<img src="concerts/${concert.postcard_img}" alt="${concert.title}">` : ''}
+                        ${hasPostcardImage ? `<img src="${concertsBase}${concert.postcard_img}" alt="${concert.title}">` : ''}
                         ${!hasPostcardImage ? `<div class="postcard-front-overlay">
                             <span class="postcard-year">${concert.dates || concert.year}</span>
                             <h3 class="postcard-title-front">${concert.title}</h3>
@@ -325,7 +331,10 @@ $.getJSON('concertData.json', function(data) {
         const slug = concertData[currentIndex].slug;
         const $fc = getCardByIndex(currentIndex);
         const isFlipped = isCardFlipped($fc);
-        history.replaceState(null, null, '#' + slug + (isFlipped ? '/flipped' : ''));
+        const hash = '#' + slug + (isFlipped ? '/flipped' : '');
+        // Use explicit path so <base href> never leaks plugin filesystem URL in browser bar.
+        const cleanUrl = window.location.pathname + window.location.search + hash;
+        history.replaceState(null, null, cleanUrl);
     }
 
     // Helper: show/hide label based on focused card flip state

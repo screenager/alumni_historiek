@@ -37,7 +37,7 @@
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
-<div id="loginScreen" class="d-flex align-items-center justify-content-center min-vh-100">
+<div id="loginScreen" class="d-none align-items-center justify-content-center min-vh-100">
     <form id="loginForm" class="p-5 rounded-4 shadow-lg fade-in" style="background:#16213e; width:100%; max-width:420px;">
         <h1 class="h3 fw-bold text-center mb-4">🔒 Admin Login</h1>
         <div id="loginError" class="alert alert-danger d-none small"></div>
@@ -295,6 +295,7 @@ const API = 'api.php';
 let concerts = [];
 let deleteIndex = null;
 let csrfToken = '';
+let authMode = 'wordpress';
 
 const editModalEl = document.getElementById('editModal');
 const editModalBS = new bootstrap.Modal(editModalEl);
@@ -329,9 +330,21 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 async function checkSession() {
     const res = await fetch(`${API}?action=status`);
     const data = await res.json();
+    authMode = data.mode || 'wordpress';
     if (data.loggedIn) {
         if (data.csrf_token) csrfToken = data.csrf_token;
         showAdmin(data.user);
+    } else {
+        const loginScreen = document.getElementById('loginScreen');
+        const errBox = document.getElementById('loginError');
+        loginScreen.classList.remove('d-none');
+        loginScreen.classList.add('d-flex');
+        if (authMode === 'wordpress') {
+            errBox.textContent = 'Log in via WordPress admin om deze pagina te gebruiken.';
+            errBox.classList.remove('d-none');
+        } else {
+            errBox.classList.add('d-none');
+        }
     }
 }
 
@@ -375,7 +388,7 @@ async function submitHeader() {
 
     const res = await fetch(`${API}?action=update_header`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
         body: JSON.stringify({ header })
     });
     const result = await res.json();
@@ -617,7 +630,7 @@ async function handlePosterUpload(file) {
     try {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${API}?action=upload_poster`);
-        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+        xhr.setRequestHeader('X-WP-Nonce', csrfToken);
 
         xhr.upload.addEventListener('progress', e => {
             if (e.lengthComputable) progressBar.style.width = Math.round((e.loaded / e.total) * 100) + '%';
@@ -690,7 +703,7 @@ async function handleUpload(files) {
     try {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${API}?action=upload`);
-        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+        xhr.setRequestHeader('X-WP-Nonce', csrfToken);
 
         xhr.upload.addEventListener('progress', e => {
             if (e.lengthComputable) {
@@ -773,13 +786,13 @@ async function doSubmit() {
     if (isEdit) {
         res = await fetch(`${API}?action=update`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
             body: JSON.stringify({ index: parseInt(indexVal), data })
         });
     } else {
         res = await fetch(`${API}?action=add`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
             body: JSON.stringify(data)
         });
     }
@@ -803,7 +816,7 @@ async function confirmDelete() {
     if (deleteIndex === null) return;
     const res = await fetch(`${API}?action=delete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
         body: JSON.stringify({ index: deleteIndex })
     });
     const result = await res.json();

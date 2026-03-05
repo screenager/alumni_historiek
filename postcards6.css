@@ -38,8 +38,15 @@ html {
     --card-close-bottom: -14px;
     --card-close-left: -14px;
     --focused-label-size: 1.2rem;
-    --focused-label-bottom: 100px;
-    --flip-hint-bottom: 0px;
+    --coverflow-header-cost: 200px; /* matches the constant in .coverflow-container height calc */
+    /* Dynamic: positions label/hint just below the focused card's bottom edge.
+       space_below_card = (100vh - header_cost - top_header - card_height) / 2
+       focused-label.bottom = space_below_card - ~42px (label_height + card_margin).
+       flip-hint is CHAINED to the label's actual resolved value (not an independent formula),
+       so when space is tight and the label clamps, the hint always stays below it.
+       Label minimum is 50px, guaranteeing the hint (needing 50px clearance) fits at bottom:0. */
+    --focused-label-bottom: max(50px, calc((100vh - var(--coverflow-header-cost) - var(--top-header-height) - var(--card-height)) / 2 - 42px));
+    --flip-hint-bottom: max(0px, calc(var(--focused-label-bottom) - 50px));
 }
 
 body {
@@ -60,6 +67,10 @@ body::before {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     z-index: -1;
+}
+
+.nav-hamburger {
+    top: 26px;
 }
 
 .top-header {
@@ -1027,9 +1038,7 @@ h3.postcard-back-text-label {
         --back-content-width: 400px;
         --back-content-height: 280px;
         --back-content-padding: 1rem;
-        --flip-hint-bottom: 5px;
         --focused-label-size: 1.2rem;
-        --focused-label-bottom: 52px;
         --postmark-width: 74px;
         --postmark-height: 94px;
         --postmark-font-size: 0.5rem;
@@ -1110,11 +1119,7 @@ h3.postcard-back-text-label {
     }
 }
 
-@media (max-height: 1200px) {
-    :root {
-        --focused-label-bottom: 74px;
-    }
-}
+
 
 /* Short viewport: scale header and postcards proportionally */
 @media (max-height: 900px) {
@@ -1134,8 +1139,6 @@ h3.postcard-back-text-label {
         --postmark-cancel-top: -13px;
         --postmark-cancel-left: -16px;
         --focused-label-size: 1.5rem;
-        --focused-label-bottom: 57px;
-        --flip-hint-bottom: 57px;
         --coverflow-nav-size: 45px;
         --coverflow-nav-font-size: 1.2rem;
         --flip-icon-size: 50px;
@@ -1213,8 +1216,6 @@ h3.postcard-back-text-label {
         --postmark-cancel-top: -11px;
         --postmark-cancel-left: -13px;
         --focused-label-size: 1.3rem;
-        --focused-label-bottom: 25px;
-        --flip-hint-bottom: 0px;
         --flip-icon-size: 45px;
         --flip-icon-svg-size: 30px;
     }
@@ -1288,8 +1289,7 @@ h3.postcard-back-text-label {
         --postmark-cancel-top: -8px;
         --postmark-cancel-left: -9px;
         --focused-label-size: 1.6rem;
-        --focused-label-bottom: 48px;
-        --flip-hint-bottom: 20px;
+        --coverflow-header-cost: 60px; /* container uses calc(100vh - 60px - top-header-height) here */
         --flip-icon-size: 30px;
         --flip-icon-offset: 6px;
         --flip-icon-svg-size: 20px;

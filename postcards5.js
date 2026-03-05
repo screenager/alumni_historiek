@@ -15,6 +15,7 @@ $.getJSON('concertData.json', function(data) {
 
     if (headerData.h1) {
         $('#mainTitle').text(headerData.h1);
+        document.title = headerData.h1 + ' - Alumni Arenbergconcert';
         // Also update aria-label if it's based on the title
     }
     if (headerData.swipe_hint) $('#swipeHintText').html(headerData.swipe_hint);

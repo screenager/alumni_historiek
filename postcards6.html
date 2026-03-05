@@ -11,14 +11,16 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <!-- Navigation CSS -->
     <link rel="stylesheet" href="nav.css">
-    <link rel="stylesheet" href="postcards5.css">
+    <link rel="stylesheet" href="postcards6.css">
 </head>
 <body>
     <a href="#concertCarousel" class="skip-link">Ga naar concerten</a>
-    <header>
-        <a href="https://www.alumniarenbergorkest.be">
+    <div class="top-header">
+        <a href="https://www.alumniarenbergorkest.be" aria-label="Ga naar de website van Alumni Arenbergconcert">
             <img src="logo.png" alt="Logo van het Alumni Arenbergconcert" class="logo">
         </a>
+    </div>
+    <header>
         <h1 class="sr-only" id="mainTitle">Onze voorbije concerten - Alumni Arenbergconcert</h1>
         <p class="swipe-hint" id="swipeHintText">Blader door herinneringen <span class="mobile-br"></span>aan onze eerdere optredens</p>
     </header>
@@ -45,7 +47,7 @@
     </div>
     <div id="concertAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     </main>
-    <script src="postcards5.js"></script>
+    <script src="postcards6.js"></script>
 
     <!-- Navigation Bar -->
     <button class="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mainNav" onclick="document.querySelector('.nav-bar').classList.toggle('open'); this.classList.toggle('open'); this.setAttribute('aria-expanded', this.classList.contains('open'))">
@@ -60,8 +62,8 @@
             <a href="postcards2.html">Idee 2: Postkaartjes v2</a>
             <a href="postcards3.html">Idee 2: Postkaartjes v3</a>
             <a href="postcards4.html">Idee 2: Postkaartjes v4 (improved scaling)</a>
-            <a href="postcards5.html" class="active">Idee 2: Postkaartjes v5 (font main website)</a>
-            <a href="postcards6.html">Idee 2: Postkaartjes v6 (witte header + logo links)</a>
+            <a href="postcards5.html">Idee 2: Postkaartjes v5 (font main website)</a>
+            <a href="postcards6.html" class="active">Idee 2: Postkaartjes v6 (witte header + logo links)</a>
             <a href="admin/index.html">Admin</a>
         </div>
     </nav>

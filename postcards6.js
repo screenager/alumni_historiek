@@ -713,16 +713,21 @@ $.getJSON(dataUrl, function(data) {
             if ($triggerEl && $triggerEl.length) $triggerEl.focus();
         }
 
-        function bindLightboxButton($btn, action) {
+        let suppressCloseUntil = 0;
+
+        function bindLightboxButton($btn, action, opts) {
+            const shouldSuppressClose = opts && opts.suppressClose;
             // Handle touch directly so fast double taps don't trigger browser zoom.
             $btn.on('touchend', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                if (shouldSuppressClose) suppressCloseUntil = Date.now() + 500;
                 action();
             });
             $btn.on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                if (shouldSuppressClose) suppressCloseUntil = Date.now() + 500;
                 action();
             });
         }
@@ -730,17 +735,19 @@ $.getJSON(dataUrl, function(data) {
         bindLightboxButton($closeBtn, closeLightbox);
         $img.on('click', function(e) {
             e.stopPropagation();
+            if (Date.now() < suppressCloseUntil) return;
             closeLightbox();
         });
         bindLightboxButton($prevBtn, function() {
             lightboxIndex = (lightboxIndex - 1 + $allImgs.length) % $allImgs.length;
             showImage(lightboxIndex);
-        });
+        }, { suppressClose: true });
         bindLightboxButton($nextBtn, function() {
             lightboxIndex = (lightboxIndex + 1) % $allImgs.length;
             showImage(lightboxIndex);
-        });
+        }, { suppressClose: true });
         $overlay.on('click', function(e) {
+            if (Date.now() < suppressCloseUntil) return;
             if ($(e.target).hasClass('lightbox-overlay')) closeLightbox();
         });
         $(document).on('keydown.lightbox', function(e) {

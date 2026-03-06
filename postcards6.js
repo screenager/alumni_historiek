@@ -713,34 +713,17 @@ $.getJSON(dataUrl, function(data) {
             if ($triggerEl && $triggerEl.length) $triggerEl.focus();
         }
 
-        let lastLightboxTapTime = 0;
-        let lastLightboxTouchActionTime = 0;
         function bindLightboxButton($btn, action) {
+            // Handle touch directly so fast double taps don't trigger browser zoom.
             $btn.on('touchend', function(e) {
-                const now = Date.now();
-                const isDoubleTap = now - lastLightboxTapTime < 350;
-                lastLightboxTapTime = now;
-                lastLightboxTouchActionTime = now;
-                if (isDoubleTap) {
-                    // iOS Safari: block browser double-tap zoom on rapid taps.
-                    e.preventDefault();
-                }
+                e.preventDefault();
                 e.stopPropagation();
                 action();
             });
             $btn.on('click', function(e) {
-                if (Date.now() - lastLightboxTouchActionTime < 700) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
-                }
                 e.preventDefault();
                 e.stopPropagation();
                 action();
-            });
-            $btn.on('dblclick', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
             });
         }
 
@@ -774,11 +757,7 @@ $.getJSON(dataUrl, function(data) {
             lbTouchStartY = e.originalEvent.changedTouches[0].screenY;
         });
         $overlay.on('touchmove', function(e) {
-            const touches = e.originalEvent.touches;
-            // Keep one-finger swipe behavior but allow two-finger pinch gestures.
-            if (!touches || touches.length <= 1) {
-                e.preventDefault();
-            }
+            e.preventDefault(); // prevent page scroll while swiping in lightbox
         });
         $overlay.on('touchend', function(e) {
             const endX = e.originalEvent.changedTouches[0].screenX;

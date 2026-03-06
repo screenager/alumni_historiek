@@ -810,6 +810,8 @@ h3.postcard-back-text-label {
     z-index: 10002;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
     transition: background 0.2s ease, transform 0.2s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .lightbox-close-btn {

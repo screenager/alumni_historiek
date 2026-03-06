@@ -713,21 +713,30 @@ $.getJSON(dataUrl, function(data) {
             if ($triggerEl && $triggerEl.length) $triggerEl.focus();
         }
 
-        $closeBtn.on('click', function(e) {
-            e.stopPropagation();
-            closeLightbox();
-        });
+        function bindLightboxButton($btn, action) {
+            // Handle touch directly so fast double taps don't trigger browser zoom.
+            $btn.on('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                action();
+            });
+            $btn.on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                action();
+            });
+        }
+
+        bindLightboxButton($closeBtn, closeLightbox);
         $img.on('click', function(e) {
             e.stopPropagation();
             closeLightbox();
         });
-        $prevBtn.on('click', function(e) {
-            e.stopPropagation();
+        bindLightboxButton($prevBtn, function() {
             lightboxIndex = (lightboxIndex - 1 + $allImgs.length) % $allImgs.length;
             showImage(lightboxIndex);
         });
-        $nextBtn.on('click', function(e) {
-            e.stopPropagation();
+        bindLightboxButton($nextBtn, function() {
             lightboxIndex = (lightboxIndex + 1) % $allImgs.length;
             showImage(lightboxIndex);
         });

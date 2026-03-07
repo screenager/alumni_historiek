@@ -263,6 +263,86 @@ function alumni_historiek_upgrader_process_complete($upgrader, array $options): 
 }
 add_action('upgrader_process_complete', 'alumni_historiek_upgrader_process_complete', 10, 2);
 
+function alumni_historiek_get_update_diagnostics(): array {
+    $plugin_data = alumni_historiek_get_plugin_data_cached();
+    $config = alumni_historiek_github_updater_config();
+    $release = alumni_historiek_get_github_release_data();
+    $update_plugins = get_site_transient('update_plugins');
+    $response_item = null;
+
+    if (is_object($update_plugins) && isset($update_plugins->response) && is_array($update_plugins->response)) {
+        $response_item = $update_plugins->response[ALUMNI_HISTORIEK_PLUGIN_BASENAME] ?? null;
+    }
+
+    $auto_update_plugins = get_site_option('auto_update_plugins', []);
+    $is_auto_update_enabled_for_plugin = is_array($auto_update_plugins)
+        && in_array(ALUMNI_HISTORIEK_PLUGIN_BASENAME, $auto_update_plugins, true);
+
+    $is_global_updates_blocked = defined('DISALLOW_FILE_MODS') && DISALLOW_FILE_MODS;
+    $is_global_auto_updates_disabled = defined('AUTOMATIC_UPDATER_DISABLED') && AUTOMATIC_UPDATER_DISABLED;
+
+    return [
+        'plugin_basename' => ALUMNI_HISTORIEK_PLUGIN_BASENAME,
+        'plugin_version' => (string) ($plugin_data['Version'] ?? ''),
+        'update_uri' => (string) ($plugin_data['UpdateURI'] ?? ''),
+        'github_repository' => (string) ($config['repository'] ?? ''),
+        'github_token_configured' => (string) ($config['token'] ?? '') !== '',
+        'latest_release_version' => is_array($release) ? (string) ($release['version'] ?? '') : '',
+        'latest_release_tag' => is_array($release) ? (string) ($release['tag'] ?? '') : '',
+        'latest_release_url' => is_array($release) ? (string) ($release['html_url'] ?? '') : '',
+        'latest_release_published_at' => is_array($release) ? (string) ($release['published_at'] ?? '') : '',
+        'wp_detected_update_version' => is_object($response_item) ? (string) ($response_item->new_version ?? '') : '',
+        'wp_detected_update_package' => is_object($response_item) ? (string) ($response_item->package ?? '') : '',
+        'wp_last_checked' => is_object($update_plugins) ? (int) ($update_plugins->last_checked ?? 0) : 0,
+        'global_updates_blocked' => $is_global_updates_blocked,
+        'global_auto_updates_disabled' => $is_global_auto_updates_disabled,
+        'plugin_auto_update_enabled' => $is_auto_update_enabled_for_plugin,
+    ];
+}
+
+function alumni_historiek_render_diagnostics_table(): void {
+    $d = alumni_historiek_get_update_diagnostics();
+    $last_checked = $d['wp_last_checked'] > 0
+        ? wp_date('Y-m-d H:i:s', $d['wp_last_checked'])
+        : 'Unknown';
+    $release_url = $d['latest_release_url'] !== ''
+        ? '<a href="' . esc_url($d['latest_release_url']) . '" target="_blank" rel="noopener noreferrer">Open release</a>'
+        : 'Not available';
+    $update_package = $d['wp_detected_update_package'] !== '' ? 'Available' : 'Not detected';
+    $update_version = $d['wp_detected_update_version'] !== '' ? $d['wp_detected_update_version'] : 'Not detected';
+    $release_version = $d['latest_release_version'] !== '' ? $d['latest_release_version'] : 'Not detected';
+    $release_tag = $d['latest_release_tag'] !== '' ? $d['latest_release_tag'] : 'Not detected';
+    $published_at = $d['latest_release_published_at'] !== '' ? $d['latest_release_published_at'] : 'Not detected';
+    $token_status = $d['github_token_configured'] ? 'Yes' : 'No';
+    $global_blocked = $d['global_updates_blocked'] ? 'Yes (DISALLOW_FILE_MODS)' : 'No';
+    $global_auto_disabled = $d['global_auto_updates_disabled'] ? 'Yes (AUTOMATIC_UPDATER_DISABLED)' : 'No';
+    $plugin_auto_enabled = $d['plugin_auto_update_enabled'] ? 'Yes' : 'No';
+
+    echo '<div class="notice notice-info" style="padding:12px 16px;margin-top:16px;">';
+    echo '<h2 style="margin-top:0;">Update diagnostics</h2>';
+    echo '<table class="widefat striped" style="max-width:980px;">';
+    echo '<tbody>';
+    echo '<tr><td style="width:38%;"><strong>Plugin basename</strong></td><td>' . esc_html($d['plugin_basename']) . '</td></tr>';
+    echo '<tr><td><strong>Installed version</strong></td><td>' . esc_html($d['plugin_version']) . '</td></tr>';
+    echo '<tr><td><strong>Update URI</strong></td><td>' . esc_html($d['update_uri']) . '</td></tr>';
+    echo '<tr><td><strong>GitHub repository</strong></td><td>' . esc_html($d['github_repository']) . '</td></tr>';
+    echo '<tr><td><strong>GitHub token configured</strong></td><td>' . esc_html($token_status) . '</td></tr>';
+    echo '<tr><td><strong>Latest release version (GitHub)</strong></td><td>' . esc_html($release_version) . '</td></tr>';
+    echo '<tr><td><strong>Latest release tag (GitHub)</strong></td><td>' . esc_html($release_tag) . '</td></tr>';
+    echo '<tr><td><strong>Latest release published (GitHub)</strong></td><td>' . esc_html($published_at) . '</td></tr>';
+    echo '<tr><td><strong>Latest release link</strong></td><td>' . $release_url . '</td></tr>';
+    echo '<tr><td><strong>WordPress detected update version</strong></td><td>' . esc_html($update_version) . '</td></tr>';
+    echo '<tr><td><strong>WordPress detected update package</strong></td><td>' . esc_html($update_package) . '</td></tr>';
+    echo '<tr><td><strong>WordPress last update-check</strong></td><td>' . esc_html($last_checked) . '</td></tr>';
+    echo '<tr><td><strong>Global updates blocked</strong></td><td>' . esc_html($global_blocked) . '</td></tr>';
+    echo '<tr><td><strong>Global auto-updates disabled</strong></td><td>' . esc_html($global_auto_disabled) . '</td></tr>';
+    echo '<tr><td><strong>Auto-update enabled for this plugin</strong></td><td>' . esc_html($plugin_auto_enabled) . '</td></tr>';
+    echo '</tbody>';
+    echo '</table>';
+    echo '<p style="margin-bottom:0;">Tip: run "Check for updates" in WordPress Updates screen, then reload this page.</p>';
+    echo '</div>';
+}
+
 function alumni_historiek_storage_info(): array {
     $mode = get_option('alumni_historiek_storage_mode', 'plugin');
 
@@ -636,6 +716,7 @@ function alumni_historiek_render_admin_screen(): void {
     echo '<h1>Historiek beheer</h1>';
     echo '<p>De editor draait hieronder met WordPress-authenticatie.</p>';
     echo '<p><a class="button button-secondary" href="' . esc_url($download_url) . '" aria-label="Download plugin ZIP met huidige WordPress data">Download backup of the plugin (met huidige data)</a></p>';
+    alumni_historiek_render_diagnostics_table();
     echo '<iframe src="' . $iframe_src . '" style="width:100%;min-height:85vh;border:1px solid #ccd0d4;border-radius:6px;background:#fff"></iframe>';
     echo '</div>';
 }

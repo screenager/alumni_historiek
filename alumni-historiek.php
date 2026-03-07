@@ -568,8 +568,17 @@ function alumni_historiek_render_page(): void {
     $data_version = @filemtime($storage['data_file']) ?: time();
     $data_url = esc_url(add_query_arg('v', (string) $data_version, $storage['base_url'] . '/concertData.json'));
     $concerts_base = esc_url($storage['base_url'] . '/concerts/');
+    $site_icon_markup = '';
+    if (function_exists('has_site_icon') && has_site_icon() && function_exists('wp_site_icon')) {
+        ob_start();
+        wp_site_icon();
+        $site_icon_markup = (string) ob_get_clean();
+    }
 
     $inject = "<base href=\"{$base_href}\">\n";
+    if ($site_icon_markup !== '') {
+        $inject .= $site_icon_markup;
+    }
     $inject .= "<script>window.HISTORIEK_DATA_URL = " . wp_json_encode($data_url) . "; window.HISTORIEK_ASSETS_BASE_URL = " . wp_json_encode($concerts_base) . "; window.HISTORIEK_IS_WORDPRESS = true;</script>\n";
 
     $html = preg_replace('/<head>/', "<head>\n{$inject}", $html, 1);

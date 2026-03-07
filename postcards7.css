@@ -400,6 +400,18 @@ body.focused-label-below-card .focused-label {
     }
 }
 
+@media (max-width: 430px) {
+    :root {
+        --focused-label-min-bottom: 28px;
+    }
+
+    .focused-label {
+        background: rgba(0, 0, 0, 0.58);
+        border-radius: 14px;
+        padding: 0.28rem 0.72rem;
+    }
+}
+
 /* Postcard Back */
 .postcard-back {
     transform: rotateY(180deg) translateZ(1px);

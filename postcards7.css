@@ -474,17 +474,17 @@ body.focused-label-below-card .focused-label {
     font-size: 0.72rem;
     color: #444;
     line-height: 1.55;
-    flex: 0 0 auto;
-    max-height: none;
-    min-height: auto;
-    overflow: visible;
+    flex: 0 1 auto;
+    max-height: 40%;
+    min-height: 0;
+    overflow: hidden;
     position: relative;
 }
 
 /* Equal heights: when text has enough content, both sections share space equally */
 .postcard-back-left.equal-heights .postcard-back-text {
-    flex: 0 0 auto;
-    max-height: none;
+    flex: 0 1 auto;
+    max-height: 45%;
 }
 
 .postcard-back-left.equal-heights .postcard-back-repertoire {
@@ -925,19 +925,20 @@ h3.postcard-back-text-label {
 }
 
 .postcard-back-text .custom-scroll-wrapper {
-    height: auto;
-    overflow: visible;
+    height: 100%;
+    overflow: hidden;
 }
 
 .postcard-back-text .custom-scroll-content {
-    height: auto;
-    overflow: visible;
-    padding-right: 0;
+    height: 100%;
+    overflow-y: scroll;
+    padding-right: 14px;
+    -webkit-overflow-scrolling: touch;
 }
 
 .postcard-back-text .custom-scroll-track,
 .postcard-back-text .custom-scroll-thumb {
-    display: none;
+    display: block;
 }
 
 .custom-scroll-content::-webkit-scrollbar {

@@ -219,6 +219,142 @@ function alumni_historiek_render_page(): void {
 }
 add_action('template_redirect', 'alumni_historiek_render_page', 0);
 
+function alumni_historiek_should_exclude_from_zip(string $relative_path): bool {
+    $relative_path = str_replace('\\', '/', ltrim($relative_path, '/'));
+    $base = basename($relative_path);
+
+    if ($relative_path === '.git' || str_starts_with($relative_path, '.git/')) {
+        return true;
+    }
+    if ($relative_path === '.idea' || str_starts_with($relative_path, '.idea/')) {
+        return true;
+    }
+    if ($relative_path === '__MACOSX' || str_starts_with($relative_path, '__MACOSX/')) {
+        return true;
+    }
+    if ($base === '.DS_Store') {
+        return true;
+    }
+    if ($relative_path === 'concertData.json' || $relative_path === 'concerts' || str_starts_with($relative_path, 'concerts/')) {
+        return true;
+    }
+
+    return false;
+}
+
+function alumni_historiek_zip_add_directory(ZipArchive $zip, string $source_dir, string $zip_prefix): void {
+    if (!is_dir($source_dir)) {
+        return;
+    }
+
+    $zip_prefix = trim(str_replace('\\', '/', $zip_prefix), '/');
+    if ($zip_prefix !== '') {
+        $zip->addEmptyDir($zip_prefix);
+    }
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($source_dir, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+
+    foreach ($iterator as $file_info) {
+        $absolute_path = $file_info->getPathname();
+        $relative = substr($absolute_path, strlen($source_dir) + 1);
+        if ($relative === false || $relative === '') {
+            continue;
+        }
+
+        $relative = str_replace('\\', '/', $relative);
+        $zip_path = $zip_prefix !== '' ? $zip_prefix . '/' . $relative : $relative;
+
+        if ($file_info->isDir()) {
+            $zip->addEmptyDir($zip_path);
+            continue;
+        }
+
+        if ($file_info->isFile()) {
+            $zip->addFile($absolute_path, $zip_path);
+        }
+    }
+}
+
+function alumni_historiek_download_plugin_zip(): void {
+    if (!current_user_can('manage_options')) {
+        wp_die('Je hebt geen rechten om deze download uit te voeren.');
+    }
+
+    check_admin_referer('alumni_historiek_download_plugin_zip');
+
+    if (!class_exists('ZipArchive')) {
+        wp_die('ZipArchive extensie is niet beschikbaar op deze server.');
+    }
+
+    $storage = alumni_historiek_storage_info();
+    $plugin_root = untrailingslashit(ALUMNI_HISTORIEK_PLUGIN_DIR);
+    $tmp_file = wp_tempnam('alumni-historiek-plugin.zip');
+    if ($tmp_file === false) {
+        wp_die('Kan tijdelijk ZIP-bestand niet aanmaken.');
+    }
+
+    $zip_path = $tmp_file . '.zip';
+    @unlink($tmp_file);
+
+    $zip = new ZipArchive();
+    if ($zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        wp_die('Kan ZIP-archief niet aanmaken.');
+    }
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($plugin_root, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+
+    foreach ($iterator as $file_info) {
+        $absolute_path = $file_info->getPathname();
+        $relative_path = substr($absolute_path, strlen($plugin_root) + 1);
+        if ($relative_path === false || $relative_path === '') {
+            continue;
+        }
+
+        $relative_path = str_replace('\\', '/', $relative_path);
+        if (alumni_historiek_should_exclude_from_zip($relative_path)) {
+            continue;
+        }
+
+        if ($file_info->isDir()) {
+            $zip->addEmptyDir($relative_path);
+            continue;
+        }
+
+        if ($file_info->isFile()) {
+            $zip->addFile($absolute_path, $relative_path);
+        }
+    }
+
+    if (is_file($storage['data_file'])) {
+        $zip->addFile($storage['data_file'], 'concertData.json');
+    }
+    alumni_historiek_zip_add_directory($zip, $storage['concerts_dir'], 'concerts');
+
+    $zip->close();
+
+    if (!is_file($zip_path)) {
+        wp_die('ZIP-bestand werd niet gegenereerd.');
+    }
+
+    $filename = 'alumni-historiek-plugin-' . gmdate('Ymd-His') . '.zip';
+    nocache_headers();
+    header('Content-Type: application/zip');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Length: ' . (string) filesize($zip_path));
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    readfile($zip_path);
+    @unlink($zip_path);
+    exit;
+}
+add_action('admin_post_alumni_historiek_download_plugin_zip', 'alumni_historiek_download_plugin_zip');
+
 function alumni_historiek_add_admin_menu(): void {
     add_menu_page(
         'Historiek beheer',
@@ -238,9 +374,15 @@ function alumni_historiek_render_admin_screen(): void {
     }
 
     $iframe_src = esc_url(ALUMNI_HISTORIEK_PLUGIN_URL . 'admin/index.html');
+    $download_url = wp_nonce_url(
+        admin_url('admin-post.php?action=alumni_historiek_download_plugin_zip'),
+        'alumni_historiek_download_plugin_zip'
+    );
+
     echo '<div class="wrap">';
     echo '<h1>Historiek beheer</h1>';
     echo '<p>De editor draait hieronder met WordPress-authenticatie.</p>';
+    echo '<p><a class="button button-secondary" href="' . esc_url($download_url) . '" aria-label="Download plugin ZIP met huidige WordPress data">Download backup of the plugin (met huidige data)</a></p>';
     echo '<iframe src="' . $iframe_src . '" style="width:100%;min-height:85vh;border:1px solid #ccd0d4;border-radius:6px;background:#fff"></iframe>';
     echo '</div>';
 }

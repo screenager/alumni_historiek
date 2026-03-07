@@ -24,7 +24,6 @@ $.getJSON(dataUrl, function(data) {
         // Also update aria-label if it's based on the title
     }
     if (headerData.swipe_hint) $('#swipeHintText').html(headerData.swipe_hint);
-    if (headerData.flip_hint) $('#flipHint').text(headerData.flip_hint);
 
     // Reveal header once data is applied
     $('body').addClass('header-ready');
@@ -34,7 +33,6 @@ $.getJSON(dataUrl, function(data) {
 
 
     const $wrapper = $('#coverflowWrapper');
-    const $flipHint = $('#flipHint');
     let currentIndex = 0;
     let totalCards = concertData.length;
 
@@ -159,8 +157,6 @@ $.getJSON(dataUrl, function(data) {
         $card.find('.concert-img[role="button"]').attr('tabindex', isFlipped ? '0' : '-1');
     }
 
-    // Flip hint timeout handle
-    let flipHintTimer = null;
     // History debounce timer
     let historyTimer = null;
     // Rapid navigation state
@@ -208,7 +204,6 @@ $.getJSON(dataUrl, function(data) {
         if (!$card || !$card.length) return;
         $card.toggleClass('flipped', !!isFlipped);
         updateFlippedImageTabindex($card);
-        $flipHint.removeClass('visible');
         updateLabelVisibility();
         if (syncHash) updateHash();
     }
@@ -293,17 +288,6 @@ $.getJSON(dataUrl, function(data) {
                 el.classList.remove('flipped');
                 el.setAttribute('aria-hidden', absOffset > 4 ? 'true' : 'false');
             }
-        }
-
-        // Show/hide flip hint (clear previous timer to avoid stacking)
-        if (flipHintTimer) clearTimeout(flipHintTimer);
-        const focusedEl = cards[currentIndex];
-        if (focusedEl && !focusedEl.classList.contains('flipped')) {
-            flipHintTimer = setTimeout(() => {
-                $flipHint.addClass('visible');
-            }, 600);
-        } else {
-            $flipHint.removeClass('visible');
         }
 
         // Hide nav buttons at edges
@@ -395,7 +379,7 @@ $.getJSON(dataUrl, function(data) {
     let lightboxOpen = false;
     $('.coverflow-container').on('click', function(e) {
         // Don't handle clicks on navigation buttons or card close button
-        if ($(e.target).closest('.coverflow-nav, .flip-hint, .card-close-btn').length) return;
+        if ($(e.target).closest('.coverflow-nav, .card-close-btn').length) return;
         // Don't flip card if lightbox is open or click came from an image/lightbox
         if (lightboxOpen) return;
         if ($(e.target).closest('.postcard-back-images').length) return;
@@ -987,17 +971,6 @@ $.getJSON(dataUrl, function(data) {
         document.documentElement.style.setProperty('--flip-scale', finalScale);
         document.documentElement.style.setProperty('--flip-tz', flipTZ + 'px');
         
-        // When scale is 0.9 or 1.6, move focusedLabel to flipHint position and hide flipHint
-        const focusedLabelEl = document.getElementById('focusedLabel');
-        const flipHintEl = document.getElementById('flipHint');
-        const isScaleBoundary = Math.abs(finalScale - 0.9) < 0.001 || Math.abs(finalScale - 1.6) < 0.001;
-        if (isScaleBoundary) {
-            if (focusedLabelEl) focusedLabelEl.classList.add('at-bottom');
-            if (flipHintEl) flipHintEl.classList.add('scale-min');
-        } else {
-            if (focusedLabelEl) focusedLabelEl.classList.remove('at-bottom');
-            if (flipHintEl) flipHintEl.classList.remove('scale-min');
-        }
     }
 
     // Update flip dimensions on resize
@@ -1016,7 +989,6 @@ $.getJSON(dataUrl, function(data) {
             const $card = $(`.postcard[data-index="${currentIndex}"]`);
             $card.addClass('flipped');
             updateFlippedImageTabindex($card);
-            $flipHint.removeClass('visible');
             updateLabelVisibility();
         }, 100);
     }

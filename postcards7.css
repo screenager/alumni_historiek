@@ -39,14 +39,8 @@ html {
     --card-close-left: -14px;
     --focused-label-size: 1.2rem;
     --coverflow-header-cost: 200px; /* matches the constant in .coverflow-container height calc */
-    /* Dynamic: positions label/hint just below the focused card's bottom edge.
-       space_below_card = (100vh - header_cost - top_header - card_height) / 2
-       focused-label.bottom = space_below_card - ~42px (label_height + card_margin).
-       flip-hint is CHAINED to the label's actual resolved value (not an independent formula),
-       so when space is tight and the label clamps, the hint always stays below it.
-       Label minimum is 50px, guaranteeing the hint (needing 50px clearance) fits at bottom:0. */
-    --focused-label-bottom: max(50px, calc((100vh - var(--coverflow-header-cost) - var(--top-header-height) - var(--card-height)) / 2 - 42px));
-    --flip-hint-bottom: max(0px, calc(var(--focused-label-bottom) - 50px));
+    /* Dynamic: place focused label at the former flip-hint position. */
+    --focused-label-bottom: max(0px, calc((100vh - var(--coverflow-header-cost) - var(--top-header-height) - var(--card-height)) / 2 - 92px));
 }
 
 body {
@@ -260,7 +254,7 @@ header p {
 .flip-icon svg {
     width: var(--flip-icon-svg-size);
     height: var(--flip-icon-svg-size);
-    color: rgba(64, 64, 64, 0.92);
+    color: rgba(255, 255, 255, 0.9);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
     animation: flipIconPulse 2s ease-in-out infinite;
 }
@@ -379,15 +373,6 @@ header p {
 
 .focused-label.hidden {
     opacity: 0;
-}
-
-/* When flip-scale is minimum (0.9), move label to bottom */
-.focused-label.at-bottom {
-    bottom: 0px;
-}
-
-.flip-hint.scale-min {
-    display: none;
 }
 
 /* Postcard Back */
@@ -883,29 +868,6 @@ h3.postcard-back-text-label {
     right: var(--coverflow-nav-next-right);
 }
 
-/* Flip hint */
-.flip-hint {
-    position: absolute;
-    bottom: var(--flip-hint-bottom);
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(248, 181, 0, 0.9);
-    color: #1a1a2e;
-    padding: 0.5rem 1.5rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 150;
-    pointer-events: none;
-}
-
-.flip-hint.visible {
-    opacity: 1;
-}
-
 /* Custom scrollbar – always visible */
 .custom-scroll-wrapper {
     position: relative;
@@ -1157,10 +1119,6 @@ h3.postcard-back-text-label {
         margin-bottom: 1rem;
     }
 
-    .focused-label.at-bottom {
-        bottom: -7px;
-    }
-
     .postcard-title-front {
         font-size: 1.6rem;
     }
@@ -1265,10 +1223,6 @@ h3.postcard-back-text-label {
         font-size: 0.55rem;
     }
 
-    .flip-hint {
-        font-size: 0.7rem;
-        padding: 0.3em 1.2em;
-    }
 }
 
 /* Very short viewport */

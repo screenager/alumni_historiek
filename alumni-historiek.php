@@ -4,6 +4,7 @@
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
  * Version: 1.0.0
  * Author: Alumni Arenbergorkest
+ * Update URI: https://github.com/screenager/alumni_historiek
  */
 
 if (!defined('ABSPATH')) {
@@ -13,6 +14,254 @@ if (!defined('ABSPATH')) {
 define('ALUMNI_HISTORIEK_PLUGIN_FILE', __FILE__);
 define('ALUMNI_HISTORIEK_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ALUMNI_HISTORIEK_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('ALUMNI_HISTORIEK_PLUGIN_BASENAME', plugin_basename(__FILE__));
+define('ALUMNI_HISTORIEK_GITHUB_REPO_DEFAULT', 'screenager/alumni_historiek');
+
+function alumni_historiek_github_updater_config(): array {
+    $config = [
+        'repository' => ALUMNI_HISTORIEK_GITHUB_REPO_DEFAULT,
+        'token' => defined('ALUMNI_HISTORIEK_GITHUB_TOKEN') ? (string) ALUMNI_HISTORIEK_GITHUB_TOKEN : '',
+        'cache_ttl' => 3600,
+    ];
+
+    $config = apply_filters('alumni_historiek_github_updater_config', $config);
+    $config['repository'] = is_string($config['repository'] ?? '') ? trim((string) $config['repository']) : '';
+    $config['token'] = is_string($config['token'] ?? '') ? trim((string) $config['token']) : '';
+    $config['cache_ttl'] = max(300, (int) ($config['cache_ttl'] ?? 3600));
+
+    return $config;
+}
+
+function alumni_historiek_get_repo_parts(string $repository): ?array {
+    $parts = explode('/', trim($repository, " \t\n\r\0\x0B/"));
+    if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '') {
+        return null;
+    }
+
+    return [$parts[0], $parts[1]];
+}
+
+function alumni_historiek_get_plugin_data_cached(): array {
+    static $plugin_data = null;
+    if (is_array($plugin_data)) {
+        return $plugin_data;
+    }
+
+    if (!function_exists('get_plugin_data')) {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    }
+
+    $plugin_data = get_plugin_data(ALUMNI_HISTORIEK_PLUGIN_FILE, false, false);
+    return is_array($plugin_data) ? $plugin_data : [];
+}
+
+function alumni_historiek_github_request_headers(string $token = ''): array {
+    $headers = [
+        'Accept' => 'application/vnd.github+json',
+        'User-Agent' => 'WordPress/' . get_bloginfo('version') . '; ' . home_url('/'),
+    ];
+
+    if ($token !== '') {
+        $headers['Authorization'] = 'Bearer ' . $token;
+    }
+
+    return $headers;
+}
+
+function alumni_historiek_get_github_release_data(bool $force_refresh = false): ?array {
+    $config = alumni_historiek_github_updater_config();
+    if ($config['repository'] === '') {
+        return null;
+    }
+    $repo_parts = alumni_historiek_get_repo_parts($config['repository']);
+    if (!is_array($repo_parts)) {
+        return null;
+    }
+    [$owner, $repo] = $repo_parts;
+
+    $cache_key = 'alumni_historiek_github_release_' . md5($config['repository']);
+    if (!$force_refresh) {
+        $cached = get_site_transient($cache_key);
+        if (is_array($cached)) {
+            return $cached;
+        }
+    }
+
+    $response = wp_remote_get(
+        'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/releases/latest',
+        [
+            'headers' => alumni_historiek_github_request_headers($config['token']),
+            'timeout' => 15,
+        ]
+    );
+
+    if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+        return null;
+    }
+
+    $body = json_decode((string) wp_remote_retrieve_body($response), true);
+    if (!is_array($body)) {
+        return null;
+    }
+
+    $tag_name = isset($body['tag_name']) ? trim((string) $body['tag_name']) : '';
+    $zipball_url = isset($body['zipball_url']) ? trim((string) $body['zipball_url']) : '';
+    if ($tag_name === '' || $zipball_url === '') {
+        return null;
+    }
+
+    $data = [
+        'version' => ltrim($tag_name, "vV \t\n\r\0\x0B"),
+        'tag' => $tag_name,
+        'zipball_url' => $zipball_url,
+        'html_url' => isset($body['html_url']) ? (string) $body['html_url'] : '',
+        'published_at' => isset($body['published_at']) ? (string) $body['published_at'] : '',
+        'body' => isset($body['body']) ? (string) $body['body'] : '',
+    ];
+
+    set_site_transient($cache_key, $data, $config['cache_ttl']);
+    return $data;
+}
+
+function alumni_historiek_filter_update_plugins($transient) {
+    if (!is_object($transient)) {
+        $transient = new stdClass();
+    }
+
+    if (!isset($transient->checked) || !is_array($transient->checked)) {
+        return $transient;
+    }
+
+    $current_version = isset($transient->checked[ALUMNI_HISTORIEK_PLUGIN_BASENAME])
+        ? (string) $transient->checked[ALUMNI_HISTORIEK_PLUGIN_BASENAME]
+        : '';
+    if ($current_version === '') {
+        return $transient;
+    }
+
+    $release = alumni_historiek_get_github_release_data();
+    if (!is_array($release) || empty($release['version'])) {
+        return $transient;
+    }
+
+    if (version_compare((string) $release['version'], $current_version, '<=')) {
+        return $transient;
+    }
+
+    $plugin_data = alumni_historiek_get_plugin_data_cached();
+
+    $transient->response[ALUMNI_HISTORIEK_PLUGIN_BASENAME] = (object) [
+        'slug' => dirname(ALUMNI_HISTORIEK_PLUGIN_BASENAME),
+        'plugin' => ALUMNI_HISTORIEK_PLUGIN_BASENAME,
+        'new_version' => (string) $release['version'],
+        'url' => (string) ($release['html_url'] ?? ''),
+        'package' => (string) $release['zipball_url'],
+        'icons' => [],
+        'banners' => [],
+        'banners_rtl' => [],
+        'tested' => isset($plugin_data['Tested up to']) ? (string) $plugin_data['Tested up to'] : '',
+        'requires_php' => isset($plugin_data['RequiresPHP']) ? (string) $plugin_data['RequiresPHP'] : '',
+    ];
+
+    return $transient;
+}
+add_filter('pre_set_site_transient_update_plugins', 'alumni_historiek_filter_update_plugins');
+
+function alumni_historiek_plugins_api($result, string $action, $args) {
+    if ($action !== 'plugin_information' || !is_object($args) || !isset($args->slug)) {
+        return $result;
+    }
+
+    if ((string) $args->slug !== dirname(ALUMNI_HISTORIEK_PLUGIN_BASENAME)) {
+        return $result;
+    }
+
+    $release = alumni_historiek_get_github_release_data();
+    if (!is_array($release)) {
+        return $result;
+    }
+
+    $plugin_data = alumni_historiek_get_plugin_data_cached();
+
+    return (object) [
+        'name' => (string) ($plugin_data['Name'] ?? 'Alumni Historiek'),
+        'slug' => dirname(ALUMNI_HISTORIEK_PLUGIN_BASENAME),
+        'version' => (string) $release['version'],
+        'author' => (string) ($plugin_data['AuthorName'] ?? ''),
+        'homepage' => (string) ($release['html_url'] ?? ''),
+        'short_description' => (string) ($plugin_data['Description'] ?? ''),
+        'sections' => [
+            'description' => (string) ($plugin_data['Description'] ?? ''),
+            'changelog' => nl2br(esc_html((string) ($release['body'] ?? ''))),
+        ],
+        'download_link' => (string) $release['zipball_url'],
+    ];
+}
+add_filter('plugins_api', 'alumni_historiek_plugins_api', 10, 3);
+
+function alumni_historiek_http_request_args(array $args, string $url): array {
+    $config = alumni_historiek_github_updater_config();
+    if ($config['token'] === '') {
+        return $args;
+    }
+    $repo_parts = alumni_historiek_get_repo_parts($config['repository']);
+    if (!is_array($repo_parts)) {
+        return $args;
+    }
+    [$owner, $repo] = $repo_parts;
+
+    $zipball_prefix = 'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/zipball/';
+    if (strpos($url, $zipball_prefix) !== 0) {
+        return $args;
+    }
+
+    $args['headers'] = isset($args['headers']) && is_array($args['headers']) ? $args['headers'] : [];
+    $args['headers']['Authorization'] = 'Bearer ' . $config['token'];
+    $args['headers']['User-Agent'] = $args['headers']['User-Agent'] ?? ('WordPress/' . get_bloginfo('version') . '; ' . home_url('/'));
+
+    return $args;
+}
+add_filter('http_request_args', 'alumni_historiek_http_request_args', 10, 2);
+
+function alumni_historiek_upgrader_source_selection(string $source, string $remote_source, $upgrader): string {
+    if (!is_object($upgrader) || !isset($upgrader->skin) || !is_object($upgrader->skin)) {
+        return $source;
+    }
+
+    $plugin = $upgrader->skin->plugin ?? '';
+    if ($plugin !== ALUMNI_HISTORIEK_PLUGIN_BASENAME) {
+        return $source;
+    }
+
+    $desired = trailingslashit($remote_source) . dirname(ALUMNI_HISTORIEK_PLUGIN_BASENAME);
+    if (untrailingslashit($source) === untrailingslashit($desired)) {
+        return $source;
+    }
+
+    global $wp_filesystem;
+    if (!$wp_filesystem || !$wp_filesystem->move($source, $desired, true)) {
+        return $source;
+    }
+
+    return $desired;
+}
+add_filter('upgrader_source_selection', 'alumni_historiek_upgrader_source_selection', 10, 3);
+
+function alumni_historiek_upgrader_process_complete($upgrader, array $options): void {
+    if (($options['action'] ?? '') !== 'update' || ($options['type'] ?? '') !== 'plugin') {
+        return;
+    }
+
+    $plugins = $options['plugins'] ?? [];
+    if (!is_array($plugins) || !in_array(ALUMNI_HISTORIEK_PLUGIN_BASENAME, $plugins, true)) {
+        return;
+    }
+
+    $config = alumni_historiek_github_updater_config();
+    $cache_key = 'alumni_historiek_github_release_' . md5($config['repository']);
+    delete_site_transient($cache_key);
+}
+add_action('upgrader_process_complete', 'alumni_historiek_upgrader_process_complete', 10, 2);
 
 function alumni_historiek_storage_info(): array {
     $mode = get_option('alumni_historiek_storage_mode', 'plugin');
@@ -308,6 +557,8 @@ function alumni_historiek_download_plugin_zip(): void {
         new RecursiveDirectoryIterator($plugin_root, RecursiveDirectoryIterator::SKIP_DOTS),
         RecursiveIteratorIterator::SELF_FIRST
     );
+    $zip_root = 'alumni-historiek';
+    $zip->addEmptyDir($zip_root);
 
     foreach ($iterator as $file_info) {
         $absolute_path = $file_info->getPathname();
@@ -321,20 +572,22 @@ function alumni_historiek_download_plugin_zip(): void {
             continue;
         }
 
+        $zip_relative_path = $zip_root . '/' . $relative_path;
+
         if ($file_info->isDir()) {
-            $zip->addEmptyDir($relative_path);
+            $zip->addEmptyDir($zip_relative_path);
             continue;
         }
 
         if ($file_info->isFile()) {
-            $zip->addFile($absolute_path, $relative_path);
+            $zip->addFile($absolute_path, $zip_relative_path);
         }
     }
 
     if (is_file($storage['data_file'])) {
-        $zip->addFile($storage['data_file'], 'concertData.json');
+        $zip->addFile($storage['data_file'], $zip_root . '/concertData.json');
     }
-    alumni_historiek_zip_add_directory($zip, $storage['concerts_dir'], 'concerts');
+    alumni_historiek_zip_add_directory($zip, $storage['concerts_dir'], $zip_root . '/concerts');
 
     $zip->close();
 

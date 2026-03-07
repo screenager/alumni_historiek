@@ -113,7 +113,7 @@ $.getJSON(dataUrl, function(data) {
                                     <div class="postmark-cancel"></div>
                                     <div class="postmark">
                                         <span class="postmark-city">LEUVEN</span>
-                                        <span>${concert.year}</span>
+                                        <span class="postmark-year">${concert.year}</span>
                                     </div>
                                 </div>
                                 <div class="postcard-back-title">${concert.title}</div>

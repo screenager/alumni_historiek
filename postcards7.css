@@ -396,15 +396,20 @@ body.focused-label-below-card .focused-label {
 
 @media (max-width: 768px) {
     :root {
-        --focused-label-min-bottom: 120px;
+        --focused-label-min-bottom: 20px;
+    }
+
+    .focused-label {
+        position: absolute;
+        bottom: max(20px, calc((100vh - var(--coverflow-header-cost) - var(--top-header-height) - var(--card-height)) / 2 - 20px));
+    }
+
+    body.focused-label-below-card .focused-label {
+        bottom: max(20px, calc((100vh - var(--coverflow-header-cost) - var(--top-header-height) - var(--card-height)) / 2 - 20px));
     }
 }
 
 @media (max-width: 430px) {
-    :root {
-        --focused-label-min-bottom: 28px;
-    }
-
     .focused-label {
         background: rgba(0, 0, 0, 0.58);
         border-radius: 14px;

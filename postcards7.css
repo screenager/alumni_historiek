@@ -38,9 +38,10 @@ html {
     --card-close-bottom: -14px;
     --card-close-left: -14px;
     --focused-label-size: 1.2rem;
+    --focused-label-min-bottom: 44px;
     --coverflow-header-cost: 200px; /* matches the constant in .coverflow-container height calc */
     /* Dynamic: place focused label at the former flip-hint position. */
-    --focused-label-bottom: max(0px, calc((100vh - var(--coverflow-header-cost) - var(--top-header-height) - var(--card-height)) / 2 - 92px));
+    --focused-label-bottom: max(var(--focused-label-min-bottom), calc((100vh - var(--coverflow-header-cost) - var(--top-header-height) - var(--card-height)) / 2 - 92px));
 }
 
 body {
@@ -356,7 +357,7 @@ header p {
 
 /* Season/Year label below focused card */
 .focused-label {
-    position: absolute;
+    position: fixed;
     bottom: var(--focused-label-bottom);
     left: 50%;
     transform: translateX(-50%);
@@ -365,14 +366,38 @@ header p {
     font-weight: 500;
     font-size: var(--focused-label-size);
     text-align: center;
-    z-index: 110;
+    z-index: 210;
     white-space: nowrap;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     transition: opacity 0.3s ease;
+    pointer-events: none;
 }
 
 .focused-label.hidden {
     opacity: 0;
+}
+
+/* Keep label safely below the card on tight 1.6/0 flip state */
+body.focused-label-below-card .focused-label {
+    bottom: var(--focused-label-min-bottom);
+}
+
+@media (min-width: 1400px) and (min-height: 900px) {
+    :root {
+        --focused-label-min-bottom: 176px;
+    }
+}
+
+@media (min-height: 1000px) {
+    :root {
+        --focused-label-min-bottom: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --focused-label-min-bottom: 120px;
+    }
 }
 
 /* Postcard Back */

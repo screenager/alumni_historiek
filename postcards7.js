@@ -970,6 +970,10 @@ $.getJSON(dataUrl, function(data) {
         const finalScale = Math.max(0.9, flipScale);
         document.documentElement.style.setProperty('--flip-scale', finalScale);
         document.documentElement.style.setProperty('--flip-tz', flipTZ + 'px');
+
+        // At 1.6 scale with zero Z-translation, keep the focused label below the poster.
+        const needsBelowCardLabel = Math.abs(finalScale - 1.6) < 0.001 && flipTZ === 0;
+        document.body.classList.toggle('focused-label-below-card', needsBelowCardLabel);
         
     }
 

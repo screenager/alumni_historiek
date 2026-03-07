@@ -75,7 +75,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 0 2rem 0 3px;
+    padding: 0px 2rem 0 151px;
 }
 
 .top-header .logo {

@@ -2,10 +2,51 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=postcards5.html">
-  <title>Redirecting…</title>
+  <title>Doorsturen…</title>
+  <script>
+    (function () {
+      var fallback = 'postcards.html';
+      var minVersion = 2;
+      var maxVersion = 99;
+
+      function goTo(url) {
+        window.location.replace(url);
+      }
+
+      function tryVersion(version) {
+        if (version < minVersion) {
+          fetch(fallback, { method: 'HEAD', cache: 'no-store' })
+            .then(function (response) {
+              goTo(response.ok ? fallback : 'postcards7.html');
+            })
+            .catch(function () {
+              goTo('postcards7.html');
+            });
+          return;
+        }
+
+        var candidate = 'postcards' + version + '.html';
+        fetch(candidate, { method: 'HEAD', cache: 'no-store' })
+          .then(function (response) {
+            if (response.ok) {
+              goTo(candidate);
+            } else {
+              tryVersion(version - 1);
+            }
+          })
+          .catch(function () {
+            tryVersion(version - 1);
+          });
+      }
+
+      tryVersion(maxVersion);
+    })();
+  </script>
 </head>
 <body>
-  <p>Redirecting to <a href="postcards5.html">postcards5.html</a>…</p>
+  <p aria-live="polite">Je wordt doorgestuurd naar de nieuwste versie…</p>
+  <noscript>
+    <p>JavaScript is uitgeschakeld. Ga naar <a href="postcards7.html">postcards7.html</a>.</p>
+  </noscript>
 </body>
 </html>

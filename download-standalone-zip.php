@@ -7,7 +7,12 @@ declare(strict_types=1);
  */
 
 $root = __DIR__;
-$zipName = 'alumni_historiek_standalone.zip';
+$versionParam = isset($_GET['version']) ? (string) $_GET['version'] : '';
+if (preg_match('/^\d+$/', $versionParam) === 1) {
+    $zipName = 'alumni_historiek_postcards' . $versionParam . '.zip';
+} else {
+    $zipName = 'alumni_historiek_standalone.zip';
+}
 $tmpZip = tempnam(sys_get_temp_dir(), 'alumni_hist_');
 
 if ($tmpZip === false) {
@@ -101,4 +106,3 @@ header('Pragma: no-cache');
 readfile($zipPath);
 @unlink($zipPath);
 exit;
-

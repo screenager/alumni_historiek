@@ -150,15 +150,45 @@ function alumni_historiek_register_query_var(array $vars): array {
 }
 add_filter('query_vars', 'alumni_historiek_register_query_var');
 
+function alumni_historiek_get_latest_postcards_html_path(): ?string {
+    $candidates = glob(ALUMNI_HISTORIEK_PLUGIN_DIR . 'postcards*.html');
+    if (!is_array($candidates) || $candidates === []) {
+        return null;
+    }
+
+    $latest_path = null;
+    $latest_version = -1;
+
+    foreach ($candidates as $path) {
+        $filename = basename($path);
+        if (preg_match('/^postcards(\d+)\.html$/', $filename, $matches) !== 1) {
+            continue;
+        }
+
+        $version = (int) $matches[1];
+        if ($version > $latest_version) {
+            $latest_version = $version;
+            $latest_path = $path;
+        }
+    }
+
+    if ($latest_path !== null) {
+        return $latest_path;
+    }
+
+    $fallback = ALUMNI_HISTORIEK_PLUGIN_DIR . 'postcards.html';
+    return file_exists($fallback) ? $fallback : null;
+}
+
 function alumni_historiek_render_page(): void {
     if ((int) get_query_var('alumni_historiek') !== 1) {
         return;
     }
 
-    $html_path = ALUMNI_HISTORIEK_PLUGIN_DIR . 'postcards6.html';
-    if (!file_exists($html_path)) {
+    $html_path = alumni_historiek_get_latest_postcards_html_path();
+    if ($html_path === null || !file_exists($html_path)) {
         status_header(404);
-        echo 'postcards6.html not found.';
+        echo 'No postcards HTML file found.';
         exit;
     }
 

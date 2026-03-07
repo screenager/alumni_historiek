@@ -72,6 +72,68 @@ function storageInfo(bool $isWpMode): array {
     ];
 }
 
+function latestPostcardsFilename(string $baseDir): ?string {
+    $candidates = glob(rtrim($baseDir, '/\\') . '/postcards*.html');
+    if (!is_array($candidates) || $candidates === []) {
+        return null;
+    }
+
+    $latestFilename = null;
+    $latestVersion = -1;
+
+    foreach ($candidates as $path) {
+        $filename = basename($path);
+        if (preg_match('/^postcards(\d+)\.html$/', $filename, $matches) !== 1) {
+            continue;
+        }
+
+        $version = (int) $matches[1];
+        if ($version > $latestVersion) {
+            $latestVersion = $version;
+            $latestFilename = $filename;
+        }
+    }
+
+    if ($latestFilename !== null) {
+        return $latestFilename;
+    }
+
+    return file_exists(rtrim($baseDir, '/\\') . '/postcards.html') ? 'postcards.html' : null;
+}
+
+function pluginBaseUrlFromApiRequest(): string {
+    if (function_exists('plugins_url')) {
+        return trailingslashit(plugins_url('', dirname(__DIR__) . '/alumni-historiek.php'));
+    }
+
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $scriptName = (string) ($_SERVER['SCRIPT_NAME'] ?? '/admin/api.php');
+    $adminDir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+    $pluginDir = preg_replace('#/admin$#', '', $adminDir) ?: '';
+
+    return $scheme . '://' . $host . rtrim($pluginDir, '/') . '/';
+}
+
+function publicPageUrls(bool $isWpMode): array {
+    $baseDir = dirname(__DIR__);
+    $latest = latestPostcardsFilename($baseDir);
+    $pluginBaseUrl = pluginBaseUrlFromApiRequest();
+    $fallbackUrl = $latest !== null ? $pluginBaseUrl . $latest : rtrim($pluginBaseUrl, '/') . '/index.html';
+
+    if ($isWpMode && function_exists('home_url')) {
+        return [
+            'publicPageUrl' => home_url('/historiek'),
+            'fallbackPublicPageUrl' => $fallbackUrl,
+        ];
+    }
+
+    return [
+        'publicPageUrl' => '../index.html',
+        'fallbackPublicPageUrl' => '../index.html',
+    ];
+}
+
 $storage = storageInfo($IS_WP_MODE);
 ensureDir($storage['concerts_dir']);
 ensureDir($storage['private_dir']);
@@ -333,6 +395,7 @@ switch ($action) {
         break;
 
     case 'status':
+        $publicUrls = publicPageUrls($IS_WP_MODE);
         if ($IS_WP_MODE) {
             if (is_user_logged_in() && current_user_can('manage_options')) {
                 $user = wp_get_current_user();
@@ -341,9 +404,16 @@ switch ($action) {
                     'user' => $user->user_login,
                     'csrf_token' => wp_create_nonce('alumni_historiek_api'),
                     'mode' => 'wordpress',
+                    'publicPageUrl' => $publicUrls['publicPageUrl'],
+                    'fallbackPublicPageUrl' => $publicUrls['fallbackPublicPageUrl'],
                 ]);
             }
-            jsonResponse(['loggedIn' => false, 'mode' => 'wordpress']);
+            jsonResponse([
+                'loggedIn' => false,
+                'mode' => 'wordpress',
+                'publicPageUrl' => $publicUrls['publicPageUrl'],
+                'fallbackPublicPageUrl' => $publicUrls['fallbackPublicPageUrl'],
+            ]);
         }
 
         if (!empty($_SESSION['admin_user'])) {
@@ -352,9 +422,16 @@ switch ($action) {
                 'user' => $_SESSION['admin_user'],
                 'csrf_token' => generateStandaloneCsrfToken(),
                 'mode' => 'standalone',
+                'publicPageUrl' => $publicUrls['publicPageUrl'],
+                'fallbackPublicPageUrl' => $publicUrls['fallbackPublicPageUrl'],
             ]);
         }
-        jsonResponse(['loggedIn' => false, 'mode' => 'standalone']);
+        jsonResponse([
+            'loggedIn' => false,
+            'mode' => 'standalone',
+            'publicPageUrl' => $publicUrls['publicPageUrl'],
+            'fallbackPublicPageUrl' => $publicUrls['fallbackPublicPageUrl'],
+        ]);
         break;
 
     case 'list':

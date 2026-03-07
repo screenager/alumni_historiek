@@ -35,16 +35,15 @@ Versioned HTML Rule
 
 GitHub Update Flow (WordPress)
 ------------------------------
-- The plugin now checks GitHub Releases for updates from:
+- The plugin now checks the latest commit on GitHub for updates from:
   - https://github.com/screenager/alumni_historiek
+- Default tracked branch: `main` (can be overridden with filter `alumni_historiek_github_updater_config`).
 - To publish an update:
-  1) Bump `Version:` in `alumni-historiek.php`.
-  2) Commit and push to GitHub.
-  3) Create a GitHub Release with a tag that matches the version (for example `v1.0.1`).
-  4) In WordPress admin, run update checks and update like a normal plugin.
+  1) Commit and push to GitHub.
+  2) In WordPress admin, run update checks and update like a normal plugin.
 - For private repositories, define `ALUMNI_HISTORIEK_GITHUB_TOKEN` in `wp-config.php`:
   - `define('ALUMNI_HISTORIEK_GITHUB_TOKEN', 'ghp_...');`
-- Optional: override repository/token via filter `alumni_historiek_github_updater_config`.
+- Optional: override repository/branch/token via filter `alumni_historiek_github_updater_config`.
 
 Notes
 -----

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 1.0.0
+ * Version: 7.119
  * Author: Alumni Arenbergorkest
  * Update URI: https://github.com/screenager/alumni_historiek
  */
@@ -16,16 +16,23 @@ define('ALUMNI_HISTORIEK_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ALUMNI_HISTORIEK_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ALUMNI_HISTORIEK_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('ALUMNI_HISTORIEK_GITHUB_REPO_DEFAULT', 'screenager/alumni_historiek');
+define('ALUMNI_HISTORIEK_GITHUB_BRANCH_DEFAULT', 'main');
+define('ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION', 'alumni_historiek_installed_remote_sha');
 
 function alumni_historiek_github_updater_config(): array {
     $config = [
         'repository' => ALUMNI_HISTORIEK_GITHUB_REPO_DEFAULT,
+        'branch' => ALUMNI_HISTORIEK_GITHUB_BRANCH_DEFAULT,
         'token' => defined('ALUMNI_HISTORIEK_GITHUB_TOKEN') ? (string) ALUMNI_HISTORIEK_GITHUB_TOKEN : '',
         'cache_ttl' => 3600,
     ];
 
     $config = apply_filters('alumni_historiek_github_updater_config', $config);
     $config['repository'] = is_string($config['repository'] ?? '') ? trim((string) $config['repository']) : '';
+    $config['branch'] = is_string($config['branch'] ?? '') ? trim((string) $config['branch']) : ALUMNI_HISTORIEK_GITHUB_BRANCH_DEFAULT;
+    if ($config['branch'] === '') {
+        $config['branch'] = ALUMNI_HISTORIEK_GITHUB_BRANCH_DEFAULT;
+    }
     $config['token'] = is_string($config['token'] ?? '') ? trim((string) $config['token']) : '';
     $config['cache_ttl'] = max(300, (int) ($config['cache_ttl'] ?? 3600));
 
@@ -68,7 +75,7 @@ function alumni_historiek_github_request_headers(string $token = ''): array {
     return $headers;
 }
 
-function alumni_historiek_get_github_release_data(bool $force_refresh = false): ?array {
+function alumni_historiek_get_github_remote_data(bool $force_refresh = false): ?array {
     $config = alumni_historiek_github_updater_config();
     if ($config['repository'] === '') {
         return null;
@@ -79,7 +86,7 @@ function alumni_historiek_get_github_release_data(bool $force_refresh = false): 
     }
     [$owner, $repo] = $repo_parts;
 
-    $cache_key = 'alumni_historiek_github_release_' . md5($config['repository']);
+    $cache_key = 'alumni_historiek_github_remote_' . md5($config['repository'] . '|' . $config['branch']);
     if (!$force_refresh) {
         $cached = get_site_transient($cache_key);
         if (is_array($cached)) {
@@ -88,7 +95,7 @@ function alumni_historiek_get_github_release_data(bool $force_refresh = false): 
     }
 
     $response = wp_remote_get(
-        'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/releases/latest',
+        'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/commits/' . rawurlencode($config['branch']),
         [
             'headers' => alumni_historiek_github_request_headers($config['token']),
             'timeout' => 15,
@@ -104,19 +111,26 @@ function alumni_historiek_get_github_release_data(bool $force_refresh = false): 
         return null;
     }
 
-    $tag_name = isset($body['tag_name']) ? trim((string) $body['tag_name']) : '';
-    $zipball_url = isset($body['zipball_url']) ? trim((string) $body['zipball_url']) : '';
-    if ($tag_name === '' || $zipball_url === '') {
+    $sha = isset($body['sha']) ? trim((string) $body['sha']) : '';
+    if ($sha === '') {
         return null;
+    }
+    $commit_date = (string) ($body['commit']['committer']['date'] ?? $body['commit']['author']['date'] ?? '');
+    $commit_message = trim((string) ($body['commit']['message'] ?? ''));
+    $commit_timestamp = strtotime($commit_date);
+    if ($commit_timestamp === false) {
+        $commit_timestamp = time();
     }
 
     $data = [
-        'version' => ltrim($tag_name, "vV \t\n\r\0\x0B"),
-        'tag' => $tag_name,
-        'zipball_url' => $zipball_url,
-        'html_url' => isset($body['html_url']) ? (string) $body['html_url'] : '',
-        'published_at' => isset($body['published_at']) ? (string) $body['published_at'] : '',
-        'body' => isset($body['body']) ? (string) $body['body'] : '',
+        'version' => gmdate('Ymd.His', $commit_timestamp),
+        'sha' => $sha,
+        'short_sha' => substr($sha, 0, 7),
+        'branch' => $config['branch'],
+        'zipball_url' => 'https://github.com/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/archive/refs/heads/' . rawurlencode($config['branch']) . '.zip',
+        'html_url' => 'https://github.com/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/commit/' . rawurlencode($sha),
+        'published_at' => gmdate('c', $commit_timestamp),
+        'body' => $commit_message,
     ];
 
     set_site_transient($cache_key, $data, $config['cache_ttl']);
@@ -139,12 +153,12 @@ function alumni_historiek_filter_update_plugins($transient) {
         return $transient;
     }
 
-    $release = alumni_historiek_get_github_release_data();
-    if (!is_array($release) || empty($release['version'])) {
+    $remote = alumni_historiek_get_github_remote_data();
+    if (!is_array($remote) || empty($remote['version']) || empty($remote['sha'])) {
         return $transient;
     }
-
-    if (version_compare((string) $release['version'], $current_version, '<=')) {
+    $installed_remote_sha = (string) get_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION, '');
+    if ($installed_remote_sha !== '' && hash_equals($installed_remote_sha, (string) $remote['sha'])) {
         return $transient;
     }
 
@@ -153,9 +167,9 @@ function alumni_historiek_filter_update_plugins($transient) {
     $transient->response[ALUMNI_HISTORIEK_PLUGIN_BASENAME] = (object) [
         'slug' => dirname(ALUMNI_HISTORIEK_PLUGIN_BASENAME),
         'plugin' => ALUMNI_HISTORIEK_PLUGIN_BASENAME,
-        'new_version' => (string) $release['version'],
-        'url' => (string) ($release['html_url'] ?? ''),
-        'package' => (string) $release['zipball_url'],
+        'new_version' => (string) $remote['version'],
+        'url' => (string) ($remote['html_url'] ?? ''),
+        'package' => (string) $remote['zipball_url'],
         'icons' => [],
         'banners' => [],
         'banners_rtl' => [],
@@ -176,8 +190,8 @@ function alumni_historiek_plugins_api($result, string $action, $args) {
         return $result;
     }
 
-    $release = alumni_historiek_get_github_release_data();
-    if (!is_array($release)) {
+    $remote = alumni_historiek_get_github_remote_data();
+    if (!is_array($remote)) {
         return $result;
     }
 
@@ -186,15 +200,15 @@ function alumni_historiek_plugins_api($result, string $action, $args) {
     return (object) [
         'name' => (string) ($plugin_data['Name'] ?? 'Alumni Historiek'),
         'slug' => dirname(ALUMNI_HISTORIEK_PLUGIN_BASENAME),
-        'version' => (string) $release['version'],
+        'version' => (string) $remote['version'],
         'author' => (string) ($plugin_data['AuthorName'] ?? ''),
-        'homepage' => (string) ($release['html_url'] ?? ''),
+        'homepage' => (string) ($remote['html_url'] ?? ''),
         'short_description' => (string) ($plugin_data['Description'] ?? ''),
         'sections' => [
             'description' => (string) ($plugin_data['Description'] ?? ''),
-            'changelog' => nl2br(esc_html((string) ($release['body'] ?? ''))),
+            'changelog' => nl2br(esc_html((string) ($remote['body'] ?? ''))),
         ],
-        'download_link' => (string) $release['zipball_url'],
+        'download_link' => (string) $remote['zipball_url'],
     ];
 }
 add_filter('plugins_api', 'alumni_historiek_plugins_api', 10, 3);
@@ -210,8 +224,19 @@ function alumni_historiek_http_request_args(array $args, string $url): array {
     }
     [$owner, $repo] = $repo_parts;
 
-    $zipball_prefix = 'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/zipball/';
-    if (strpos($url, $zipball_prefix) !== 0) {
+    $zipball_prefixes = [
+        'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/zipball/',
+        'https://github.com/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/archive/refs/heads/',
+        'https://codeload.github.com/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/zip/refs/heads/',
+    ];
+    $matches = false;
+    foreach ($zipball_prefixes as $prefix) {
+        if (strpos($url, $prefix) === 0) {
+            $matches = true;
+            break;
+        }
+    }
+    if (!$matches) {
         return $args;
     }
 
@@ -258,15 +283,19 @@ function alumni_historiek_upgrader_process_complete($upgrader, array $options): 
     }
 
     $config = alumni_historiek_github_updater_config();
-    $cache_key = 'alumni_historiek_github_release_' . md5($config['repository']);
+    $cache_key = 'alumni_historiek_github_remote_' . md5($config['repository'] . '|' . $config['branch']);
     delete_site_transient($cache_key);
+    $remote = alumni_historiek_get_github_remote_data(true);
+    if (is_array($remote) && !empty($remote['sha'])) {
+        update_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION, (string) $remote['sha']);
+    }
 }
 add_action('upgrader_process_complete', 'alumni_historiek_upgrader_process_complete', 10, 2);
 
 function alumni_historiek_get_update_diagnostics(): array {
     $plugin_data = alumni_historiek_get_plugin_data_cached();
     $config = alumni_historiek_github_updater_config();
-    $release = alumni_historiek_get_github_release_data();
+    $remote = alumni_historiek_get_github_remote_data();
     $update_plugins = get_site_transient('update_plugins');
     $response_item = null;
 
@@ -286,11 +315,13 @@ function alumni_historiek_get_update_diagnostics(): array {
         'plugin_version' => (string) ($plugin_data['Version'] ?? ''),
         'update_uri' => (string) ($plugin_data['UpdateURI'] ?? ''),
         'github_repository' => (string) ($config['repository'] ?? ''),
+        'github_branch' => (string) ($config['branch'] ?? ''),
         'github_token_configured' => (string) ($config['token'] ?? '') !== '',
-        'latest_release_version' => is_array($release) ? (string) ($release['version'] ?? '') : '',
-        'latest_release_tag' => is_array($release) ? (string) ($release['tag'] ?? '') : '',
-        'latest_release_url' => is_array($release) ? (string) ($release['html_url'] ?? '') : '',
-        'latest_release_published_at' => is_array($release) ? (string) ($release['published_at'] ?? '') : '',
+        'latest_remote_version' => is_array($remote) ? (string) ($remote['version'] ?? '') : '',
+        'latest_remote_sha' => is_array($remote) ? (string) ($remote['short_sha'] ?? '') : '',
+        'latest_remote_url' => is_array($remote) ? (string) ($remote['html_url'] ?? '') : '',
+        'latest_remote_published_at' => is_array($remote) ? (string) ($remote['published_at'] ?? '') : '',
+        'installed_remote_sha' => (string) get_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION, ''),
         'wp_detected_update_version' => is_object($response_item) ? (string) ($response_item->new_version ?? '') : '',
         'wp_detected_update_package' => is_object($response_item) ? (string) ($response_item->package ?? '') : '',
         'wp_last_checked' => is_object($update_plugins) ? (int) ($update_plugins->last_checked ?? 0) : 0,
@@ -305,14 +336,15 @@ function alumni_historiek_render_diagnostics_table(): void {
     $last_checked = $d['wp_last_checked'] > 0
         ? wp_date('Y-m-d H:i:s', $d['wp_last_checked'])
         : 'Unknown';
-    $release_url = $d['latest_release_url'] !== ''
-        ? '<a href="' . esc_url($d['latest_release_url']) . '" target="_blank" rel="noopener noreferrer">Open release</a>'
+    $release_url = $d['latest_remote_url'] !== ''
+        ? '<a href="' . esc_url($d['latest_remote_url']) . '" target="_blank" rel="noopener noreferrer">Open commit</a>'
         : 'Not available';
     $update_package = $d['wp_detected_update_package'] !== '' ? 'Available' : 'Not detected';
     $update_version = $d['wp_detected_update_version'] !== '' ? $d['wp_detected_update_version'] : 'Not detected';
-    $release_version = $d['latest_release_version'] !== '' ? $d['latest_release_version'] : 'Not detected';
-    $release_tag = $d['latest_release_tag'] !== '' ? $d['latest_release_tag'] : 'Not detected';
-    $published_at = $d['latest_release_published_at'] !== '' ? $d['latest_release_published_at'] : 'Not detected';
+    $release_version = $d['latest_remote_version'] !== '' ? $d['latest_remote_version'] : 'Not detected';
+    $release_tag = $d['latest_remote_sha'] !== '' ? $d['latest_remote_sha'] : 'Not detected';
+    $published_at = $d['latest_remote_published_at'] !== '' ? $d['latest_remote_published_at'] : 'Not detected';
+    $installed_sha = $d['installed_remote_sha'] !== '' ? substr($d['installed_remote_sha'], 0, 7) : 'Not recorded';
     $token_status = $d['github_token_configured'] ? 'Yes' : 'No';
     $global_blocked = $d['global_updates_blocked'] ? 'Yes (DISALLOW_FILE_MODS)' : 'No';
     $global_auto_disabled = $d['global_auto_updates_disabled'] ? 'Yes (AUTOMATIC_UPDATER_DISABLED)' : 'No';
@@ -326,11 +358,13 @@ function alumni_historiek_render_diagnostics_table(): void {
     echo '<tr><td><strong>Installed version</strong></td><td>' . esc_html($d['plugin_version']) . '</td></tr>';
     echo '<tr><td><strong>Update URI</strong></td><td>' . esc_html($d['update_uri']) . '</td></tr>';
     echo '<tr><td><strong>GitHub repository</strong></td><td>' . esc_html($d['github_repository']) . '</td></tr>';
+    echo '<tr><td><strong>GitHub branch</strong></td><td>' . esc_html($d['github_branch']) . '</td></tr>';
     echo '<tr><td><strong>GitHub token configured</strong></td><td>' . esc_html($token_status) . '</td></tr>';
-    echo '<tr><td><strong>Latest release version (GitHub)</strong></td><td>' . esc_html($release_version) . '</td></tr>';
-    echo '<tr><td><strong>Latest release tag (GitHub)</strong></td><td>' . esc_html($release_tag) . '</td></tr>';
-    echo '<tr><td><strong>Latest release published (GitHub)</strong></td><td>' . esc_html($published_at) . '</td></tr>';
-    echo '<tr><td><strong>Latest release link</strong></td><td>' . $release_url . '</td></tr>';
+    echo '<tr><td><strong>Latest commit version (GitHub)</strong></td><td>' . esc_html($release_version) . '</td></tr>';
+    echo '<tr><td><strong>Latest commit SHA (GitHub)</strong></td><td>' . esc_html($release_tag) . '</td></tr>';
+    echo '<tr><td><strong>Latest commit date (GitHub)</strong></td><td>' . esc_html($published_at) . '</td></tr>';
+    echo '<tr><td><strong>Installed commit SHA (recorded)</strong></td><td>' . esc_html($installed_sha) . '</td></tr>';
+    echo '<tr><td><strong>Latest commit link</strong></td><td>' . $release_url . '</td></tr>';
     echo '<tr><td><strong>WordPress detected update version</strong></td><td>' . esc_html($update_version) . '</td></tr>';
     echo '<tr><td><strong>WordPress detected update package</strong></td><td>' . esc_html($update_package) . '</td></tr>';
     echo '<tr><td><strong>WordPress last update-check</strong></td><td>' . esc_html($last_checked) . '</td></tr>';

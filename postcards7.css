@@ -65,7 +65,10 @@ body::before {
 }
 
 .nav-hamburger {
-    top: 26px;
+    position: absolute !important;
+    top: 26px !important;
+    right: 15px !important;
+    z-index: 1001 !important;
 }
 
 .top-header {

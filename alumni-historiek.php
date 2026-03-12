@@ -767,8 +767,19 @@ function alumni_historiek_enqueue_public_assets(): void {
     if ($background_enabled) {
         $theme_css .= 'background:url(' . $background_url . ') no-repeat center center fixed;';
         $theme_css .= 'background-size:cover;';
+    } else {
+        $theme_css .= 'background-image:none !important;';
+        $theme_css .= 'background-color:inherit !important;';
     }
     $theme_css .= "}\n";
+    if (!$background_enabled) {
+        $theme_css .= 'body.alumni-historiek-page header{';
+        $theme_css .= 'background:unset !important;';
+        $theme_css .= 'backdrop-filter:unset !important;';
+        $theme_css .= '-webkit-mask-image:unset !important;';
+        $theme_css .= 'mask-image:unset !important;';
+        $theme_css .= "}\n";
+    }
     $theme_css .= 'body.alumni-historiek-page #Wrapper,';
     $theme_css .= 'body.alumni-historiek-page #Content,';
     $theme_css .= 'body.alumni-historiek-page .mfn-popup .mfn-popup-content,';

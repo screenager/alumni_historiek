@@ -827,6 +827,12 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= 'padding:7px 15px;';
     $theme_css .= 'border-radius:6px;';
     $theme_css .= "}\n";
+    $theme_css .= '@media (max-width:768px){';
+    $theme_css .= 'body.alumni-historiek-page .focused-label{';
+    $theme_css .= 'position:fixed;';
+    $theme_css .= 'bottom:var(--focused-label-bottom);';
+    $theme_css .= '}';
+    $theme_css .= "}\n";
 
     wp_register_style('alumni-historiek-theme-overrides', false);
     wp_enqueue_style('alumni-historiek-theme-overrides');

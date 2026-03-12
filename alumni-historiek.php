@@ -552,6 +552,10 @@ function alumni_historiek_get_render_mode(): string {
     return in_array($mode, ['theme', 'full'], true) ? $mode : 'theme';
 }
 
+function alumni_historiek_is_theme_background_enabled(): bool {
+    return (string) get_option('alumni_historiek_theme_bg_enabled', '1') === '1';
+}
+
 function alumni_historiek_load_latest_html(): ?string {
     static $cached = false;
     if ($cached !== false) {
@@ -753,13 +757,16 @@ function alumni_historiek_enqueue_public_assets(): void {
         wp_add_inline_script($target, $inline, 'before');
     }
 
+    $background_enabled = alumni_historiek_is_theme_background_enabled();
     $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . 'aula_wideshot.jpg');
     $theme_css = 'body.alumni-historiek-page{';
     $theme_css .= '--top-header-height:0px;';
-    $theme_css .= 'background:url(' . $background_url . ') no-repeat center center fixed;';
-    $theme_css .= 'background-size:cover;';
     $theme_css .= 'overflow:hidden !important;';
     $theme_css .= 'height:100vh !important;';
+    if ($background_enabled) {
+        $theme_css .= 'background:url(' . $background_url . ') no-repeat center center fixed;';
+        $theme_css .= 'background-size:cover;';
+    }
     $theme_css .= "}\n";
     $theme_css .= 'body.alumni-historiek-page #Wrapper,';
     $theme_css .= 'body.alumni-historiek-page #Content,';
@@ -794,6 +801,9 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= 'line-height:1.3rem;';
     $theme_css .= 'font-size:1.7em;';
     $theme_css .= 'text-align:center;';
+    if (!$background_enabled) {
+        $theme_css .= 'color:#2b2b2b;';
+    }
     $theme_css .= 'opacity:0;';
     $theme_css .= 'transition:opacity 0.5s ease;';
     $theme_css .= "}\n";
@@ -805,23 +815,25 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= 'opacity:0;';
     $theme_css .= 'transition:opacity 0.5s ease;';
     $theme_css .= "}\n";
-    $theme_css .= "body.alumni-historiek-page .mfn-header-menu .mfn-menu-li > .mfn-menu-link{color:#fff !important;}" . "\n";
-    $theme_css .= "body.alumni-historiek-page .mfn-header-menu .mfn-menu-li > .mfn-menu-link:hover{text-decoration:underline;}" . "\n";
-    $theme_css .= 'body.alumni-historiek-page,';
-    $theme_css .= 'body.alumni-historiek-page ul.timeline_items,';
-    $theme_css .= 'body.alumni-historiek-page .icon_box a .desc,';
-    $theme_css .= 'body.alumni-historiek-page .icon_box a:hover .desc,';
-    $theme_css .= 'body.alumni-historiek-page .feature_list ul li a,';
-    $theme_css .= 'body.alumni-historiek-page .list_item a,';
-    $theme_css .= 'body.alumni-historiek-page .list_item a:hover,';
-    $theme_css .= 'body.alumni-historiek-page .widget_recent_entries ul li a,';
-    $theme_css .= 'body.alumni-historiek-page .flat_box a,';
-    $theme_css .= 'body.alumni-historiek-page .flat_box a:hover,';
-    $theme_css .= 'body.alumni-historiek-page .story_box .desc,';
-    $theme_css .= 'body.alumni-historiek-page .content_slider.carousel ul li a .title,';
-    $theme_css .= 'body.alumni-historiek-page .content_slider.flat.description ul li .desc,';
-    $theme_css .= 'body.alumni-historiek-page .content_slider.flat.description ul li a .desc,';
-    $theme_css .= "body.alumni-historiek-page .post-nav.minimal a i{color:#fff;}" . "\n";
+    if ($background_enabled) {
+        $theme_css .= "body.alumni-historiek-page .mfn-header-menu .mfn-menu-li > .mfn-menu-link{color:#fff !important;}" . "\n";
+        $theme_css .= "body.alumni-historiek-page .mfn-header-menu .mfn-menu-li > .mfn-menu-link:hover{text-decoration:underline;}" . "\n";
+        $theme_css .= 'body.alumni-historiek-page,';
+        $theme_css .= 'body.alumni-historiek-page ul.timeline_items,';
+        $theme_css .= 'body.alumni-historiek-page .icon_box a .desc,';
+        $theme_css .= 'body.alumni-historiek-page .icon_box a:hover .desc,';
+        $theme_css .= 'body.alumni-historiek-page .feature_list ul li a,';
+        $theme_css .= 'body.alumni-historiek-page .list_item a,';
+        $theme_css .= 'body.alumni-historiek-page .list_item a:hover,';
+        $theme_css .= 'body.alumni-historiek-page .widget_recent_entries ul li a,';
+        $theme_css .= 'body.alumni-historiek-page .flat_box a,';
+        $theme_css .= 'body.alumni-historiek-page .flat_box a:hover,';
+        $theme_css .= 'body.alumni-historiek-page .story_box .desc,';
+        $theme_css .= 'body.alumni-historiek-page .content_slider.carousel ul li a .title,';
+        $theme_css .= 'body.alumni-historiek-page .content_slider.flat.description ul li .desc,';
+        $theme_css .= 'body.alumni-historiek-page .content_slider.flat.description ul li a .desc,';
+        $theme_css .= "body.alumni-historiek-page .post-nav.minimal a i{color:#fff;}" . "\n";
+    }
     $theme_css .= 'body.alumni-historiek-page .focused-label{';
     $theme_css .= 'background-color:rgba(244,67,54,0.7);';
     $theme_css .= 'padding:7px 15px;';
@@ -1061,7 +1073,10 @@ function alumni_historiek_save_settings(): void {
         $mode = 'theme';
     }
 
+    $theme_bg_enabled = isset($_POST['theme_bg_enabled']) && $_POST['theme_bg_enabled'] === '1' ? '1' : '0';
+
     update_option('alumni_historiek_render_mode', $mode);
+    update_option('alumni_historiek_theme_bg_enabled', $theme_bg_enabled);
 
     wp_safe_redirect(admin_url('admin.php?page=alumni-historiek&settings=1'));
     exit;
@@ -1074,6 +1089,7 @@ function alumni_historiek_render_admin_screen(): void {
     }
 
     $render_mode = alumni_historiek_get_render_mode();
+    $theme_bg_enabled = alumni_historiek_is_theme_background_enabled();
     $iframe_src = esc_url(ALUMNI_HISTORIEK_PLUGIN_URL . 'admin/index.html');
     $download_url = wp_nonce_url(
         admin_url('admin-post.php?action=alumni_historiek_download_plugin_zip'),
@@ -1097,6 +1113,16 @@ function alumni_historiek_render_admin_screen(): void {
     echo '<label style="display:block;margin-bottom:6px;">';
     echo '<input type="radio" name="render_mode" value="full"' . checked($render_mode, 'full', false) . '> ';
     echo 'Volledige standalone pagina (zonder BeTheme)</label>';
+    echo '</fieldset>';
+    echo '<fieldset style="margin-top:12px;">';
+    echo '<legend class="screen-reader-text">Achtergrond</legend>';
+    if ($render_mode === 'theme') {
+        echo '<label style="display:block;margin-bottom:6px;">';
+        echo '<input type="checkbox" name="theme_bg_enabled" value="1"' . checked($theme_bg_enabled, true, false) . '> ';
+        echo 'Achtergrondafbeelding tonen op /historiek</label>';
+    } else {
+        echo '<p style="margin:0;color:#666;">Achtergrondoptie is nog niet beschikbaar voor Volledige standalone HTML.</p>';
+    }
     echo '</fieldset>';
     submit_button('Instellingen opslaan', 'primary', 'submit', false);
     echo '</form>';

@@ -758,6 +758,8 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= '--top-header-height:0px;';
     $theme_css .= 'background:url(' . $background_url . ') no-repeat center center fixed;';
     $theme_css .= 'background-size:cover;';
+    $theme_css .= 'overflow:hidden !important;';
+    $theme_css .= 'height:100vh !important;';
     $theme_css .= "}\n";
     $theme_css .= 'body.alumni-historiek-page #Wrapper,';
     $theme_css .= 'body.alumni-historiek-page #Content,';
@@ -769,7 +771,7 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= 'body.alumni-historiek-page #Top_bar .top_bar_right .mfn-live-search-box,';
     $theme_css .= 'body.alumni-historiek-page .column_livesearch .mfn-live-search-wrapper,';
     $theme_css .= 'body.alumni-historiek-page .column_livesearch .mfn-live-search-box{';
-    $theme_css .= 'background:transparent !important;background-color:transparent !important;';
+    $theme_css .= 'background:transparent !important;background-color:transparent !important;overflow:hidden !important;';
     $theme_css .= "}\n";
     $theme_css .= 'body.alumni-historiek-page .coverflow-container{';
     $theme_css .= 'background:none;';
@@ -804,6 +806,7 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= 'transition:opacity 0.5s ease;';
     $theme_css .= "}\n";
     $theme_css .= "body.alumni-historiek-page .mfn-header-menu .mfn-menu-li > .mfn-menu-link{color:#fff !important;}" . "\n";
+    $theme_css .= "body.alumni-historiek-page .mfn-header-menu .mfn-menu-li > .mfn-menu-link:hover{text-decoration:underline;}" . "\n";
     $theme_css .= 'body.alumni-historiek-page,';
     $theme_css .= 'body.alumni-historiek-page ul.timeline_items,';
     $theme_css .= 'body.alumni-historiek-page .icon_box a .desc,';

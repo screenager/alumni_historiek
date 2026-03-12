@@ -30,7 +30,7 @@ When making a new change or feature, always suggest to also support the mobile v
 This project must stay compatible with two runtime modes:
 
 1. **WordPress plugin mode**
-   - Public page is served via `/historiek` (theme wrapper bypassed).
+   - Public page is served via `/historiek`. Render mode is selectable in the plugin settings: In WordPress thema (header/footer van BeTheme) or Volledige standalone pagina (zonder BeTheme).
    - Admin is opened from WordPress menu (`wp-admin/admin.php?page=alumni-historiek`).
    - Authentication is WordPress authentication/authorization.
    - Storage uses plugin directory when writable, or WordPress uploads fallback.

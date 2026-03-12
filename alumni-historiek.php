@@ -1113,7 +1113,7 @@ function alumni_historiek_render_admin_screen(): void {
     if (isset($_GET['settings']) && $_GET['settings'] === '1') {
         echo '<div class="notice notice-success is-dismissible"><p>Instellingen opgeslagen.</p></div>';
     }
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="margin:16px 0 24px;">';
+    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="margin:16px 0 24px; border: 1px solid #ccc; padding: 0px 10px 20px 10px; ">';
     echo '<input type="hidden" name="action" value="alumni_historiek_save_settings">';
     wp_nonce_field('alumni_historiek_save_settings');
     echo '<fieldset>';

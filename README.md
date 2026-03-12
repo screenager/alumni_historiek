@@ -1,4 +1,5 @@
 # Alumni Historiek
+Repository: https://github.com/screenager/alumni_historiek
 
 This project supports 2 runtime modes.
 

@@ -4,6 +4,7 @@
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
  * Version: 7.119
  * Author: Alumni Arenbergorkest
+ * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
  */
 

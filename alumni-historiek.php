@@ -1129,8 +1129,8 @@ function alumni_historiek_render_admin_screen(): void {
     echo '</form>';
     echo '<p>De editor draait hieronder met WordPress-authenticatie.</p>';
     echo '<p><a class="button button-secondary" href="' . esc_url($download_url) . '" aria-label="Download plugin ZIP met huidige WordPress data">Download backup of the plugin (met huidige data)</a></p>';
-    alumni_historiek_render_diagnostics_table();
     echo '<iframe src="' . $iframe_src . '" style="width:100%;min-height:85vh;border:1px solid #ccd0d4;border-radius:6px;background:#fff"></iframe>';
+    alumni_historiek_render_diagnostics_table();
     echo '</div>';
 }
 

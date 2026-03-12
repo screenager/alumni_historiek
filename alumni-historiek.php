@@ -909,6 +909,9 @@ function alumni_historiek_render_full_page(): void {
         $inject .= $site_icon_markup;
     }
     $inject .= "<script>window.HISTORIEK_DATA_URL = " . wp_json_encode($data_url) . "; window.HISTORIEK_ASSETS_BASE_URL = " . wp_json_encode($concerts_base) . "; window.HISTORIEK_IS_WORDPRESS = true;</script>\n";
+    if (!alumni_historiek_is_theme_background_enabled()) {
+        $inject .= "<style>body{background-image:none !important;background-color:inherit !important;}header{background:unset !important;backdrop-filter:unset !important;-webkit-mask-image:unset !important;mask-image:unset !important;}</style>\n";
+    }
 
     $html = preg_replace('/<head>/', "<head>\n{$inject}", $html, 1);
     $html = str_replace('href="admin/index.html"', 'href="' . esc_attr($admin_link) . '"', $html);
@@ -1128,13 +1131,9 @@ function alumni_historiek_render_admin_screen(): void {
     echo '</fieldset>';
     echo '<fieldset style="margin-top:12px;">';
     echo '<legend class="screen-reader-text">Achtergrond</legend>';
-    if ($render_mode === 'theme') {
-        echo '<label style="display:block;margin-bottom:6px;">';
-        echo '<input type="checkbox" name="theme_bg_enabled" value="1"' . checked($theme_bg_enabled, true, false) . '> ';
-        echo 'Achtergrondafbeelding tonen op /historiek</label>';
-    } else {
-        echo '<p style="margin:0;color:#666;">Achtergrondoptie is nog niet beschikbaar voor Volledige standalone HTML.</p>';
-    }
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="checkbox" name="theme_bg_enabled" value="1"' . checked($theme_bg_enabled, true, false) . '> ';
+    echo 'Achtergrondafbeelding tonen op /historiek</label>';
     echo '</fieldset>';
     submit_button('Instellingen opslaan', 'primary', 'submit', false);
     echo '</form>';

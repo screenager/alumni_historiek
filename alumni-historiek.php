@@ -543,8 +543,304 @@ function alumni_historiek_get_latest_postcards_html_path(): ?string {
     return file_exists($fallback) ? $fallback : null;
 }
 
-function alumni_historiek_render_page(): void {
-    if ((int) get_query_var('alumni_historiek') !== 1) {
+function alumni_historiek_is_public_request(): bool {
+    return (int) get_query_var('alumni_historiek') === 1;
+}
+
+function alumni_historiek_get_render_mode(): string {
+    $mode = (string) get_option('alumni_historiek_render_mode', 'theme');
+    return in_array($mode, ['theme', 'full'], true) ? $mode : 'theme';
+}
+
+function alumni_historiek_load_latest_html(): ?string {
+    static $cached = false;
+    if ($cached !== false) {
+        return $cached;
+    }
+
+    $html_path = alumni_historiek_get_latest_postcards_html_path();
+    if ($html_path === null || !file_exists($html_path)) {
+        $cached = null;
+        return null;
+    }
+
+    $html = file_get_contents($html_path);
+    if ($html === false) {
+        $cached = null;
+        return null;
+    }
+
+    $cached = $html;
+    return $cached;
+}
+
+function alumni_historiek_extract_head_html(string $html): string {
+    if (preg_match('/<head[^>]*>(.*?)<\/head>/is', $html, $matches) === 1) {
+        return (string) $matches[1];
+    }
+
+    return '';
+}
+
+function alumni_historiek_extract_body_html(string $html): string {
+    if (preg_match('/<body[^>]*>(.*?)<\/body>/is', $html, $matches) === 1) {
+        return (string) $matches[1];
+    }
+
+    return $html;
+}
+
+function alumni_historiek_normalize_asset_url(string $url): string {
+    if (preg_match('/^(https?:)?\/\//i', $url) === 1) {
+        return $url;
+    }
+    if (str_starts_with($url, '#') || str_starts_with($url, 'mailto:') || str_starts_with($url, 'tel:')) {
+        return $url;
+    }
+
+    return trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . ltrim($url, '/');
+}
+
+function alumni_historiek_extract_assets(string $html): array {
+    $head = alumni_historiek_extract_head_html($html);
+    $styles = [];
+    $scripts = [];
+
+    if (preg_match_all('/<link[^>]+rel=["\']stylesheet["\'][^>]+href=["\']([^"\']+)["\'][^>]*>/i', $head, $matches)) {
+        foreach ($matches[1] as $href) {
+            $styles[] = alumni_historiek_normalize_asset_url($href);
+        }
+    }
+
+    if (preg_match_all('/<script[^>]+src=["\']([^"\']+)["\'][^>]*><\/script>/i', $head, $matches)) {
+        foreach ($matches[1] as $src) {
+            $scripts[] = alumni_historiek_normalize_asset_url($src);
+        }
+    }
+
+    $body = alumni_historiek_extract_body_html($html);
+    if (preg_match_all('/<script[^>]+src=["\']([^"\']+)["\'][^>]*><\/script>/i', $body, $matches)) {
+        foreach ($matches[1] as $src) {
+            $scripts[] = alumni_historiek_normalize_asset_url($src);
+        }
+    }
+
+    return [
+        'styles' => array_values(array_unique($styles)),
+        'scripts' => array_values(array_unique($scripts)),
+    ];
+}
+
+function alumni_historiek_prefix_relative_urls(string $html): string {
+    return preg_replace_callback(
+        '/(href|src)=["\'](?!https?:\/\/|\/\/|#|mailto:|tel:)([^"\']+)["\']/i',
+        function (array $matches): string {
+            $attr = $matches[1];
+            $url = $matches[2];
+            $normalized = alumni_historiek_normalize_asset_url($url);
+            return $attr . '="' . esc_attr($normalized) . '"';
+        },
+        $html
+    );
+}
+
+function alumni_historiek_get_public_body_html(): string {
+    $html = alumni_historiek_load_latest_html();
+    if ($html === null) {
+        return '<p>Unable to load historiek page.</p>';
+    }
+
+    $body = alumni_historiek_extract_body_html($html);
+    $body = preg_replace('/<script[^>]+src=["\'][^"\']+["\'][^>]*><\/script>/i', '', $body);
+    $body = preg_replace('/<div[^>]*class=["\']top-header["\'][^>]*>.*?<\/div>/is', '', $body);
+    $body = preg_replace('/<header\\b([^>]*)>/i', '<div class="historiek-header"$1>', $body);
+    $body = preg_replace('/<\/header>/i', '</div>', $body);
+    $admin_link = esc_url(admin_url('admin.php?page=alumni-historiek'));
+    $body = str_replace('href="admin/index.html"', 'href="' . esc_attr($admin_link) . '"', $body);
+    $body = alumni_historiek_prefix_relative_urls($body);
+
+    return $body;
+}
+
+function alumni_historiek_get_public_title(): ?string {
+    $html = alumni_historiek_load_latest_html();
+    if ($html === null) {
+        return null;
+    }
+
+    $head = alumni_historiek_extract_head_html($html);
+    if (preg_match('/<title[^>]*>(.*?)<\/title>/is', $head, $matches) !== 1) {
+        return null;
+    }
+
+    $title = trim(html_entity_decode(strip_tags((string) $matches[1]), ENT_QUOTES | ENT_HTML5));
+    return $title !== '' ? $title : null;
+}
+
+function alumni_historiek_mark_as_page(): void {
+    if (!alumni_historiek_is_public_request() || alumni_historiek_get_render_mode() !== 'theme') {
+        return;
+    }
+
+    global $wp_query;
+    if ($wp_query) {
+        $wp_query->is_404 = false;
+    }
+    status_header(200);
+}
+add_action('template_redirect', 'alumni_historiek_mark_as_page', 0);
+
+function alumni_historiek_template_include(string $template): string {
+    if (!alumni_historiek_is_public_request() || alumni_historiek_get_render_mode() !== 'theme') {
+        return $template;
+    }
+
+    $plugin_template = ALUMNI_HISTORIEK_PLUGIN_DIR . 'public-template.php';
+    if (file_exists($plugin_template)) {
+        return $plugin_template;
+    }
+
+    return $template;
+}
+add_filter('template_include', 'alumni_historiek_template_include');
+
+function alumni_historiek_filter_document_title(string $title): string {
+    if (!alumni_historiek_is_public_request() || alumni_historiek_get_render_mode() !== 'theme') {
+        return $title;
+    }
+
+    $custom = alumni_historiek_get_public_title();
+    return $custom ?? $title;
+}
+add_filter('pre_get_document_title', 'alumni_historiek_filter_document_title');
+
+function alumni_historiek_enqueue_public_assets(): void {
+    if (!alumni_historiek_is_public_request() || alumni_historiek_get_render_mode() !== 'theme') {
+        return;
+    }
+
+    $html = alumni_historiek_load_latest_html();
+    if ($html === null) {
+        return;
+    }
+
+    $assets = alumni_historiek_extract_assets($html);
+    $script_handles = [];
+
+    foreach ($assets['styles'] as $index => $style_url) {
+        $handle = 'alumni-historiek-style-' . $index;
+        wp_enqueue_style($handle, $style_url, [], null);
+    }
+
+    foreach ($assets['scripts'] as $index => $script_url) {
+        $handle = 'alumni-historiek-script-' . $index;
+        $in_footer = !str_contains($script_url, 'tailwindcss.com');
+        wp_enqueue_script($handle, $script_url, [], null, $in_footer);
+        $script_handles[] = $handle;
+    }
+
+    $storage = alumni_historiek_storage_info();
+    $data_version = @filemtime($storage['data_file']) ?: time();
+    $data_url = esc_url(add_query_arg('v', (string) $data_version, $storage['base_url'] . '/concertData.json'));
+    $concerts_base = esc_url($storage['base_url'] . '/concerts/');
+
+    $inline = 'window.HISTORIEK_DATA_URL = ' . wp_json_encode($data_url) . ';';
+    $inline .= 'window.HISTORIEK_ASSETS_BASE_URL = ' . wp_json_encode($concerts_base) . ';';
+    $inline .= 'window.HISTORIEK_IS_WORDPRESS = true;';
+
+    $target = $script_handles[count($script_handles) - 1] ?? null;
+    if ($target) {
+        wp_add_inline_script($target, $inline, 'before');
+    }
+
+    $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . 'aula_wideshot.jpg');
+    $theme_css = 'body.alumni-historiek-page{';
+    $theme_css .= '--top-header-height:0px;';
+    $theme_css .= 'background:url(' . $background_url . ') no-repeat center center fixed;';
+    $theme_css .= 'background-size:cover;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page #Wrapper,';
+    $theme_css .= 'body.alumni-historiek-page #Content,';
+    $theme_css .= 'body.alumni-historiek-page .mfn-popup .mfn-popup-content,';
+    $theme_css .= 'body.alumni-historiek-page .mfn-off-canvas-sidebar .mfn-off-canvas-content-wrapper,';
+    $theme_css .= 'body.alumni-historiek-page .mfn-cart-holder,';
+    $theme_css .= 'body.alumni-historiek-page .mfn-header-login,';
+    $theme_css .= 'body.alumni-historiek-page #Top_bar .search_wrapper,';
+    $theme_css .= 'body.alumni-historiek-page #Top_bar .top_bar_right .mfn-live-search-box,';
+    $theme_css .= 'body.alumni-historiek-page .column_livesearch .mfn-live-search-wrapper,';
+    $theme_css .= 'body.alumni-historiek-page .column_livesearch .mfn-live-search-box{';
+    $theme_css .= 'background:transparent !important;background-color:transparent !important;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page .coverflow-container{';
+    $theme_css .= 'background:none;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page .historiek-header{';
+    $theme_css .= 'text-align:center;';
+    $theme_css .= 'padding:1.5rem 1rem;';
+    $theme_css .= 'background:none;';
+    $theme_css .= 'backdrop-filter:none;';
+    $theme_css .= '-webkit-backdrop-filter:none;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page .historiek-header p{';
+    $theme_css .= 'font-family:\"Poppins\", sans-serif;';
+    $theme_css .= 'font-size:2.2rem;';
+    $theme_css .= 'opacity:0.8;';
+    $theme_css .= 'margin-top:3rem;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page .historiek-header .swipe-hint{';
+    $theme_css .= 'margin-top:1.8rem;';
+    $theme_css .= 'line-height:1.3rem;';
+    $theme_css .= 'font-size:1.7em;';
+    $theme_css .= 'text-align:center;';
+    $theme_css .= 'opacity:0;';
+    $theme_css .= 'transition:opacity 0.5s ease;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page.header-ready .historiek-header .swipe-hint,';
+    $theme_css .= 'body.alumni-historiek-page.header-ready .historiek-header #mainTitle{';
+    $theme_css .= 'opacity:0.8;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page #mainTitle{';
+    $theme_css .= 'opacity:0;';
+    $theme_css .= 'transition:opacity 0.5s ease;';
+    $theme_css .= "}\n";
+    $theme_css .= "body.alumni-historiek-page .mfn-header-menu .mfn-menu-li > .mfn-menu-link{color:#fff !important;}" . "\n";
+    $theme_css .= 'body.alumni-historiek-page,';
+    $theme_css .= 'body.alumni-historiek-page ul.timeline_items,';
+    $theme_css .= 'body.alumni-historiek-page .icon_box a .desc,';
+    $theme_css .= 'body.alumni-historiek-page .icon_box a:hover .desc,';
+    $theme_css .= 'body.alumni-historiek-page .feature_list ul li a,';
+    $theme_css .= 'body.alumni-historiek-page .list_item a,';
+    $theme_css .= 'body.alumni-historiek-page .list_item a:hover,';
+    $theme_css .= 'body.alumni-historiek-page .widget_recent_entries ul li a,';
+    $theme_css .= 'body.alumni-historiek-page .flat_box a,';
+    $theme_css .= 'body.alumni-historiek-page .flat_box a:hover,';
+    $theme_css .= 'body.alumni-historiek-page .story_box .desc,';
+    $theme_css .= 'body.alumni-historiek-page .content_slider.carousel ul li a .title,';
+    $theme_css .= 'body.alumni-historiek-page .content_slider.flat.description ul li .desc,';
+    $theme_css .= 'body.alumni-historiek-page .content_slider.flat.description ul li a .desc,';
+    $theme_css .= "body.alumni-historiek-page .post-nav.minimal a i{color:#fff;}" . "\n";
+    $theme_css .= 'body.alumni-historiek-page .focused-label{';
+    $theme_css .= 'background-color:rgba(244,67,54,0.7);';
+    $theme_css .= 'padding:7px 15px;';
+    $theme_css .= 'border-radius:6px;';
+    $theme_css .= "}\n";
+
+    wp_register_style('alumni-historiek-theme-overrides', false);
+    wp_enqueue_style('alumni-historiek-theme-overrides');
+    wp_add_inline_style('alumni-historiek-theme-overrides', $theme_css);
+}
+add_action('wp_enqueue_scripts', 'alumni_historiek_enqueue_public_assets');
+
+function alumni_historiek_add_body_class(array $classes): array {
+    if (alumni_historiek_is_public_request() && alumni_historiek_get_render_mode() === 'theme') {
+        $classes[] = 'alumni-historiek-page';
+    }
+    return $classes;
+}
+add_filter('body_class', 'alumni_historiek_add_body_class');
+
+function alumni_historiek_render_full_page(): void {
+    if (!alumni_historiek_is_public_request() || alumni_historiek_get_render_mode() !== 'full') {
         return;
     }
 
@@ -589,7 +885,7 @@ function alumni_historiek_render_page(): void {
     echo $html;
     exit;
 }
-add_action('template_redirect', 'alumni_historiek_render_page', 0);
+add_action('template_redirect', 'alumni_historiek_render_full_page', 0);
 
 function alumni_historiek_should_exclude_from_zip(string $relative_path): bool {
     $relative_path = str_replace('\\', '/', ltrim($relative_path, '/'));
@@ -744,11 +1040,31 @@ function alumni_historiek_add_admin_menu(): void {
 }
 add_action('admin_menu', 'alumni_historiek_add_admin_menu');
 
+function alumni_historiek_save_settings(): void {
+    if (!current_user_can('manage_options')) {
+        wp_die('Je hebt geen rechten om deze actie uit te voeren.');
+    }
+
+    check_admin_referer('alumni_historiek_save_settings');
+
+    $mode = isset($_POST['render_mode']) ? (string) $_POST['render_mode'] : 'theme';
+    if (!in_array($mode, ['theme', 'full'], true)) {
+        $mode = 'theme';
+    }
+
+    update_option('alumni_historiek_render_mode', $mode);
+
+    wp_safe_redirect(admin_url('admin.php?page=alumni-historiek&settings=1'));
+    exit;
+}
+add_action('admin_post_alumni_historiek_save_settings', 'alumni_historiek_save_settings');
+
 function alumni_historiek_render_admin_screen(): void {
     if (!current_user_can('manage_options')) {
         wp_die('Je hebt geen rechten om deze pagina te bekijken.');
     }
 
+    $render_mode = alumni_historiek_get_render_mode();
     $iframe_src = esc_url(ALUMNI_HISTORIEK_PLUGIN_URL . 'admin/index.html');
     $download_url = wp_nonce_url(
         admin_url('admin-post.php?action=alumni_historiek_download_plugin_zip'),
@@ -757,6 +1073,24 @@ function alumni_historiek_render_admin_screen(): void {
 
     echo '<div class="wrap">';
     echo '<h1>Historiek beheer</h1>';
+    if (isset($_GET['settings']) && $_GET['settings'] === '1') {
+        echo '<div class="notice notice-success is-dismissible"><p>Instellingen opgeslagen.</p></div>';
+    }
+    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="margin:16px 0 24px;">';
+    echo '<input type="hidden" name="action" value="alumni_historiek_save_settings">';
+    wp_nonce_field('alumni_historiek_save_settings');
+    echo '<fieldset>';
+    echo '<legend class="screen-reader-text">Render modus</legend>';
+    echo '<p><strong>Weergave op /historiek</strong></p>';
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="radio" name="render_mode" value="theme"' . checked($render_mode, 'theme', false) . '> ';
+    echo 'In WordPress thema (header/footer van BeTheme)</label>';
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="radio" name="render_mode" value="full"' . checked($render_mode, 'full', false) . '> ';
+    echo 'Volledige standalone pagina (zonder BeTheme)</label>';
+    echo '</fieldset>';
+    submit_button('Instellingen opslaan', 'primary', 'submit', false);
+    echo '</form>';
     echo '<p>De editor draait hieronder met WordPress-authenticatie.</p>';
     echo '<p><a class="button button-secondary" href="' . esc_url($download_url) . '" aria-label="Download plugin ZIP met huidige WordPress data">Download backup of the plugin (met huidige data)</a></p>';
     alumni_historiek_render_diagnostics_table();

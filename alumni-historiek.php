@@ -20,6 +20,7 @@ define('ALUMNI_HISTORIEK_GITHUB_REPO_DEFAULT', 'screenager/alumni_historiek');
 define('ALUMNI_HISTORIEK_GITHUB_BRANCH_DEFAULT', 'main');
 define('ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION', 'alumni_historiek_installed_remote_sha');
 define('ALUMNI_HISTORIEK_INSTALLED_REMOTE_VERSION_OPTION', 'alumni_historiek_installed_remote_version');
+define('ALUMNI_HISTORIEK_UPDATE_NOTICE_TRANSIENT', 'alumni_historiek_update_notice');
 
 function alumni_historiek_github_updater_config(): array {
     $config = [
@@ -137,6 +138,51 @@ function alumni_historiek_get_github_remote_data(bool $force_refresh = false): ?
 
     set_site_transient($cache_key, $data, $config['cache_ttl']);
     return $data;
+}
+
+function alumni_historiek_redact_secret(string $value, string $secret): string {
+    if ($secret === '' || $value === '') {
+        return $value;
+    }
+    return str_replace($secret, '***', $value);
+}
+
+function alumni_historiek_set_update_notice(string $type, string $message, string $details = ''): void {
+    $type = $type === 'error' ? 'error' : 'success';
+    set_transient(
+        ALUMNI_HISTORIEK_UPDATE_NOTICE_TRANSIENT,
+        [
+            'type' => $type,
+            'message' => $message,
+            'details' => $details,
+            'time' => time(),
+        ],
+        10 * MINUTE_IN_SECONDS
+    );
+}
+
+function alumni_historiek_render_update_notice(): void {
+    $notice = get_transient(ALUMNI_HISTORIEK_UPDATE_NOTICE_TRANSIENT);
+    if (!is_array($notice) || empty($notice['message'])) {
+        return;
+    }
+
+    delete_transient(ALUMNI_HISTORIEK_UPDATE_NOTICE_TRANSIENT);
+
+    $type = ($notice['type'] ?? '') === 'error' ? 'error' : 'success';
+    $details = (string) ($notice['details'] ?? '');
+    $timestamp = isset($notice['time']) ? (int) $notice['time'] : 0;
+    $time_label = $timestamp > 0 ? wp_date('Y-m-d H:i:s', $timestamp) : 'Unknown time';
+
+    echo '<div class="notice notice-' . esc_attr($type) . ' is-dismissible" style="padding:12px 16px;">';
+    echo '<p><strong>Update check:</strong> ' . esc_html($notice['message']) . '</p>';
+    echo '<p style="margin:6px 0 0;color:#555;">Time: ' . esc_html($time_label) . '</p>';
+    if ($details !== '') {
+        echo '<details style="margin-top:8px;"><summary>Details</summary>';
+        echo '<pre style="white-space:pre-wrap;margin-top:8px;">' . esc_html($details) . '</pre>';
+        echo '</details>';
+    }
+    echo '</div>';
 }
 
 function alumni_historiek_filter_update_plugins($transient) {
@@ -1120,10 +1166,32 @@ function alumni_historiek_force_update_check(): void {
 
     check_admin_referer('alumni_historiek_force_update_check');
 
-    delete_site_transient('update_plugins');
     $config = alumni_historiek_github_updater_config();
-    delete_site_transient('alumni_historiek_github_remote_' . md5($config['repository'] . '|' . alumni_historiek_get_effective_branch()));
-    delete_site_transient('alumni_historiek_github_repo_' . md5($config['repository']));
+    $token = (string) ($config['token'] ?? '');
+
+    try {
+        delete_site_transient('update_plugins');
+        delete_site_transient('alumni_historiek_github_remote_' . md5($config['repository'] . '|' . alumni_historiek_get_effective_branch()));
+        delete_site_transient('alumni_historiek_github_repo_' . md5($config['repository']));
+
+        $update_result = wp_update_plugins();
+        if (is_wp_error($update_result)) {
+            $message = alumni_historiek_redact_secret($update_result->get_error_message(), $token);
+            $details = '';
+            $data = $update_result->get_error_data();
+            if ($data !== null) {
+                $details = alumni_historiek_redact_secret(wp_json_encode($data, JSON_PRETTY_PRINT), $token);
+            }
+            alumni_historiek_set_update_notice('error', $message !== '' ? $message : 'Update check failed.', $details);
+        } else {
+            alumni_historiek_set_update_notice('success', 'Update check completed.');
+        }
+    } catch (Throwable $e) {
+        $message = alumni_historiek_redact_secret($e->getMessage(), $token);
+        $location = basename($e->getFile()) . ':' . $e->getLine();
+        $details = $message . "\nLocation: " . $location;
+        alumni_historiek_set_update_notice('error', 'Update check crashed.', $details);
+    }
 
     wp_safe_redirect(admin_url('admin.php?page=alumni-historiek'));
     exit;
@@ -1194,6 +1262,7 @@ function alumni_historiek_render_admin_screen(): void {
 
     echo '<div class="wrap">';
     echo '<h1>Historiek beheer</h1>';
+    alumni_historiek_render_update_notice();
     if (isset($_GET['settings']) && $_GET['settings'] === '1') {
         echo '<div class="notice notice-success is-dismissible"><p>Instellingen opgeslagen.</p></div>';
     }

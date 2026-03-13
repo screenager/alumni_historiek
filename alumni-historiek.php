@@ -374,7 +374,12 @@ function alumni_historiek_render_diagnostics_table(): void {
     echo '<tr><td><strong>Auto-update enabled for this plugin</strong></td><td>' . esc_html($plugin_auto_enabled) . '</td></tr>';
     echo '</tbody>';
     echo '</table>';
-    echo '<p style="margin-bottom:0;">Tip: run "Check for updates" in WordPress Updates screen, then reload this page.</p>';
+    $force_url = wp_nonce_url(
+        admin_url('admin-post.php?action=alumni_historiek_force_update_check'),
+        'alumni_historiek_force_update_check'
+    );
+    echo '<p style="margin-bottom:0;">Tip: you can trigger a manual update check right here.</p>';
+    echo '<p style="margin:8px 0 0;"><a class="button button-secondary" href="' . esc_url($force_url) . '">Check for updates now</a></p>';
     echo '</div>';
 }
 
@@ -1066,6 +1071,27 @@ function alumni_historiek_download_plugin_zip(): void {
     exit;
 }
 add_action('admin_post_alumni_historiek_download_plugin_zip', 'alumni_historiek_download_plugin_zip');
+
+function alumni_historiek_force_update_check(): void {
+    if (!current_user_can('manage_options')) {
+        wp_die('Je hebt geen rechten om deze actie uit te voeren.');
+    }
+
+    check_admin_referer('alumni_historiek_force_update_check');
+
+    delete_site_transient('update_plugins');
+    $config = alumni_historiek_github_updater_config();
+    delete_site_transient('alumni_historiek_github_remote_' . md5($config['repository'] . '|' . alumni_historiek_get_effective_branch()));
+    delete_site_transient('alumni_historiek_github_repo_' . md5($config['repository']));
+
+    if (function_exists('wp_update_plugins')) {
+        wp_update_plugins();
+    }
+
+    wp_safe_redirect(admin_url('admin.php?page=alumni-historiek'));
+    exit;
+}
+add_action('admin_post_alumni_historiek_force_update_check', 'alumni_historiek_force_update_check');
 
 function alumni_historiek_add_admin_menu(): void {
     add_menu_page(

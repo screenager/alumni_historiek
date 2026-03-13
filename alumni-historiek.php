@@ -284,14 +284,42 @@ function alumni_historiek_upgrader_process_complete($upgrader, array $options): 
     }
 
     $config = alumni_historiek_github_updater_config();
-    $cache_key = 'alumni_historiek_github_remote_' . md5($config['repository'] . '|' . $config['branch']);
+    $cache_key = 'alumni_historiek_github_remote_' . md5($config['repository'] . '|' . alumni_historiek_get_effective_branch());
     delete_site_transient($cache_key);
+    delete_site_transient('alumni_historiek_github_repo_' . md5($config['repository']));
     $remote = alumni_historiek_get_github_remote_data(true);
     if (is_array($remote) && !empty($remote['sha'])) {
         update_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION, (string) $remote['sha']);
     }
+
+    $was_active = get_option('alumni_historiek_was_active_before_update', '');
+    if ($was_active === '1') {
+        delete_option('alumni_historiek_was_active_before_update');
+        if (!is_plugin_active(ALUMNI_HISTORIEK_PLUGIN_BASENAME)) {
+            activate_plugin(ALUMNI_HISTORIEK_PLUGIN_BASENAME);
+        }
+    }
 }
 add_action('upgrader_process_complete', 'alumni_historiek_upgrader_process_complete', 10, 2);
+
+add_filter('upgrader_pre_install', function ($result, $hook_extra) {
+    if (!is_array($hook_extra)) {
+        return $result;
+    }
+    if (($hook_extra['type'] ?? '') !== 'plugin' || ($hook_extra['action'] ?? '') !== 'update') {
+        return $result;
+    }
+    $plugins = $hook_extra['plugins'] ?? [];
+    if (!is_array($plugins) || !in_array(ALUMNI_HISTORIEK_PLUGIN_BASENAME, $plugins, true)) {
+        return $result;
+    }
+
+    if (is_plugin_active(ALUMNI_HISTORIEK_PLUGIN_BASENAME)) {
+        update_option('alumni_historiek_was_active_before_update', '1', false);
+    }
+
+    return $result;
+}, 10, 2);
 
 function alumni_historiek_get_update_diagnostics(): array {
     $plugin_data = alumni_historiek_get_plugin_data_cached();
@@ -1091,10 +1119,6 @@ function alumni_historiek_force_update_check(): void {
     $config = alumni_historiek_github_updater_config();
     delete_site_transient('alumni_historiek_github_remote_' . md5($config['repository'] . '|' . alumni_historiek_get_effective_branch()));
     delete_site_transient('alumni_historiek_github_repo_' . md5($config['repository']));
-
-    if (function_exists('wp_update_plugins')) {
-        wp_update_plugins();
-    }
 
     wp_safe_redirect(admin_url('admin.php?page=alumni-historiek'));
     exit;

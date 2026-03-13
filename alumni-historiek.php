@@ -858,6 +858,14 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= "}\n";
     $theme_css .= '@media (max-width:768px){';
     $theme_css .= 'body.alumni-historiek-page .historiek-header{padding-top:0;}';
+    $theme_css .= 'body.alumni-historiek-page .historiek-header .swipe-hint{';
+    $theme_css .= 'display:inline-block;';
+    $theme_css .= 'width:auto;';
+    $theme_css .= 'max-width:100%;';
+    $theme_css .= 'background-color:rgba(244,67,54,0.7);';
+    $theme_css .= 'padding:7px 15px;';
+    $theme_css .= 'border-radius:6px;';
+    $theme_css .= '}';
     $theme_css .= 'body.alumni-historiek-page .focused-label{';
     $theme_css .= 'position:fixed;';
     $theme_css .= 'bottom:var(--focused-label-bottom);';

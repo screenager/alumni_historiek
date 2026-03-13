@@ -19,6 +19,7 @@ define('ALUMNI_HISTORIEK_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('ALUMNI_HISTORIEK_GITHUB_REPO_DEFAULT', 'screenager/alumni_historiek');
 define('ALUMNI_HISTORIEK_GITHUB_BRANCH_DEFAULT', 'main');
 define('ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION', 'alumni_historiek_installed_remote_sha');
+define('ALUMNI_HISTORIEK_INSTALLED_REMOTE_VERSION_OPTION', 'alumni_historiek_installed_remote_version');
 
 function alumni_historiek_github_updater_config(): array {
     $config = [
@@ -290,6 +291,7 @@ function alumni_historiek_upgrader_process_complete($upgrader, array $options): 
     $remote = alumni_historiek_get_github_remote_data(true);
     if (is_array($remote) && !empty($remote['sha'])) {
         update_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION, (string) $remote['sha']);
+        update_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_VERSION_OPTION, (string) ($remote['version'] ?? ''), false);
     }
 
     $was_active = get_option('alumni_historiek_was_active_before_update', '');
@@ -351,6 +353,7 @@ function alumni_historiek_get_update_diagnostics(): array {
         'latest_remote_url' => is_array($remote) ? (string) ($remote['html_url'] ?? '') : '',
         'latest_remote_published_at' => is_array($remote) ? (string) ($remote['published_at'] ?? '') : '',
         'installed_remote_sha' => (string) get_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_SHA_OPTION, ''),
+        'installed_remote_version' => (string) get_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_VERSION_OPTION, ''),
         'wp_detected_update_version' => is_object($response_item) ? (string) ($response_item->new_version ?? '') : '',
         'wp_detected_update_package' => is_object($response_item) ? (string) ($response_item->package ?? '') : '',
         'wp_last_checked' => is_object($update_plugins) ? (int) ($update_plugins->last_checked ?? 0) : 0,
@@ -374,6 +377,7 @@ function alumni_historiek_render_diagnostics_table(): void {
     $release_tag = $d['latest_remote_sha'] !== '' ? $d['latest_remote_sha'] : 'Not detected';
     $published_at = $d['latest_remote_published_at'] !== '' ? $d['latest_remote_published_at'] : 'Not detected';
     $installed_sha = $d['installed_remote_sha'] !== '' ? substr($d['installed_remote_sha'], 0, 7) : 'Not recorded';
+    $installed_version = $d['installed_remote_version'] !== '' ? $d['installed_remote_version'] : 'Not recorded';
     $token_status = $d['github_token_configured'] ? 'Yes' : 'No';
     $global_blocked = $d['global_updates_blocked'] ? 'Yes (DISALLOW_FILE_MODS)' : 'No';
     $global_auto_disabled = $d['global_auto_updates_disabled'] ? 'Yes (AUTOMATIC_UPDATER_DISABLED)' : 'No';
@@ -394,6 +398,7 @@ function alumni_historiek_render_diagnostics_table(): void {
     echo '<tr><td><strong>Latest commit date (GitHub)</strong></td><td>' . esc_html($published_at) . '</td></tr>';
     echo '<tr><td><strong>Installed commit SHA (recorded)</strong></td><td>' . esc_html($installed_sha) . '</td></tr>';
     echo '<tr><td><strong>Latest commit link</strong></td><td>' . $release_url . '</td></tr>';
+    echo '<tr><td><strong>Installed commit version (recorded)</strong></td><td>' . esc_html($installed_version) . '</td></tr>';
     echo '<tr><td><strong>WordPress detected update version</strong></td><td>' . esc_html($update_version) . '</td></tr>';
     echo '<tr><td><strong>WordPress detected update package</strong></td><td>' . esc_html($update_package) . '</td></tr>';
     echo '<tr><td><strong>WordPress last update-check</strong></td><td>' . esc_html($last_checked) . '</td></tr>';
@@ -1124,6 +1129,20 @@ function alumni_historiek_force_update_check(): void {
     exit;
 }
 add_action('admin_post_alumni_historiek_force_update_check', 'alumni_historiek_force_update_check');
+
+add_filter('all_plugins', function (array $plugins): array {
+    if (!isset($plugins[ALUMNI_HISTORIEK_PLUGIN_BASENAME])) {
+        return $plugins;
+    }
+
+    $installed_version = (string) get_option(ALUMNI_HISTORIEK_INSTALLED_REMOTE_VERSION_OPTION, '');
+    if ($installed_version === '') {
+        return $plugins;
+    }
+
+    $plugins[ALUMNI_HISTORIEK_PLUGIN_BASENAME]['Version'] = $installed_version;
+    return $plugins;
+});
 
 function alumni_historiek_add_admin_menu(): void {
     add_menu_page(

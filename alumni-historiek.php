@@ -852,11 +852,15 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= 'border-radius:6px;';
     $theme_css .= "}\n";
     $theme_css .= '@media (max-width:768px){';
+    $theme_css .= 'body.alumni-historiek-page .historiek-header{padding-top:0;}';
     $theme_css .= 'body.alumni-historiek-page .focused-label{';
     $theme_css .= 'position:fixed;';
     $theme_css .= 'bottom:var(--focused-label-bottom);';
     $theme_css .= '}';
     $theme_css .= "}\n";
+    if ($background_enabled) {
+        $theme_css .= 'body.alumni-historiek-page .mfn-header-tmpl .mfn-icon-box .icon-wrapper i{color:#fff !important;}' . "\n";
+    }
 
     wp_register_style('alumni-historiek-theme-overrides', false);
     wp_enqueue_style('alumni-historiek-theme-overrides');

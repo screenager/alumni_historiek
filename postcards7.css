@@ -71,26 +71,15 @@ body::before {
     z-index: 1001 !important;
 }
 
-/* WP theme mode (mobile): ensure header sidebar overlays historiek content */
-@media (max-width: 767px) {
-    body.alumni-historiek-page #Wrapper,
-    body.alumni-historiek-page #Content {
-        overflow: visible !important;
-    }
+/* WP theme mode: keep BeTheme sidebar above historiek content */
+body.alumni-historiek-page .mfn-header-tmpl-menu-sidebar,
+body.alumni-historiek-page .mfn-header-tmpl-menu-sidebar-wrapper {
+    z-index: 99999 !important;
+}
 
-    body.alumni-historiek-page .mfn-header-tmpl-menu-sidebar {
-        position: fixed;
-        top: 0;
-        right: 0;
-        height: 100vh;
-        z-index: 100000;
-    }
-
-    body.alumni-historiek-page .mfn-header-tmpl-menu-sidebar-wrapper {
-        max-height: 100vh;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
+body.alumni-historiek-page .alumni-historiek-content {
+    position: relative;
+    z-index: 1;
 }
 
 .top-header {

@@ -42,6 +42,15 @@ function alumni_historiek_github_updater_config(): array {
     return $config;
 }
 
+function alumni_historiek_get_effective_branch(): string {
+    $config = alumni_historiek_github_updater_config();
+    $branch = is_string($config['branch'] ?? '') ? trim((string) $config['branch']) : '';
+    if ($branch === '') {
+        $branch = ALUMNI_HISTORIEK_GITHUB_BRANCH_DEFAULT;
+    }
+    return $branch;
+}
+
 function alumni_historiek_get_repo_parts(string $repository): ?array {
     $parts = explode('/', trim($repository, " \t\n\r\0\x0B/"));
     if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '') {

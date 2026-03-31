@@ -8,7 +8,7 @@ document.addEventListener('scroll', function(e) {
 }, true);
 
 $(document).ready(function() {
-if (window.HISTORIEK_IS_WORDPRESS) {
+if (window.HISTORIEK_IS_WORDPRESS && !window.HISTORIEK_SHOW_NAV) {
     document.querySelector('.nav-hamburger')?.remove();
     document.querySelector('.nav-bar')?.remove();
 }

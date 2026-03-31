@@ -650,6 +650,10 @@ function alumni_historiek_is_theme_background_enabled(): bool {
     return (string) get_option('alumni_historiek_theme_bg_enabled', '1') === '1';
 }
 
+function alumni_historiek_is_theme_hamburger_enabled(): bool {
+    return (string) get_option('alumni_historiek_theme_hamburger_enabled', '0') === '1';
+}
+
 function alumni_historiek_load_latest_html(): ?string {
     static $cached = false;
     if ($cached !== false) {
@@ -750,7 +754,15 @@ function alumni_historiek_get_public_body_html(): string {
 
     $body = alumni_historiek_extract_body_html($html);
     $body = preg_replace('/<script[^>]+src=["\'][^"\']+["\'][^>]*><\/script>/i', '', $body);
-    $body = preg_replace('/<div[^>]*class=["\']top-header["\'][^>]*>.*?<\/div>/is', '', $body);
+    if (alumni_historiek_is_theme_hamburger_enabled()) {
+        // Hamburger shown: strip the logo header so BeTheme provides top navigation
+        $body = preg_replace('/<div[^>]*class=["\']top-header["\'][^>]*>.*?<\/div>/is', '', $body);
+    } else {
+        // Hamburger hidden: keep the logo header as back-to-homepage navigation,
+        // but strip the standalone dev hamburger button and nav bar via PHP
+        $body = preg_replace('/<button[^>]*class=["\']nav-hamburger["\'][^>]*>.*?<\/button>/is', '', $body);
+        $body = preg_replace('/<nav[^>]*class=["\']nav-bar["\'][^>]*>.*?<\/nav>/is', '', $body);
+    }
     $body = preg_replace('/<header\\b([^>]*)>/i', '<div class="historiek-header"$1>', $body);
     $body = preg_replace('/<\/header>/i', '</div>', $body);
     $admin_link = esc_url(admin_url('admin.php?page=alumni-historiek'));
@@ -842,9 +854,13 @@ function alumni_historiek_enqueue_public_assets(): void {
     $data_url = esc_url(add_query_arg('v', (string) $data_version, $storage['base_url'] . '/concertData.json'));
     $concerts_base = esc_url($storage['base_url'] . '/concerts/');
 
+    $hamburger_enabled = alumni_historiek_is_theme_hamburger_enabled();
     $inline = 'window.HISTORIEK_DATA_URL = ' . wp_json_encode($data_url) . ';';
     $inline .= 'window.HISTORIEK_ASSETS_BASE_URL = ' . wp_json_encode($concerts_base) . ';';
     $inline .= 'window.HISTORIEK_IS_WORDPRESS = true;';
+    if ($hamburger_enabled) {
+        $inline .= 'window.HISTORIEK_SHOW_NAV = true;';
+    }
 
     $target = $script_handles[count($script_handles) - 1] ?? null;
     if ($target) {
@@ -854,7 +870,7 @@ function alumni_historiek_enqueue_public_assets(): void {
     $background_enabled = alumni_historiek_is_theme_background_enabled();
     $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . 'aula_wideshot.jpg');
     $theme_css = 'body.alumni-historiek-page{';
-    $theme_css .= '--top-header-height:0px;';
+    $theme_css .= $hamburger_enabled ? '--top-header-height:0px;' : '--top-header-height:100px;';
     $theme_css .= 'overflow:hidden !important;';
     $theme_css .= 'height:100vh !important;';
     if ($background_enabled) {
@@ -1248,8 +1264,11 @@ function alumni_historiek_save_settings(): void {
 
     $theme_bg_enabled = isset($_POST['theme_bg_enabled']) && $_POST['theme_bg_enabled'] === '1' ? '1' : '0';
 
+    $theme_hamburger_enabled = isset($_POST['theme_hamburger_enabled']) && $_POST['theme_hamburger_enabled'] === '1' ? '1' : '0';
+
     update_option('alumni_historiek_render_mode', $mode);
     update_option('alumni_historiek_theme_bg_enabled', $theme_bg_enabled);
+    update_option('alumni_historiek_theme_hamburger_enabled', $theme_hamburger_enabled);
 
     wp_safe_redirect(admin_url('admin.php?page=alumni-historiek&settings=1'));
     exit;
@@ -1263,6 +1282,7 @@ function alumni_historiek_render_admin_screen(): void {
 
     $render_mode = alumni_historiek_get_render_mode();
     $theme_bg_enabled = alumni_historiek_is_theme_background_enabled();
+    $theme_hamburger_enabled = alumni_historiek_is_theme_hamburger_enabled();
     $iframe_src = esc_url(ALUMNI_HISTORIEK_PLUGIN_URL . 'admin/index.html');
     $download_url = wp_nonce_url(
         admin_url('admin-post.php?action=alumni_historiek_download_plugin_zip'),
@@ -1294,6 +1314,23 @@ function alumni_historiek_render_admin_screen(): void {
     echo '<input type="checkbox" name="theme_bg_enabled" value="1"' . checked($theme_bg_enabled, true, false) . '> ';
     echo 'Achtergrondafbeelding tonen op /historiek</label>';
     echo '</fieldset>';
+    echo '<fieldset style="margin-top:12px;" id="fieldset-hamburger">';
+    echo '<legend class="screen-reader-text">Navigatie (WordPress thema modus)</legend>';
+    echo '<p style="margin-bottom:6px;"><strong>Navigatie (alleen in WordPress thema modus)</strong></p>';
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="checkbox" name="theme_hamburger_enabled" value="1"' . checked($theme_hamburger_enabled, true, false) . '> ';
+    echo 'Hamburger navigatiebalk tonen</label>';
+    echo '<p class="description" style="margin-top:4px;">Als uitgevinkt wordt de hamburger verborgen en wordt het logo in de bovenbalk getoond als link terug naar de homepage.</p>';
+    echo '</fieldset>';
+    echo '<script>';
+    echo 'document.addEventListener("DOMContentLoaded",function(){';
+    echo 'var radios=document.querySelectorAll("input[name=render_mode]");';
+    echo 'var fs=document.getElementById("fieldset-hamburger");';
+    echo 'function upd(){var v=document.querySelector("input[name=render_mode]:checked");fs.style.opacity=v&&v.value==="theme"?"1":"0.4";}';
+    echo 'radios.forEach(function(r){r.addEventListener("change",upd);});';
+    echo 'upd();';
+    echo '});';
+    echo '</script>';
     submit_button('Instellingen opslaan', 'primary', 'submit', false);
     echo '</form>';
     echo '<p>De editor draait hieronder met WordPress-authenticatie.</p>';

@@ -559,10 +559,10 @@ h3.postcard-back-text-label {
     flex: 1;
     font-size: 0.68rem;
     color: #444;
-    line-height: 1.5;
+    line-height: 1.25;
     overflow: hidden;
     position: relative;
-    max-height: 50px;
+    max-height: 58px;
 }
 
 .postcard-back-director .bottom-label,
@@ -579,15 +579,18 @@ h3.postcard-back-text-label {
 }
 
 .postcard-back-bottom-row dt {
+    display: block;
     font-weight: 600;
     color: #1a1a2e;
     font-size: 0.68rem;
     letter-spacing: 0.5px;
-    margin-bottom: 0.1rem;
+    margin-bottom: 0.05rem;
 }
 
 .postcard-back-bottom-row dd {
+    display: block;
     margin: 0;
+    line-height: 1.25;
 }
 
 .postcard-back-right {
@@ -686,11 +689,11 @@ h3.postcard-back-text-label {
 .postmark-city {
     font-weight: 700;
     font-size: var(--postmark-city-size);
-    color: rgba(25, 32, 96, 0.38);
+    color: #1a1a2e;
 }
 
 .postmark-year {
-    color: rgba(25, 32, 96, 0.38);
+    color: #1a1a2e;
 }
 
 /* Right side images container */

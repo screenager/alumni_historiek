@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.119
+ * Version: 7.121
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -356,6 +356,19 @@ function alumni_historiek_upgrader_process_complete($upgrader, array $options): 
             activate_plugin(ALUMNI_HISTORIEK_PLUGIN_BASENAME);
         }
     }
+
+    // Restore user data that was backed up before the update.
+    $backup_base = (string) get_option('alumni_historiek_update_backup_dir', '');
+    if ($backup_base !== '' && is_dir($backup_base)) {
+        delete_option('alumni_historiek_update_backup_dir');
+        $plugin_dir = untrailingslashit(ALUMNI_HISTORIEK_PLUGIN_DIR);
+        foreach (['concertData.json', 'concerts', 'private'] as $item) {
+            $src = $backup_base . '/' . $item;
+            if (file_exists($src) || is_dir($src)) {
+                alumni_historiek_recursive_copy($src, $plugin_dir . '/' . $item);
+            }
+        }
+    }
 }
 add_action('upgrader_process_complete', 'alumni_historiek_upgrader_process_complete', 10, 2);
 
@@ -373,6 +386,26 @@ add_filter('upgrader_pre_install', function ($result, $hook_extra) {
 
     if (is_plugin_active(ALUMNI_HISTORIEK_PLUGIN_BASENAME)) {
         update_option('alumni_historiek_was_active_before_update', '1', false);
+    }
+
+    // Backup user data stored inside the plugin dir so it survives the update.
+    // This is only needed when storage mode is 'plugin' (data lives in the plugin dir).
+    if (get_option('alumni_historiek_storage_mode', 'plugin') === 'plugin') {
+        $uploads = wp_upload_dir();
+        $backup_base = trailingslashit($uploads['basedir']) . 'alumni-historiek-update-backup';
+        $plugin_dir = untrailingslashit(ALUMNI_HISTORIEK_PLUGIN_DIR);
+
+        foreach (['concertData.json', 'concerts', 'private'] as $item) {
+            $src = $plugin_dir . '/' . $item;
+            if (file_exists($src) || is_dir($src)) {
+                wp_mkdir_p($backup_base);
+                alumni_historiek_recursive_copy($src, $backup_base . '/' . $item);
+            }
+        }
+
+        if (is_dir($backup_base)) {
+            update_option('alumni_historiek_update_backup_dir', $backup_base, false);
+        }
     }
 
     return $result;
@@ -1278,10 +1311,23 @@ function alumni_historiek_save_settings(): void {
 
     $theme_hide_topheader = isset($_POST['theme_hide_topheader']) && $_POST['theme_hide_topheader'] === '1' ? '1' : '0';
 
+    $storage_mode = isset($_POST['storage_mode']) ? (string) $_POST['storage_mode'] : 'plugin';
+    if (!in_array($storage_mode, ['plugin', 'uploads'], true)) {
+        $storage_mode = 'plugin';
+    }
+
+    $previous_storage_mode = (string) get_option('alumni_historiek_storage_mode', 'plugin');
+
     update_option('alumni_historiek_render_mode', $mode);
     update_option('alumni_historiek_theme_bg_enabled', $theme_bg_enabled);
     update_option('alumni_historiek_theme_hamburger_enabled', $theme_hamburger_enabled);
     update_option('alumni_historiek_theme_hide_topheader', $theme_hide_topheader);
+    update_option('alumni_historiek_storage_mode', $storage_mode);
+
+    // When switching from 'plugin' to 'uploads', copy existing data to the uploads location.
+    if ($previous_storage_mode === 'plugin' && $storage_mode === 'uploads') {
+        alumni_historiek_initialize_storage();
+    }
 
     wp_safe_redirect(admin_url('admin.php?page=alumni-historiek&settings=1'));
     exit;
@@ -1297,6 +1343,7 @@ function alumni_historiek_render_admin_screen(): void {
     $theme_bg_enabled = alumni_historiek_is_theme_background_enabled();
     $theme_hamburger_enabled = alumni_historiek_is_theme_hamburger_enabled();
     $theme_hide_topheader = alumni_historiek_is_theme_topheader_hidden();
+    $storage_mode = get_option('alumni_historiek_storage_mode', 'plugin');
     $iframe_src = esc_url(ALUMNI_HISTORIEK_PLUGIN_URL . 'admin/index.html');
     $download_url = wp_nonce_url(
         admin_url('admin-post.php?action=alumni_historiek_download_plugin_zip'),
@@ -1353,6 +1400,17 @@ function alumni_historiek_render_admin_screen(): void {
     echo 'upd();';
     echo '});';
     echo '</script>';
+    echo '<fieldset style="margin-top:12px;">';
+    echo '<legend class="screen-reader-text">Opslag locatie</legend>';
+    echo '<p style="margin-bottom:6px;"><strong>Opslag locatie voor concertdata en afbeeldingen</strong></p>';
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="radio" name="storage_mode" value="plugin"' . checked($storage_mode, 'plugin', false) . '> ';
+    echo 'In de plugin map (standaard &mdash; <strong>data gaat verloren bij een update via git!</strong>)</label>';
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="radio" name="storage_mode" value="uploads"' . checked($storage_mode, 'uploads', false) . '> ';
+    echo 'In WordPress uploads map (aanbevolen &mdash; data blijft bewaard bij plugin updates)</label>';
+    echo '<p class="description" style="margin-top:4px;">Bij overschakeling naar &ldquo;uploads&rdquo; worden bestaande data en afbeeldingen automatisch gekopieerd. De plugin map blijft ongewijzigd.</p>';
+    echo '</fieldset>';
     submit_button('Instellingen opslaan', 'primary', 'submit', false);
     echo '</form>';
     echo '<p>De editor draait hieronder met WordPress-authenticatie.</p>';

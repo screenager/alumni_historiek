@@ -872,9 +872,10 @@ function alumni_historiek_enqueue_public_assets(): void {
     }
 
     $background_enabled = alumni_historiek_is_theme_background_enabled();
+    $hide_topheader = alumni_historiek_is_theme_topheader_hidden();
     $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . 'aula_wideshot.jpg');
     $theme_css = 'body.alumni-historiek-page{';
-    $theme_css .= $hamburger_enabled ? '--top-header-height:0px;' : '--top-header-height:100px;';
+    $theme_css .= ($hamburger_enabled || $hide_topheader) ? '--top-header-height:0px;' : '--top-header-height:100px;';
     $theme_css .= 'overflow:hidden !important;';
     $theme_css .= 'height:100vh !important;';
     if ($background_enabled) {
@@ -982,8 +983,10 @@ function alumni_historiek_enqueue_public_assets(): void {
     if ($background_enabled) {
         $theme_css .= 'body.alumni-historiek-page .mfn-header-tmpl .mfn-icon-box .icon-wrapper i{color:#fff !important;}' . "\n";
     }
-    if (alumni_historiek_is_theme_topheader_hidden()) {
+    if ($hide_topheader) {
+        $theme_css .= 'body.alumni-historiek-page .top-header{display:none !important;}' . "\n";
         $theme_css .= 'body.alumni-historiek-page #Header .top-header{display:none !important;}' . "\n";
+        $theme_css .= 'body.alumni-historiek-page #Top_bar{margin-top:0 !important;}' . "\n";
     }
 
     wp_register_style('alumni-historiek-theme-overrides', false);

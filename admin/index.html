@@ -298,6 +298,7 @@ let csrfToken = '';
 let authMode = 'wordpress';
 let publicPageUrl = '../index.html';
 let fallbackPublicPageUrl = '../index.html';
+let concertsBaseUrl = null; // null = use relative ../concerts/
 
 const editModalEl = document.getElementById('editModal');
 const editModalBS = new bootstrap.Modal(editModalEl);
@@ -335,6 +336,7 @@ async function checkSession() {
     authMode = data.mode || 'wordpress';
     publicPageUrl = data.publicPageUrl || '../index.html';
     fallbackPublicPageUrl = data.fallbackPublicPageUrl || publicPageUrl;
+    concertsBaseUrl = data.concertsBaseUrl || null;
     applyPublicPageLinks();
     if (data.loggedIn) {
         if (data.csrf_token) csrfToken = data.csrf_token;
@@ -516,11 +518,17 @@ function clearUploadState() {
     updatePosterPreview();
 }
 
+function getConcertsUrl(folder) {
+    if (!folder) return '';
+    const base = concertsBaseUrl ? concertsBaseUrl.replace(/\/$/, '') : '../concerts';
+    return `${base}/${folder}`;
+}
+
 function updatePosterPreview() {
     const folder = getConcertFolder();
     const img = document.getElementById('posterPreview');
     if (folder) {
-        img.src = `../concerts/${folder}/poster.jpg?t=${Date.now()}`;
+        img.src = `${getConcertsUrl(folder)}/poster.jpg?t=${Date.now()}`;
         img.style.display = '';
         img.onerror = () => { img.style.display = 'none'; };
     } else {
@@ -545,7 +553,7 @@ function renderImages(images) {
         row.dataset.full = img.full;
         // Build thumbnail src — concert folder derived from year_slug
         const folder = getConcertFolder();
-        const thumbSrc = folder ? `../concerts/${folder}/${img.thumb}` : '';
+        const thumbSrc = folder ? `${getConcertsUrl(folder)}/${img.thumb}` : '';
         row.innerHTML = `
             <div class="col-auto drag-handle" title="Versleep om te herordenen">&#x2630;</div>
             <div class="col-auto">
@@ -576,7 +584,7 @@ function addImageRow(thumb, full) {
     if (placeholder) placeholder.remove();
 
     const folder = getConcertFolder();
-    const thumbSrc = folder ? `../concerts/${folder}/${thumb}` : '';
+    const thumbSrc = folder ? `${getConcertsUrl(folder)}/${thumb}` : '';
     const row = document.createElement('div');
     row.className = 'row g-2 mb-2 align-items-center fade-in image-row';
     row.draggable = true;

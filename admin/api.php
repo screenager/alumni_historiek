@@ -54,8 +54,10 @@ function storageInfo(bool $isWpMode): array {
         if ($mode === 'uploads') {
             $uploads = wp_upload_dir();
             $baseDir = trailingslashit($uploads['basedir']) . 'alumni-historiek';
+            $baseUrl = trailingslashit($uploads['baseurl']) . 'alumni-historiek';
             return [
                 'base_dir' => $baseDir,
+                'concerts_url' => $baseUrl . '/concerts',
                 'data_file' => $baseDir . '/concertData.json',
                 'concerts_dir' => $baseDir . '/concerts',
                 'private_dir' => $baseDir . '/private',
@@ -66,6 +68,7 @@ function storageInfo(bool $isWpMode): array {
     $baseDir = dirname(__DIR__);
     return [
         'base_dir' => $baseDir,
+        'concerts_url' => null,
         'data_file' => $baseDir . '/concertData.json',
         'concerts_dir' => $baseDir . '/concerts',
         'private_dir' => $baseDir . '/private',
@@ -396,6 +399,7 @@ switch ($action) {
 
     case 'status':
         $publicUrls = publicPageUrls($IS_WP_MODE);
+        $concertsBaseUrl = $storage['concerts_url'];
         if ($IS_WP_MODE) {
             if (is_user_logged_in() && current_user_can('manage_options')) {
                 $user = wp_get_current_user();
@@ -406,6 +410,7 @@ switch ($action) {
                     'mode' => 'wordpress',
                     'publicPageUrl' => $publicUrls['publicPageUrl'],
                     'fallbackPublicPageUrl' => $publicUrls['fallbackPublicPageUrl'],
+                    'concertsBaseUrl' => $concertsBaseUrl,
                 ]);
             }
             jsonResponse([
@@ -413,6 +418,7 @@ switch ($action) {
                 'mode' => 'wordpress',
                 'publicPageUrl' => $publicUrls['publicPageUrl'],
                 'fallbackPublicPageUrl' => $publicUrls['fallbackPublicPageUrl'],
+                'concertsBaseUrl' => $concertsBaseUrl,
             ]);
         }
 
@@ -424,6 +430,7 @@ switch ($action) {
                 'mode' => 'standalone',
                 'publicPageUrl' => $publicUrls['publicPageUrl'],
                 'fallbackPublicPageUrl' => $publicUrls['fallbackPublicPageUrl'],
+                'concertsBaseUrl' => $concertsBaseUrl,
             ]);
         }
         jsonResponse([
@@ -431,6 +438,7 @@ switch ($action) {
             'mode' => 'standalone',
             'publicPageUrl' => $publicUrls['publicPageUrl'],
             'fallbackPublicPageUrl' => $publicUrls['fallbackPublicPageUrl'],
+            'concertsBaseUrl' => $concertsBaseUrl,
         ]);
         break;
 

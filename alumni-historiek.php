@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.128
+ * Version: 7.129
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -929,13 +929,10 @@ function alumni_historiek_enqueue_public_assets(): void {
         $theme_css .= 'mask-image:unset !important;';
         $theme_css .= "}\n";
     }
-    /* Always neutralise the bare `header` selector from postcards CSS on BeTheme's <header> */
+    /* Only remove mask-image from BeTheme's <header> so the logo stays fully visible */
     $theme_css .= 'body.alumni-historiek-page header{';
-    $theme_css .= 'background:unset !important;';
-    $theme_css .= 'backdrop-filter:unset !important;';
-    $theme_css .= '-webkit-backdrop-filter:unset !important;';
-    $theme_css .= '-webkit-mask-image:unset !important;';
-    $theme_css .= 'mask-image:unset !important;';
+    $theme_css .= '-webkit-mask-image:none !important;';
+    $theme_css .= 'mask-image:none !important;';
     $theme_css .= "}\n";
     $theme_css .= 'body.alumni-historiek-page #Wrapper,';
     $theme_css .= 'body.alumni-historiek-page #Content,';

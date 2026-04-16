@@ -21,7 +21,7 @@ tegels.html can be ignored, this was an early idea of the project.
     - Copy the highest version
     - Increment the number
     - Work only on the new highest version
-
+5. After every request, increment the version number of the plugin in the annotation of alumni-historiek.php, so that WordPress can detect the update and trigger the update flow.
 
 When making a new change or feature, always suggest to also support the mobile view of the page, and support for accessibility.
 

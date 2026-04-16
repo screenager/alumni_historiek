@@ -585,6 +585,7 @@ h3.postcard-back-text-label {
     font-size: 0.68rem;
     letter-spacing: 0.5px;
     margin-bottom: 0.05rem;
+    width: 100%;
 }
 
 .postcard-back-bottom-row dd {

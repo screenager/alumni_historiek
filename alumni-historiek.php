@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.127
+ * Version: 7.128
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -1034,6 +1034,7 @@ function alumni_historiek_enqueue_public_assets(): void {
     if (!$hamburger_enabled) {
         $theme_css .= '.nav-hamburger{display:none !important;}' . "\n";
         $theme_css .= '.nav-bar{display:none !important;}' . "\n";
+        $theme_css .= '.column_header_burger{display:none !important;}' . "\n";
     }
     wp_register_style('alumni-historiek-theme-overrides', false);
     wp_enqueue_style('alumni-historiek-theme-overrides');

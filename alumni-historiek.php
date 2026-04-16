@@ -654,6 +654,10 @@ function alumni_historiek_is_theme_hamburger_enabled(): bool {
     return (string) get_option('alumni_historiek_theme_hamburger_enabled', '0') === '1';
 }
 
+function alumni_historiek_is_theme_topheader_hidden(): bool {
+    return (string) get_option('alumni_historiek_theme_hide_topheader', '1') === '1';
+}
+
 function alumni_historiek_load_latest_html(): ?string {
     static $cached = false;
     if ($cached !== false) {
@@ -978,6 +982,9 @@ function alumni_historiek_enqueue_public_assets(): void {
     if ($background_enabled) {
         $theme_css .= 'body.alumni-historiek-page .mfn-header-tmpl .mfn-icon-box .icon-wrapper i{color:#fff !important;}' . "\n";
     }
+    if (alumni_historiek_is_theme_topheader_hidden()) {
+        $theme_css .= 'body.alumni-historiek-page #Header .top-header{display:none !important;}' . "\n";
+    }
 
     wp_register_style('alumni-historiek-theme-overrides', false);
     wp_enqueue_style('alumni-historiek-theme-overrides');
@@ -1266,9 +1273,12 @@ function alumni_historiek_save_settings(): void {
 
     $theme_hamburger_enabled = isset($_POST['theme_hamburger_enabled']) && $_POST['theme_hamburger_enabled'] === '1' ? '1' : '0';
 
+    $theme_hide_topheader = isset($_POST['theme_hide_topheader']) && $_POST['theme_hide_topheader'] === '1' ? '1' : '0';
+
     update_option('alumni_historiek_render_mode', $mode);
     update_option('alumni_historiek_theme_bg_enabled', $theme_bg_enabled);
     update_option('alumni_historiek_theme_hamburger_enabled', $theme_hamburger_enabled);
+    update_option('alumni_historiek_theme_hide_topheader', $theme_hide_topheader);
 
     wp_safe_redirect(admin_url('admin.php?page=alumni-historiek&settings=1'));
     exit;
@@ -1283,6 +1293,7 @@ function alumni_historiek_render_admin_screen(): void {
     $render_mode = alumni_historiek_get_render_mode();
     $theme_bg_enabled = alumni_historiek_is_theme_background_enabled();
     $theme_hamburger_enabled = alumni_historiek_is_theme_hamburger_enabled();
+    $theme_hide_topheader = alumni_historiek_is_theme_topheader_hidden();
     $iframe_src = esc_url(ALUMNI_HISTORIEK_PLUGIN_URL . 'admin/index.html');
     $download_url = wp_nonce_url(
         admin_url('admin-post.php?action=alumni_historiek_download_plugin_zip'),
@@ -1322,11 +1333,19 @@ function alumni_historiek_render_admin_screen(): void {
     echo 'Hamburger navigatiebalk tonen</label>';
     echo '<p class="description" style="margin-top:4px;">Als uitgevinkt wordt de hamburger verborgen en wordt het logo in de bovenbalk getoond als link terug naar de homepage.</p>';
     echo '</fieldset>';
+    echo '<fieldset style="margin-top:12px;" id="fieldset-topheader">';
+    echo '<legend class="screen-reader-text">Theme top-header</legend>';
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="checkbox" name="theme_hide_topheader" value="1"' . checked($theme_hide_topheader, true, false) . '> ';
+    echo 'Verberg de top-header balk van het WordPress thema op /historiek</label>';
+    echo '<p class="description" style="margin-top:4px;">Sommige thema\'s (bv. BeTheme) tonen een balk boven de navigatie met contactgegevens of social media links. Vink aan om deze te verbergen op de historiek pagina.</p>';
+    echo '</fieldset>';
     echo '<script>';
     echo 'document.addEventListener("DOMContentLoaded",function(){';
     echo 'var radios=document.querySelectorAll("input[name=render_mode]");';
     echo 'var fs=document.getElementById("fieldset-hamburger");';
-    echo 'function upd(){var v=document.querySelector("input[name=render_mode]:checked");fs.style.opacity=v&&v.value==="theme"?"1":"0.4";}';
+    echo 'var fs2=document.getElementById("fieldset-topheader");';
+    echo 'function upd(){var v=document.querySelector("input[name=render_mode]:checked");var isTheme=v&&v.value==="theme";fs.style.opacity=isTheme?"1":"0.4";fs2.style.opacity=isTheme?"1":"0.4";}';
     echo 'radios.forEach(function(r){r.addEventListener("change",upd);});';
     echo 'upd();';
     echo '});';

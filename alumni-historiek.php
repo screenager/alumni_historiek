@@ -1068,13 +1068,24 @@ function alumni_historiek_render_full_page(): void {
         $site_icon_markup = (string) ob_get_clean();
     }
 
+    $hamburger_enabled = alumni_historiek_is_theme_hamburger_enabled();
+
     $inject = "<base href=\"{$base_href}\">\n";
     if ($site_icon_markup !== '') {
         $inject .= $site_icon_markup;
     }
-    $inject .= "<script>window.HISTORIEK_DATA_URL = " . wp_json_encode($data_url) . "; window.HISTORIEK_ASSETS_BASE_URL = " . wp_json_encode($concerts_base) . "; window.HISTORIEK_IS_WORDPRESS = true;</script>\n";
+    $inline_js = 'window.HISTORIEK_DATA_URL = ' . wp_json_encode($data_url) . '; window.HISTORIEK_ASSETS_BASE_URL = ' . wp_json_encode($concerts_base) . '; window.HISTORIEK_IS_WORDPRESS = true;';
+    if ($hamburger_enabled) {
+        $inline_js .= ' window.HISTORIEK_SHOW_NAV = true;';
+    }
+    $inject .= "<script>{$inline_js}</script>\n";
     if (!alumni_historiek_is_theme_background_enabled()) {
         $inject .= "<style>body{background-image:none !important;background-color:inherit !important;}header{background:unset !important;backdrop-filter:unset !important;-webkit-mask-image:unset !important;mask-image:unset !important;}</style>\n";
+    }
+
+    if (!$hamburger_enabled) {
+        $html = preg_replace('/<button[^>]*class=["\']nav-hamburger["\'][^>]*>.*?<\/button>/is', '', $html);
+        $html = preg_replace('/<nav[^>]*class=["\']nav-bar["\'][^>]*>.*?<\/nav>/is', '', $html);
     }
 
     $html = preg_replace('/<head>/', "<head>\n{$inject}", $html, 1);

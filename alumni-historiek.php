@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.121
+ * Version: 7.122
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -379,8 +379,9 @@ add_filter('upgrader_pre_install', function ($result, $hook_extra) {
     if (($hook_extra['type'] ?? '') !== 'plugin' || ($hook_extra['action'] ?? '') !== 'update') {
         return $result;
     }
-    $plugins = $hook_extra['plugins'] ?? [];
-    if (!is_array($plugins) || !in_array(ALUMNI_HISTORIEK_PLUGIN_BASENAME, $plugins, true)) {
+    // WordPress passes 'plugin' (string) for upgrader_pre_install, not 'plugins' (array).
+    $plugin_file = $hook_extra['plugin'] ?? '';
+    if ((string) $plugin_file !== ALUMNI_HISTORIEK_PLUGIN_BASENAME) {
         return $result;
     }
 
@@ -1336,8 +1337,27 @@ function alumni_historiek_save_settings(): void {
     update_option('alumni_historiek_storage_mode', $storage_mode);
 
     // When switching from 'plugin' to 'uploads', copy existing data to the uploads location.
+    // Do NOT call alumni_historiek_initialize_storage() here — it would override the mode we just saved.
     if ($previous_storage_mode === 'plugin' && $storage_mode === 'uploads') {
-        alumni_historiek_initialize_storage();
+        $uploads = wp_upload_dir();
+        $base_dir = trailingslashit($uploads['basedir']) . 'alumni-historiek';
+        $plugin_dir = untrailingslashit(ALUMNI_HISTORIEK_PLUGIN_DIR);
+        wp_mkdir_p($base_dir . '/concerts');
+        wp_mkdir_p($base_dir . '/private');
+        // Copy concertData.json only if the destination doesn't exist yet.
+        if (!file_exists($base_dir . '/concertData.json') && file_exists($plugin_dir . '/concertData.json')) {
+            copy($plugin_dir . '/concertData.json', $base_dir . '/concertData.json');
+        }
+        // Copy concerts dir if destination is empty.
+        $concert_entries = @scandir($base_dir . '/concerts');
+        if (!is_array($concert_entries) || count($concert_entries) <= 2) {
+            alumni_historiek_recursive_copy($plugin_dir . '/concerts', $base_dir . '/concerts');
+        }
+        // Copy private dir if destination is empty.
+        $private_entries = @scandir($base_dir . '/private');
+        if (!is_array($private_entries) || count($private_entries) <= 2) {
+            alumni_historiek_recursive_copy($plugin_dir . '/private', $base_dir . '/private');
+        }
     }
 
     wp_safe_redirect(admin_url('admin.php?page=alumni-historiek&settings=1'));

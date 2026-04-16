@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.125
+ * Version: 7.127
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -921,13 +921,22 @@ function alumni_historiek_enqueue_public_assets(): void {
     }
     $theme_css .= "}\n";
     if (!$background_enabled) {
-        $theme_css .= 'body.alumni-historiek-page header{';
+        /* When background is disabled, also reset the historiek-header styles */
+        $theme_css .= 'body.alumni-historiek-page .historiek-header{';
         $theme_css .= 'background:unset !important;';
         $theme_css .= 'backdrop-filter:unset !important;';
         $theme_css .= '-webkit-mask-image:unset !important;';
         $theme_css .= 'mask-image:unset !important;';
         $theme_css .= "}\n";
     }
+    /* Always neutralise the bare `header` selector from postcards CSS on BeTheme's <header> */
+    $theme_css .= 'body.alumni-historiek-page header{';
+    $theme_css .= 'background:unset !important;';
+    $theme_css .= 'backdrop-filter:unset !important;';
+    $theme_css .= '-webkit-backdrop-filter:unset !important;';
+    $theme_css .= '-webkit-mask-image:unset !important;';
+    $theme_css .= 'mask-image:unset !important;';
+    $theme_css .= "}\n";
     $theme_css .= 'body.alumni-historiek-page #Wrapper,';
     $theme_css .= 'body.alumni-historiek-page #Content,';
     $theme_css .= 'body.alumni-historiek-page .mfn-popup .mfn-popup-content,';
@@ -1026,7 +1035,6 @@ function alumni_historiek_enqueue_public_assets(): void {
         $theme_css .= '.nav-hamburger{display:none !important;}' . "\n";
         $theme_css .= '.nav-bar{display:none !important;}' . "\n";
     }
-
     wp_register_style('alumni-historiek-theme-overrides', false);
     wp_enqueue_style('alumni-historiek-theme-overrides');
     wp_add_inline_style('alumni-historiek-theme-overrides', $theme_css);

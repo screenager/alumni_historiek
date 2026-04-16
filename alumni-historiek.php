@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.129
+ * Version: 7.130
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -929,10 +929,28 @@ function alumni_historiek_enqueue_public_assets(): void {
         $theme_css .= 'mask-image:unset !important;';
         $theme_css .= "}\n";
     }
-    /* Only remove mask-image from BeTheme's <header> so the logo stays fully visible */
+    /* Remove mask-image from BeTheme header so the logo stays fully visible,
+       then recreate the gradient shadow via a ::after pseudo-element behind the content */
     $theme_css .= 'body.alumni-historiek-page header{';
+    $theme_css .= 'position:relative;';
     $theme_css .= '-webkit-mask-image:none !important;';
     $theme_css .= 'mask-image:none !important;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page header::after{';
+    $theme_css .= 'content:"";';
+    $theme_css .= 'position:absolute;';
+    $theme_css .= 'top:0;left:0;right:0;bottom:0;';
+    $theme_css .= 'background:linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);';
+    $theme_css .= 'backdrop-filter:blur(10px);';
+    $theme_css .= '-webkit-backdrop-filter:blur(10px);';
+    $theme_css .= '-webkit-mask-image:linear-gradient(to bottom, black 63%, transparent 100%);';
+    $theme_css .= 'mask-image:linear-gradient(to bottom, black 63%, transparent 100%);';
+    $theme_css .= 'z-index:0;';
+    $theme_css .= 'pointer-events:none;';
+    $theme_css .= "}\n";
+    $theme_css .= 'body.alumni-historiek-page header > *{';
+    $theme_css .= 'position:relative;';
+    $theme_css .= 'z-index:1;';
     $theme_css .= "}\n";
     $theme_css .= 'body.alumni-historiek-page #Wrapper,';
     $theme_css .= 'body.alumni-historiek-page #Content,';

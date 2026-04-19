@@ -43,6 +43,26 @@ This project supports 2 runtime modes.
   - `define('ALUMNI_HISTORIEK_GITHUB_TOKEN', 'ghp_...');`
 - Optional: override repository/branch/token via filter `alumni_historiek_github_updater_config`.
 
+### Update not showing? GitHub API cache
+The GitHub API response is cached for 1 hour (3600 seconds), so a freshly pushed version
+may not appear immediately on the WordPress Plugins page.
+**Fix:** Go to `wp-admin/admin.php?page=alumni-historiek` and click **"Check for updates now"** —
+that forces a cache refresh and the new version should appear on the Plugins page right away.
+
+### Renaming the plugin directory
+The plugin directory is currently `alumni_historiek_postcards7` (installed from a ZIP with that name).
+To rename it (e.g. to `alumni-historiek`) without losing settings:
+1. **Deactivate** the plugin from the WordPress Plugins page.
+2. **Rename** the folder on disk:
+   ```bash
+   mv wp-content/plugins/alumni_historiek_postcards7 wp-content/plugins/alumni-historiek
+   ```
+3. **Re-activate** the plugin from the Plugins page — WordPress will register the new path.
+4. WordPress stores the active plugin path (`old-dir/plugin-file.php`) in `wp_options`.
+   Deactivating + reactivating updates it automatically.
+5. Plugin-specific options (stored by option name, not by directory) are unaffected.
+> Note: any hardcoded references to the old directory path (e.g. in `wp-config.php` or custom code) must be updated manually.
+
 ## Notes
 - In WordPress mode, `concertData.json` is cache-busted with a version query string.
 - If plugin ZIP upload fails due memory/security scanner limits, install by copying

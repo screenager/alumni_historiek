@@ -841,10 +841,20 @@ h3.postcard-back-text-label {
     right: 16px;
 }
 
-.lightbox-close-btn:hover,
-.lightbox-nav-btn:hover {
+/* Hover only on real pointer devices — prevents stuck hover state on touch screens */
+@media (hover: hover) {
+    .lightbox-close-btn:hover,
+    .lightbox-nav-btn:hover {
+        background: rgba(0, 0, 0, 0.5);
+        transform: scale(1.1);
+    }
+}
+
+/* Tap feedback on touch devices */
+.lightbox-close-btn:active,
+.lightbox-nav-btn:active {
     background: rgba(0, 0, 0, 0.5);
-    transform: scale(1.1);
+    transform: scale(0.95);
 }
 
 /* Card close button (on flipped card back) */

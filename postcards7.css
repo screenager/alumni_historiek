@@ -124,6 +124,7 @@ header p {
     background-color: rgba(244, 67, 54, 0.7);
     padding: 7px 15px;
     border-radius: 6px;
+	display: inline-block;
 }
 
 #mainTitle {

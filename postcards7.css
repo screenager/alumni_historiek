@@ -1132,6 +1132,64 @@ h3.postcard-back-text-label {
     header h1 {
         font-size: 2rem;
     }
+
+    /* Logo: shrink BeTheme site header logo on mobile */
+    body.alumni-historiek-page header .logo-wrapper img {
+        width: 64%;
+    }
+
+    /* z-index: keep plugin <header> below swipeHintText so hint stays on top */
+    header {
+        position: relative;
+        z-index: 5;
+    }
+
+    #swipeHintText {
+        position: relative;
+        z-index: 10;
+    }
+
+    /* WordPress: pull main content up to remove gap below BeTheme header */
+    body.alumni-historiek-page main {
+        margin-top: -30px;
+    }
+
+    .postcard-back-repertoire {
+        margin-bottom: 0;
+    }
+
+    .text-repertoire-spacer {
+        display: none;
+    }
+
+    /* WordPress/BeTheme: hide footer logo inner on mobile */
+    body.alumni-historiek-page .mcb-item-footer_logo-inner {
+        display: none;
+    }
+
+    /* WordPress/BeTheme: strip overlay backgrounds, shadows and fade logo */
+    body.alumni-historiek-page .mcb-wrap-background-overlay {
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    body.alumni-historiek-page .mcb-wrap-background-overlay * {
+        box-shadow: none !important;
+    }
+
+    body.alumni-historiek-page .mcb-wrap-background-overlay .logo {
+        -webkit-mask-image: linear-gradient(to bottom, black 63%, transparent 100%);
+        mask-image: linear-gradient(to bottom, black 63%, transparent 100%);
+    }
+}
+
+/* Mobile + short viewport: use 92vh for coverflow height */
+@media (max-width: 768px) and (max-height: 900px) {
+    .coverflow-container {
+        height: calc(92vh - 200px - var(--top-header-height));
+        min-height: 317px;
+    }
 }
 
 

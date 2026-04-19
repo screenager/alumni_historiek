@@ -121,6 +121,9 @@ header p {
     font-size: 1.2rem;
     opacity: 0;
     transition: opacity 0.5s ease;
+    background-color: rgba(244, 67, 54, 0.7);
+    padding: 7px 15px;
+    border-radius: 6px;
 }
 
 #mainTitle {
@@ -1164,6 +1167,11 @@ h3.postcard-back-text-label {
 
     /* WordPress/BeTheme: hide footer logo inner on mobile */
     body.alumni-historiek-page .mcb-item-footer_logo-inner {
+        display: none;
+    }
+
+    /* WordPress/BeTheme: hide footer template on mobile */
+    body.alumni-historiek-page #mfn-footer-template {
         display: none;
     }
 

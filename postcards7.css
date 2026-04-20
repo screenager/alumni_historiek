@@ -615,6 +615,8 @@ h3.postcard-back-text-label {
     color: #D5333D;
     margin-bottom: 0.25rem;
     text-align: right;
+    flex-shrink: 1;
+    min-height: 0;
 }
 
 .postcard-back-date {
@@ -706,7 +708,7 @@ h3.postcard-back-text-label {
     flex: 1;
     width: 100%;
     position: relative;
-    min-height: 0;
+    min-height: 30%;
 }
 
 .postcard-back-images .concert-img {
@@ -1124,6 +1126,7 @@ h3.postcard-back-text-label {
 
     .postcard-back-title {
         font-size: 1.1rem;
+        line-height: 1rem;
     }
 
     .postcard-back-date {
@@ -1273,6 +1276,7 @@ h3.postcard-back-text-label {
 
     .postcard-back-title {
         font-size: 1.2rem;
+        line-height: 1rem;
     }
 
     .postcard-back-date {
@@ -1341,7 +1345,8 @@ h3.postcard-back-text-label {
     }
 
     .postcard-back-title {
-        font-size: 1rem;
+        font-size: 0.85rem;
+        line-height: 1rem;
     }
 
     .postcard-back-date {
@@ -1355,6 +1360,15 @@ h3.postcard-back-text-label {
 
     .postcard-back-text {
         font-size: 0.52rem;
+        max-height: 30%;
+    }
+
+    .postcard-back-repertoire {
+        margin-bottom: 0;
+    }
+
+    .text-repertoire-spacer {
+        display: none;
     }
 
     .postcard-back-bottom-row dd {

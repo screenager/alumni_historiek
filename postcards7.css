@@ -566,7 +566,7 @@ h3.postcard-back-text-label {
     line-height: 1.25;
     overflow: hidden;
     position: relative;
-    max-height: 58px;
+    max-height: none;
 }
 
 .postcard-back-director .bottom-label,
@@ -612,7 +612,7 @@ h3.postcard-back-text-label {
     font-family: 'Poppins', sans-serif;
     font-size: 1.7rem;
     font-weight: 600;
-    color: #1a1a2e;
+    color: #D5333D;
     margin-bottom: 0.25rem;
     text-align: right;
 }

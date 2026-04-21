@@ -1643,3 +1643,22 @@ a:focus-visible,
 .skip-link:focus {
     top: 0;
 }
+
+/* on mobile, align the hamburger icon to the right of the screen */
+.column_header_burger {
+  right: 20px;
+  position: absolute !important;
+}
+
+/* on mobile, when the hamburger icon is clicked, the font color should be grey */
+@media (max-width: 767px) {
+  .mcb-section .mcb-wrap .mfn-header-tmpl-menu-sidebar .mfn-header-menu > li > a {
+    font-size: 19px;
+    color: #999 !important;
+  }
+}
+
+/* hide the hamburger icon to switch postcards versions */
+main#alumni-historiek-content .nav-hamburger {
+  display: none;
+}

@@ -1089,14 +1089,32 @@ function alumni_historiek_enqueue_public_assets(): void {
             'body.alumni-historiek-page .mcb-column.column_header_burger,' .
             'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger{display:inline-flex !important;}' .
             'body.alumni-historiek-page #Top_bar a.responsive-menu-toggle{display:block !important;}' .
+            // injected fallback burger (shown when the BeTheme header renders
+            // no native burger element at all)
+            'body.alumni-historiek-page .alumni-historiek-injected-burger{display:inline-flex !important;}' .
+            'body.alumni-historiek-page .mfn-header-menu.alumni-historiek-menu-open{' .
+                'display:flex !important;flex-direction:column !important;position:absolute !important;' .
+                'top:100% !important;left:0 !important;right:0 !important;z-index:9999 !important;' .
+                'background:#fff !important;padding:12px 16px !important;box-shadow:0 8px 24px rgba(0,0,0,0.15) !important;' .
+            '}' .
+            'body.alumni-historiek-page .mfn-header-menu.alumni-historiek-menu-open .mfn-menu-li{width:100% !important;}' .
+            'body.alumni-historiek-page .mfn-header-menu.alumni-historiek-menu-open .mfn-menu-link{color:#222 !important;}' .
             '}' . "\n";
+        $theme_css .= '.alumni-historiek-injected-burger{display:none;align-items:center;justify-content:center;' .
+            'width:44px;height:44px;background:transparent;border:0;cursor:pointer;padding:0;margin-left:auto;color:inherit;}' .
+            '.alumni-historiek-injected-burger span{display:block;width:24px;height:2px;background:currentColor;position:relative;}' .
+            '.alumni-historiek-injected-burger span::before,' .
+            '.alumni-historiek-injected-burger span::after{content:"";position:absolute;left:0;width:24px;height:2px;background:currentColor;}' .
+            '.alumni-historiek-injected-burger span::before{top:-7px;}' .
+            '.alumni-historiek-injected-burger span::after{top:7px;}' . "\n";
     } else {
         // Hide the burger, force the full horizontal menu.
         $theme_css .= '@media (min-width:768px) and (max-width:1024px){' .
             'body.alumni-historiek-page .column_header_burger,' .
             'body.alumni-historiek-page .mcb-column.column_header_burger,' .
             'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger,' .
-            'body.alumni-historiek-page #Top_bar a.responsive-menu-toggle{display:none !important;}' .
+            'body.alumni-historiek-page #Top_bar a.responsive-menu-toggle,' .
+            'body.alumni-historiek-page .alumni-historiek-injected-burger{display:none !important;}' .
             'body.alumni-historiek-page .mfn-main-menu,' .
             'body.alumni-historiek-page .mfn-header-menu{display:flex !important;}' .
             'body.alumni-historiek-page #Top_bar #menu,' .
@@ -1108,6 +1126,49 @@ function alumni_historiek_enqueue_public_assets(): void {
     wp_add_inline_style('alumni-historiek-theme-overrides', $theme_css);
 }
 add_action('wp_enqueue_scripts', 'alumni_historiek_enqueue_public_assets');
+
+function alumni_historiek_inject_tablet_burger(): void {
+    if (!alumni_historiek_is_public_request() || alumni_historiek_get_render_mode() !== 'theme') {
+        return;
+    }
+    if (!alumni_historiek_is_theme_tablet_hamburger_enabled()) {
+        return;
+    }
+    ?>
+    <script>
+    (function(){
+        function init(){
+            var menus = document.querySelectorAll('.mfn-header-menu');
+            if (!menus.length) { return; }
+            menus.forEach(function(menu){
+                if (menu.previousElementSibling && menu.previousElementSibling.classList && menu.previousElementSibling.classList.contains('alumni-historiek-injected-burger')) { return; }
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'alumni-historiek-injected-burger';
+                btn.setAttribute('aria-label', 'Menu');
+                btn.setAttribute('aria-expanded', 'false');
+                btn.innerHTML = '<span></span>';
+                btn.addEventListener('click', function(e){
+                    e.preventDefault();
+                    var open = menu.classList.toggle('alumni-historiek-menu-open');
+                    btn.classList.toggle('is-open', open);
+                    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                });
+                if (menu.parentNode) {
+                    menu.parentNode.insertBefore(btn, menu);
+                }
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+    <?php
+}
+add_action('wp_footer', 'alumni_historiek_inject_tablet_burger');
 
 function alumni_historiek_add_body_class(array $classes): array {
     if (alumni_historiek_is_public_request() && alumni_historiek_get_render_mode() === 'theme') {

@@ -4,7 +4,33 @@ declare(strict_types=1);
 /**
  * Build and download a standalone ZIP of this project on demand.
  * Excludes VCS/editor/macOS artifacts and original_poster source files.
+ *
+ * Access is restricted to WordPress administrators (manage_options capability).
  */
+
+// Bootstrap WordPress so we can check authentication.
+$wp_load_candidates = [
+    __DIR__ . '/../../../wp-load.php',
+    __DIR__ . '/../../../../wp-load.php',
+];
+$wp_loaded = false;
+foreach ($wp_load_candidates as $wp_load) {
+    if (is_file($wp_load)) {
+        require_once $wp_load;
+        $wp_loaded = true;
+        break;
+    }
+}
+if (!$wp_loaded || !function_exists('current_user_can')) {
+    http_response_code(403);
+    echo 'Forbidden.';
+    exit;
+}
+if (!current_user_can('manage_options')) {
+    http_response_code(403);
+    echo 'Forbidden.';
+    exit;
+}
 
 $root = __DIR__;
 $versionParam = isset($_GET['version']) ? (string) $_GET['version'] : '';

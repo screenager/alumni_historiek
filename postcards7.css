@@ -343,10 +343,12 @@ header p {
 }
 
 .postcard-front img {
-    width: 100%;
-    height: 100%;
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
     object-fit: cover;
     border-radius: 4px;
+    vertical-align: bottom;
 }
 
 .postcard-front-overlay {
@@ -1016,7 +1018,7 @@ h3.postcard-back-text-label {
     :root {
         --card-width: 380px;
         --card-height: 550px;
-        --card-front-border-width: 16px;
+        --card-front-border-width: 5px;
         --back-content-width: 550px;
         --back-content-height: 380px;
         --focused-label-size: 1.2rem;

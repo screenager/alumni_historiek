@@ -1099,6 +1099,9 @@ function alumni_historiek_enqueue_public_assets(): void {
             '}' .
             'body.alumni-historiek-page .mfn-header-menu.alumni-historiek-menu-open .mfn-menu-li{width:100% !important;}' .
             'body.alumni-historiek-page .mfn-header-menu.alumni-historiek-menu-open .mfn-menu-link{color:#222 !important;}' .
+            // align the burger to the right edge on tablets (matches mobile fix)
+            'body.alumni-historiek-page .column_header_burger,' .
+            'body.alumni-historiek-page .alumni-historiek-injected-burger{position:absolute !important;right:20px !important;top:50% !important;transform:translateY(-50%) !important;margin-left:0 !important;}' .
             '}' . "\n";
         $theme_css .= '.alumni-historiek-injected-burger{display:none;align-items:center;justify-content:center;' .
             'width:44px;height:44px;background:transparent;border:0;cursor:pointer;padding:0;margin-left:auto;color:inherit;}' .

@@ -1069,9 +1069,22 @@ function alumni_historiek_enqueue_public_assets(): void {
         'body.alumni-historiek-page .mcb-column.column_header_burger,' .
         'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger{display:none !important;}' .
         '}' . "\n";
-    // BeTheme natively shows the hamburger on tablet widths. When the admin
-    // turns this option OFF, force the full horizontal menu instead.
-    if (!alumni_historiek_is_theme_tablet_hamburger_enabled()) {
+    // BeTheme natively shows the hamburger on tablet widths in some
+    // configurations but not all. Force the desired behavior either way.
+    if (alumni_historiek_is_theme_tablet_hamburger_enabled()) {
+        // Hide the full horizontal menu, show the burger.
+        $theme_css .= '@media (min-width:768px) and (max-width:1024px){' .
+            'body.alumni-historiek-page .column_menu,' .
+            'body.alumni-historiek-page .menu_wrapper,' .
+            'body.alumni-historiek-page #Top_bar .menu_wrapper,' .
+            'body.alumni-historiek-page .mfn-main-menu,' .
+            'body.alumni-historiek-page .mfn-header-menu{display:none !important;}' .
+            'body.alumni-historiek-page .column_header_burger,' .
+            'body.alumni-historiek-page .mcb-column.column_header_burger,' .
+            'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger{display:inline-flex !important;}' .
+            '}' . "\n";
+    } else {
+        // Hide the burger, force the full horizontal menu.
         $theme_css .= '@media (min-width:768px) and (max-width:1024px){' .
             'body.alumni-historiek-page .column_header_burger,' .
             'body.alumni-historiek-page .mcb-column.column_header_burger,' .

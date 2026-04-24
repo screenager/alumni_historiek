@@ -1067,33 +1067,40 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= '@media (min-width:1025px){' .
         'body.alumni-historiek-page .column_header_burger,' .
         'body.alumni-historiek-page .mcb-column.column_header_burger,' .
-        'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger{display:none !important;}' .
+        'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger,' .
+        'body.alumni-historiek-page #Top_bar a.responsive-menu-toggle{display:none !important;}' .
         '}' . "\n";
-    // BeTheme natively shows the hamburger on tablet widths in some
-    // configurations but not all. Force the desired behavior either way.
+    // BeTheme has two header systems: the classic header (uses
+    // a.responsive-menu-toggle inside #Top_bar) and the builder header (uses
+    // .column_header_burger). Cover both so the toggle works regardless of
+    // which one is active on the site.
     if (alumni_historiek_is_theme_tablet_hamburger_enabled()) {
-        // Hide the full horizontal menu, show the burger.
+        // Hide the horizontal menu, show the burger.
         $theme_css .= '@media (min-width:768px) and (max-width:1024px){' .
-            'body.alumni-historiek-page .column_menu,' .
-            'body.alumni-historiek-page .menu_wrapper,' .
-            'body.alumni-historiek-page #Top_bar .menu_wrapper,' .
+            // builder header: hide menu
             'body.alumni-historiek-page .mfn-main-menu,' .
-            'body.alumni-historiek-page .mfn-header-menu{display:none !important;}' .
+            'body.alumni-historiek-page .mfn-header-menu,' .
+            // classic header: hide the <ul> menu but keep .menu_wrapper so
+            // the burger (which lives inside it) stays rendered
+            'body.alumni-historiek-page #Top_bar #menu,' .
+            'body.alumni-historiek-page #Top_bar .menu{display:none !important;}' .
+            // show burger (both headers)
             'body.alumni-historiek-page .column_header_burger,' .
             'body.alumni-historiek-page .mcb-column.column_header_burger,' .
             'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger{display:inline-flex !important;}' .
+            'body.alumni-historiek-page #Top_bar a.responsive-menu-toggle{display:block !important;}' .
             '}' . "\n";
     } else {
         // Hide the burger, force the full horizontal menu.
         $theme_css .= '@media (min-width:768px) and (max-width:1024px){' .
             'body.alumni-historiek-page .column_header_burger,' .
             'body.alumni-historiek-page .mcb-column.column_header_burger,' .
-            'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger{display:none !important;}' .
-            'body.alumni-historiek-page .column_menu,' .
-            'body.alumni-historiek-page .menu_wrapper,' .
-            'body.alumni-historiek-page #Top_bar .menu_wrapper,' .
+            'body.alumni-historiek-page .mfn-header-tmpl .column_header_burger,' .
+            'body.alumni-historiek-page #Top_bar a.responsive-menu-toggle{display:none !important;}' .
             'body.alumni-historiek-page .mfn-main-menu,' .
             'body.alumni-historiek-page .mfn-header-menu{display:flex !important;}' .
+            'body.alumni-historiek-page #Top_bar #menu,' .
+            'body.alumni-historiek-page #Top_bar .menu{display:block !important;}' .
             '}' . "\n";
     }
     wp_register_style('alumni-historiek-theme-overrides', false);

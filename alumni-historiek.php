@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.135
+ * Version: 7.138
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -684,6 +684,32 @@ function alumni_historiek_is_theme_background_enabled(): bool {
     return (string) get_option('alumni_historiek_theme_bg_enabled', '1') === '1';
 }
 
+function alumni_historiek_get_theme_background_image(): string {
+    $image = (string) get_option('alumni_historiek_theme_bg_image', 'aula_wideshot');
+    return in_array($image, ['aula_wideshot', 'pinnochio'], true) ? $image : 'aula_wideshot';
+}
+
+function alumni_historiek_get_background_css_config(?string $image = null): array {
+    $image = $image ?? alumni_historiek_get_theme_background_image();
+    if ($image === 'pinnochio') {
+        return [
+            'file' => 'pinnochio.jpg',
+            'position' => 'top left',
+            'size' => 'cover',
+            'repeat' => 'no-repeat',
+            'attachment' => 'fixed',
+        ];
+    }
+
+    return [
+        'file' => 'aula_wideshot.jpg',
+        'position' => 'center center',
+        'size' => 'cover',
+        'repeat' => 'no-repeat',
+        'attachment' => 'fixed',
+    ];
+}
+
 function alumni_historiek_is_theme_hamburger_enabled(): bool {
     return (string) get_option('alumni_historiek_theme_hamburger_enabled', '0') === '1';
 }
@@ -907,6 +933,7 @@ function alumni_historiek_enqueue_public_assets(): void {
     $inline = 'window.HISTORIEK_DATA_URL = ' . wp_json_encode($data_url) . ';';
     $inline .= 'window.HISTORIEK_ASSETS_BASE_URL = ' . wp_json_encode($concerts_base) . ';';
     $inline .= 'window.HISTORIEK_IS_WORDPRESS = true;';
+    $inline .= 'window.HISTORIEK_BACKGROUND_IMAGE = ' . wp_json_encode(alumni_historiek_get_theme_background_image()) . ';';
     if ($hamburger_enabled) {
         $inline .= 'window.HISTORIEK_SHOW_NAV = true;';
     }
@@ -918,14 +945,18 @@ function alumni_historiek_enqueue_public_assets(): void {
 
     $background_enabled = alumni_historiek_is_theme_background_enabled();
     $hide_topheader = alumni_historiek_is_theme_topheader_hidden();
-    $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . 'aula_wideshot.jpg');
+    $background_config = alumni_historiek_get_background_css_config();
+    $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . $background_config['file']);
     $theme_css = 'body.alumni-historiek-page{';
     $theme_css .= ($hamburger_enabled || $hide_topheader) ? '--top-header-height:0px;' : '--top-header-height:100px;';
     $theme_css .= 'overflow:hidden !important;';
     $theme_css .= 'height:100vh !important;';
     if ($background_enabled) {
-        $theme_css .= 'background:url(' . $background_url . ') no-repeat center center fixed;';
-        $theme_css .= 'background-size:cover;';
+        $theme_css .= 'background-image:url(' . $background_url . ');';
+        $theme_css .= 'background-repeat:' . $background_config['repeat'] . ';';
+        $theme_css .= 'background-position:' . $background_config['position'] . ';';
+        $theme_css .= 'background-attachment:' . $background_config['attachment'] . ';';
+        $theme_css .= 'background-size:' . $background_config['size'] . ';';
     } else {
         $theme_css .= 'background-image:none !important;';
         $theme_css .= 'background-color:inherit !important;';
@@ -1049,6 +1080,17 @@ function alumni_historiek_enqueue_public_assets(): void {
     $theme_css .= 'bottom:var(--focused-label-bottom);';
     $theme_css .= '}';
     $theme_css .= "}\n";
+    if ($background_enabled && alumni_historiek_get_theme_background_image() === 'pinnochio') {
+        $theme_css .= 'body.alumni-historiek-page.historiek-bg-pinnochio .historiek-header .swipe-hint,';
+        $theme_css .= 'body.alumni-historiek-page.historiek-bg-pinnochio .focused-label,';
+        $theme_css .= 'body.alumni-historiek-page.historiek-bg-pinnochio .card-close-btn,';
+        $theme_css .= 'body.alumni-historiek-page.historiek-bg-pinnochio .card-close-btn:hover{';
+        $theme_css .= 'background:#BEA75B !important;';
+        $theme_css .= "}\n";
+        $theme_css .= 'body.alumni-historiek-page.historiek-bg-pinnochio .postcard-back-title{';
+        $theme_css .= 'color:#392f62;';
+        $theme_css .= "}\n";
+    }
     if ($background_enabled) {
         $theme_css .= 'body.alumni-historiek-page .mfn-header-tmpl .mfn-icon-box .icon-wrapper i{color:#fff !important;}' . "\n";
     }
@@ -1223,8 +1265,13 @@ function alumni_historiek_render_full_page(): void {
     if ($hamburger_enabled) {
         $inline_js .= ' window.HISTORIEK_SHOW_NAV = true;';
     }
+    $inline_js .= ' window.HISTORIEK_BACKGROUND_IMAGE = ' . wp_json_encode(alumni_historiek_get_theme_background_image()) . ';';
     $inject .= "<script>{$inline_js}</script>\n";
-    if (!alumni_historiek_is_theme_background_enabled()) {
+    $background_config = alumni_historiek_get_background_css_config();
+    $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . $background_config['file']);
+    if (alumni_historiek_is_theme_background_enabled()) {
+        $inject .= "<style>body{background-image:url({$background_url}) !important;background-repeat:" . esc_html($background_config['repeat']) . " !important;background-position:" . esc_html($background_config['position']) . " !important;background-attachment:" . esc_html($background_config['attachment']) . " !important;background-size:" . esc_html($background_config['size']) . " !important;}</style>\n";
+    } else {
         $inject .= "<style>body{background-image:none !important;background-color:inherit !important;}header{background:unset !important;backdrop-filter:unset !important;-webkit-mask-image:unset !important;mask-image:unset !important;}</style>\n";
     }
 
@@ -1469,6 +1516,11 @@ function alumni_historiek_save_settings(): void {
 
     $theme_bg_enabled = isset($_POST['theme_bg_enabled']) && $_POST['theme_bg_enabled'] === '1' ? '1' : '0';
 
+    $theme_bg_image = isset($_POST['theme_bg_image']) ? (string) $_POST['theme_bg_image'] : 'aula_wideshot';
+    if (!in_array($theme_bg_image, ['aula_wideshot', 'pinnochio'], true)) {
+        $theme_bg_image = 'aula_wideshot';
+    }
+
     $theme_hamburger_enabled = isset($_POST['theme_hamburger_enabled']) && $_POST['theme_hamburger_enabled'] === '1' ? '1' : '0';
 
     $theme_tablet_hamburger_enabled = isset($_POST['theme_tablet_hamburger_enabled']) && $_POST['theme_tablet_hamburger_enabled'] === '1' ? '1' : '0';
@@ -1484,6 +1536,7 @@ function alumni_historiek_save_settings(): void {
 
     update_option('alumni_historiek_render_mode', $mode);
     update_option('alumni_historiek_theme_bg_enabled', $theme_bg_enabled);
+    update_option('alumni_historiek_theme_bg_image', $theme_bg_image);
     update_option('alumni_historiek_theme_hamburger_enabled', $theme_hamburger_enabled);
     update_option('alumni_historiek_theme_tablet_hamburger_enabled', $theme_tablet_hamburger_enabled);
     update_option('alumni_historiek_theme_hide_topheader', $theme_hide_topheader);
@@ -1525,6 +1578,7 @@ function alumni_historiek_render_admin_screen(): void {
 
     $render_mode = alumni_historiek_get_render_mode();
     $theme_bg_enabled = alumni_historiek_is_theme_background_enabled();
+    $theme_bg_image = alumni_historiek_get_theme_background_image();
     $theme_hamburger_enabled = alumni_historiek_is_theme_hamburger_enabled();
     $theme_tablet_hamburger_enabled = alumni_historiek_is_theme_tablet_hamburger_enabled();
     $theme_hide_topheader = alumni_historiek_is_theme_topheader_hidden();
@@ -1559,6 +1613,14 @@ function alumni_historiek_render_admin_screen(): void {
     echo '<label style="display:block;margin-bottom:6px;">';
     echo '<input type="checkbox" name="theme_bg_enabled" value="1"' . checked($theme_bg_enabled, true, false) . '> ';
     echo 'Achtergrondafbeelding tonen op /historiek</label>';
+    echo '<p style="margin-bottom:6px;"><strong>Achtergrondkeuze</strong></p>';
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="radio" name="theme_bg_image" value="aula_wideshot"' . checked($theme_bg_image, 'aula_wideshot', false) . '> ';
+    echo 'aula_wideshot</label>';
+    echo '<label style="display:block;margin-bottom:6px;">';
+    echo '<input type="radio" name="theme_bg_image" value="pinnochio"' . checked($theme_bg_image, 'pinnochio', false) . '> ';
+    echo 'pinnochio</label>';
+    echo '<p class="description" style="margin-top:4px;">Pinnochio gebruikt dezelfde plaatsing als de BeTheme homepage: top-left, cover.</p>';
     echo '</fieldset>';
     echo '<fieldset style="margin-top:12px;" id="fieldset-hamburger">';
     echo '<legend class="screen-reader-text">Navigatie (WordPress thema modus)</legend>';

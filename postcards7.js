@@ -17,6 +17,9 @@ const dataUrl = window.HISTORIEK_DATA_URL || 'concertData.json';
 $.getJSON(dataUrl, function(data) {
     const concertData = data.concerts || data; // fallback if it's still just an array
     const headerData = data.header || {};
+    const settingsData = data.settings || {};
+    const backgroundImage = window.HISTORIEK_BACKGROUND_IMAGE || settingsData.background_image || 'aula_wideshot';
+    document.body.classList.toggle('historiek-bg-pinnochio', backgroundImage === 'pinnochio');
 
     if (headerData.h1) {
         $('#mainTitle').text(headerData.h1);

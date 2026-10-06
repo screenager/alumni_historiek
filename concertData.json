@@ -246,5 +246,8 @@
                 { "thumb": "pictures/foto5_thumb.jpeg", "full": "pictures/foto5.jpeg", "alt": "Foto van de verteller Frans tijdens het lezen uit het sprookjesboek" }
             ]
         }
-    ]
+    ],
+    "settings": {
+        "background_image": "pinnochio"
+    }
 }

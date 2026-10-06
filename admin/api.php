@@ -149,6 +149,45 @@ define('RATE_LIMIT_FILE', $storage['private_dir'] . '/rate_limits.json');
 define('MAX_LOGIN_ATTEMPTS', 5);
 define('RATE_LIMIT_WINDOW', 900);
 
+function sanitizeBackgroundImage(string $image): string {
+    return in_array($image, ['aula_wideshot', 'pinnochio'], true) ? $image : 'aula_wideshot';
+}
+
+function backgroundSettings(): array {
+    global $IS_WP_MODE;
+
+    if ($IS_WP_MODE) {
+        return [
+            'background_image' => sanitizeBackgroundImage((string) get_option('alumni_historiek_theme_bg_image', 'aula_wideshot')),
+        ];
+    }
+
+    $data = loadData();
+    $settings = $data['settings'] ?? [];
+    if (!is_array($settings)) {
+        $settings = [];
+    }
+
+    return [
+        'background_image' => sanitizeBackgroundImage((string) ($settings['background_image'] ?? 'aula_wideshot')),
+    ];
+}
+
+function saveBackgroundSettings(array $settings): void {
+    global $IS_WP_MODE;
+
+    $backgroundImage = sanitizeBackgroundImage((string) ($settings['background_image'] ?? 'aula_wideshot'));
+    if ($IS_WP_MODE) {
+        update_option('alumni_historiek_theme_bg_image', $backgroundImage);
+        return;
+    }
+
+    $data = loadData();
+    $data['settings'] = is_array($data['settings'] ?? null) ? $data['settings'] : [];
+    $data['settings']['background_image'] = $backgroundImage;
+    saveData($data);
+}
+
 function auditLog(string $user, string $action, string $detail = ''): void {
     global $IS_WP_MODE;
     $ts = $IS_WP_MODE && function_exists('current_time') ? current_time('mysql') : date('Y-m-d H:i:s');
@@ -198,15 +237,29 @@ function loadData(): array {
     $decoded = json_decode($raw ?: '', true);
 
     if (!is_array($decoded)) {
-        return ['header' => ['h1' => '', 'swipe_hint' => '', 'flip_hint' => ''], 'concerts' => []];
+        return [
+            'header' => ['h1' => '', 'swipe_hint' => '', 'flip_hint' => ''],
+            'settings' => ['background_image' => 'aula_wideshot'],
+            'concerts' => [],
+        ];
     }
 
     if (!array_key_exists('concerts', $decoded)) {
-        return ['header' => ['h1' => '', 'swipe_hint' => '', 'flip_hint' => ''], 'concerts' => $decoded];
+        return [
+            'header' => ['h1' => '', 'swipe_hint' => '', 'flip_hint' => ''],
+            'settings' => ['background_image' => 'aula_wideshot'],
+            'concerts' => $decoded,
+        ];
     }
 
     if (!isset($decoded['header']) || !is_array($decoded['header'])) {
         $decoded['header'] = ['h1' => '', 'swipe_hint' => '', 'flip_hint' => ''];
+    }
+
+    if (!isset($decoded['settings']) || !is_array($decoded['settings'])) {
+        $decoded['settings'] = ['background_image' => 'aula_wideshot'];
+    } else {
+        $decoded['settings']['background_image'] = sanitizeBackgroundImage((string) ($decoded['settings']['background_image'] ?? 'aula_wideshot'));
     }
 
     return $decoded;
@@ -444,7 +497,9 @@ switch ($action) {
 
     case 'list':
         requireAuth();
-        jsonResponse(loadData());
+        $data = loadData();
+        $data['settings'] = backgroundSettings();
+        jsonResponse($data);
         break;
 
     case 'update_header':
@@ -462,6 +517,21 @@ switch ($action) {
 
         auditLog($user, 'update_header', 'h1=' . ($header['h1'] ?? ''));
         jsonResponse(['ok' => true]);
+        break;
+
+    case 'update_settings':
+        if ($method !== 'POST') jsonResponse(['error' => 'POST vereist'], 405);
+        $user = requireAuth();
+        requireCsrf();
+
+        $input = json_decode((string) file_get_contents('php://input'), true);
+        $settings = $input['settings'] ?? null;
+        if (!is_array($settings)) jsonResponse(['error' => 'settings vereist'], 400);
+
+        saveBackgroundSettings($settings);
+
+        auditLog($user, 'update_settings', 'background_image=' . sanitizeBackgroundImage((string) ($settings['background_image'] ?? 'aula_wideshot')));
+        jsonResponse(['ok' => true, 'settings' => backgroundSettings()]);
         break;
 
     case 'get':

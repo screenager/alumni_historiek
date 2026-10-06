@@ -53,6 +53,25 @@ body {
     overflow-x: hidden;
 }
 
+body.historiek-bg-pinnochio {
+    background-image: url('pinnochio.jpg');
+    background-repeat: no-repeat;
+    background-position: top left;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+body.historiek-bg-pinnochio .swipe-hint,
+body.historiek-bg-pinnochio .focused-label,
+body.historiek-bg-pinnochio .card-close-btn,
+body.historiek-bg-pinnochio .card-close-btn:hover {
+    background: #BEA75B !important;
+}
+
+body.historiek-bg-pinnochio .postcard-back-title {
+    color: #392f62;
+}
+
 body::before {
     content: '';
     position: fixed;

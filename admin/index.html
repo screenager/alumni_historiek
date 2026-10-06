@@ -27,6 +27,7 @@
         .upload-zone input[type="file"] { display: none; }
         .upload-progress { height: 4px; border-radius: 2px; background: #2a2a4a; overflow: hidden; }
         .upload-progress-bar { height: 100%; background: #667eea; transition: width .3s; }
+        #settingsForm .form-check-label { color: #e0e0e0; }
         .thumb-preview { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #3a3a5a; }
         .drag-handle { cursor: grab; opacity: .5; font-size: 1.2rem; user-select: none; }
         .drag-handle:active { cursor: grabbing; }
@@ -102,6 +103,34 @@
                 <div class="form-text text-secondary x-small">
                     Na wijzigen van de labels moet je mogelijk je browsercache legen of de pagina hard refreshen (Ctrl+F5) om de nieuwe teksten te zien.
                 </div>
+            </div>
+        </div>
+
+        <!-- Page settings -->
+        <div class="card mb-4 concert-card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold mb-3 d-flex align-items-center gap-2" style="color: rgb(224, 224, 224)">
+                   Pagina-instellingen
+                </h2>
+                <form id="settingsForm" onsubmit="event.preventDefault(); submitSettings();">
+                    <fieldset>
+                        <legend class="form-label small text-secondary mb-2">Achtergrondafbeelding</legend>
+                        <div class="form-check">
+                            <input id="backgroundAula" class="form-check-input" type="radio" name="background_image" value="aula_wideshot">
+                            <label class="form-check-label" for="backgroundAula">aula_wideshot</label>
+                        </div>
+                        <div class="form-check">
+                            <input id="backgroundPinnochio" class="form-check-input" type="radio" name="background_image" value="pinnochio">
+                            <label class="form-check-label" for="backgroundPinnochio">pinnochio</label>
+                        </div>
+                        <div class="form-text text-secondary x-small" style="font-size: 0.75rem;">
+                            Pinnochio gebruikt dezelfde positionering als de BeTheme homepage: top-left, cover.
+                        </div>
+                    </fieldset>
+                    <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Instellingen opslaan</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -425,6 +454,7 @@ async function loadConcerts() {
     concerts = data.concerts || [];
     renderList();
     fillHeaderForm(data.header || {});
+    fillSettingsForm(data.settings || {});
 }
 
 function fillHeaderForm(header) {
@@ -434,6 +464,39 @@ function fillHeaderForm(header) {
         form.querySelector('[name="swipe_hint"]').value = header.swipe_hint || '';
         form.querySelector('[name="flip_hint"]').value = header.flip_hint || '';
     }
+}
+
+function fillSettingsForm(settings) {
+    const form = document.getElementById('settingsForm');
+    if (!form) {
+        return;
+    }
+
+    const background = ['aula_wideshot', 'pinnochio'].includes(settings.background_image)
+        ? settings.background_image
+        : 'aula_wideshot';
+    const input = form.querySelector(`[name="background_image"][value="${background}"]`);
+    if (input) {
+        input.checked = true;
+    }
+}
+
+async function submitSettings() {
+    const form = document.getElementById('settingsForm');
+    const selected = form.querySelector('[name="background_image"]:checked');
+    const settings = {
+        background_image: selected ? selected.value : 'aula_wideshot'
+    };
+
+    const res = await fetch(`${API}?action=update_settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
+        body: JSON.stringify({ settings })
+    });
+    const result = await res.json();
+    if (!res.ok) { toast(result.error, 'danger'); return; }
+    fillSettingsForm(result.settings || settings);
+    toast('Pagina-instellingen bijgewerkt!', 'success');
 }
 
 async function submitHeader() {

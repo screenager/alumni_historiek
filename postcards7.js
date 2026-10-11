@@ -34,7 +34,6 @@ $.getJSON(dataUrl, function(data) {
     // revert order
     concertData.reverse();
 
-
     const $wrapper = $('#coverflowWrapper');
     let currentIndex = 0;
     let totalCards = concertData.length;
@@ -42,8 +41,69 @@ $.getJSON(dataUrl, function(data) {
     // Configuration: set to true to auto-flip the new card when swiping while flipped
     const autoFlipOnSwipe = false;
 
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[char]));
+    }
+
+    function normalizeExternalUrl(rawUrl) {
+        const url = String(rawUrl || '').trim();
+        if (!url) return '';
+        if (/^(https?:|mailto:|tel:)/i.test(url)) return url;
+        if (/^\/\//.test(url)) return 'https:' + url;
+        return 'https://' + url.replace(/^\/+/, '');
+    }
+
+    function normalizeLookupKey(value) {
+        return String(value || '')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+    }
+
+    function buildUrlLookup(items, valueField, urlField) {
+        const lookup = new Map();
+
+        items.forEach(item => {
+            const key = normalizeLookupKey(item[valueField]);
+            const url = normalizeExternalUrl(item[urlField]);
+
+            if (key && url && !lookup.has(key)) {
+                lookup.set(key, url);
+            }
+        });
+
+        return lookup;
+    }
+
+    function resolveBacksideUrl(rawUrl, lookup, keyValue) {
+        return normalizeExternalUrl(rawUrl) || lookup.get(normalizeLookupKey(keyValue)) || '';
+    }
+
+    function renderBacksideLink(label, url) {
+        const linkLabel = escapeHtml(label);
+        if (!url) return linkLabel;
+
+        return `<a class="postcard-back-field-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" tabindex="-1">${linkLabel}</a>`;
+    }
+
+    function renderBacksideLinkTarget(url) {
+        return url ? ` data-backside-url="${escapeHtml(url)}"` : '';
+    }
+
+    const directorUrlsByName = buildUrlLookup(concertData, 'director', 'director_url');
+    const coorporationUrlsByValue = buildUrlLookup(concertData, 'coorporation', 'coorporation_url');
+
     // Generate postcard HTML
     function generatePostcard(concert, index) {
+        const directorUrl = resolveBacksideUrl(concert.director_url, directorUrlsByName, concert.director);
+        const coorporationUrl = resolveBacksideUrl(concert.coorporation_url, coorporationUrlsByValue, concert.coorporation);
         const repertoireRaw = (concert.Repertoire || '').trim();
         const hasRepertoire = repertoireRaw.length > 0;
         const repertoireHtml = hasRepertoire
@@ -99,12 +159,12 @@ $.getJSON(dataUrl, function(data) {
                                 ${hasRepertoire && repertoireHtml ? `<h3 class="postcard-back-repertoire-label">Repertoire</h3>
                                 <div class="postcard-back-repertoire" data-custom-scroll><ul>${repertoireHtml}</ul></div>` : ''}
                                 <div class="postcard-back-bottom-row">
-                                    ${concert.director ? `<div class="postcard-back-director">
+                                    ${concert.director ? `<div class="postcard-back-director"${renderBacksideLinkTarget(directorUrl)}>
                                         <dl><dt>Dirigent</dt>
-                                        <dd>${concert.director}</dd></dl>
+                                        <dd>${renderBacksideLink(concert.director, directorUrl)}</dd></dl>
                                     </div>` : ''}
-                                    ${concert.coorporation ? `<div class="postcard-back-coorporation">
-                                        <dl><dt>${concert.coorporation_label || 'Medewerking'}</dt>
+                                    ${concert.coorporation ? `<div class="postcard-back-coorporation"${renderBacksideLinkTarget(coorporationUrl)}>
+                                        <dl><dt>${renderBacksideLink(concert.coorporation_label || 'Medewerking', coorporationUrl)}</dt>
                                         <dd>${concert.coorporation}</dd></dl>
                                     </div>` : ''}
                                 </div>
@@ -154,10 +214,10 @@ $.getJSON(dataUrl, function(data) {
         }, 1200);
     });
 
-    // Helper: toggle tabindex on concert images when card is flipped/unflipped
+    // Helper: toggle tabindex on backside controls when card is flipped/unflipped
     function updateFlippedImageTabindex($card) {
         const isFlipped = $card.hasClass('flipped');
-        $card.find('.concert-img[role="button"]').attr('tabindex', isFlipped ? '0' : '-1');
+        $card.find('.concert-img[role="button"], .postcard-back-field-link').attr('tabindex', isFlipped ? '0' : '-1');
     }
 
     // History debounce timer
@@ -288,7 +348,10 @@ $.getJSON(dataUrl, function(data) {
                 el.setAttribute('aria-hidden', 'false');
             } else {
                 el.classList.remove('focused');
-                el.classList.remove('flipped');
+                if (el.classList.contains('flipped')) {
+                    el.classList.remove('flipped');
+                    updateFlippedImageTabindex($(el));
+                }
                 el.setAttribute('aria-hidden', absOffset > 4 ? 'true' : 'false');
             }
         }
@@ -378,11 +441,23 @@ $.getJSON(dataUrl, function(data) {
         goNext();
     });
 
+    $('.coverflow-container').on('click', '.postcard-back-field-link', function(e) {
+        e.stopPropagation();
+    });
+
+    $('.coverflow-container').on('click', '.postcard-back-bottom-row [data-backside-url]', function(e) {
+        if ($(e.target).closest('a[href]').length) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(this.dataset.backsideUrl, '_blank', 'noopener,noreferrer');
+    });
+
     // Click handler using manual hit detection for better 3D support
     let lightboxOpen = false;
     $('.coverflow-container').on('click', function(e) {
         // Don't handle clicks on navigation buttons or card close button
-        if ($(e.target).closest('.coverflow-nav, .card-close-btn').length) return;
+        if ($(e.target).closest('.coverflow-nav, .card-close-btn, a[href], [data-backside-url]').length) return;
         // Don't flip card if lightbox is open or click came from an image/lightbox
         if (lightboxOpen) return;
         if ($(e.target).closest('.postcard-back-images').length) return;

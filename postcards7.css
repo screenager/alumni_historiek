@@ -619,6 +619,30 @@ h3.postcard-back-text-label {
     line-height: 1.25;
 }
 
+.postcard-back-bottom-row [data-backside-url] {
+    cursor: pointer;
+}
+
+.postcard-back-bottom-row [data-backside-url]::before {
+    content: '';
+    position: absolute;
+    inset: -0.25rem;
+}
+
+.postcard-back-field-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: rgba(68, 68, 68, 0.35);
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.14em;
+}
+
+.postcard-back-field-link:hover,
+.postcard-back-field-link:focus-visible {
+    color: #1a1a2e;
+    text-decoration-color: rgba(26, 26, 46, 0.55);
+}
+
 .postcard-back-right {
     width: 48%;
     height: 100%;

@@ -160,12 +160,14 @@ header p {
     display: none;
 }
 
-.non-mobile-br {
+.non-mobile-br,
+.none-mobile-br {
     display: none;
 }
 
 @media (min-width: 769px) {
-    .non-mobile-br {
+    .non-mobile-br,
+    .none-mobile-br {
         display: block;
     }
 }
@@ -1376,7 +1378,8 @@ h3.postcard-back-text-label {
         display: block;
     }
 
-    .non-mobile-br {
+    .non-mobile-br,
+    .none-mobile-br {
         display: none !important;
     }
     

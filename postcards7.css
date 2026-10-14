@@ -1143,7 +1143,7 @@ h3.postcard-back-text-label {
 
 @media (max-width: 768px) {
     .lightbox-content--video .lightbox-nav-btn {
-        bottom: 4px;
+        bottom: -30px;
         width: 25px;
         height: 25px;
     }
@@ -1151,7 +1151,7 @@ h3.postcard-back-text-label {
     .lightbox-close-btn,
     .lightbox-nav-btn {
         position: absolute;
-        bottom: 3px;
+        bottom: -30px;
         width: 25px;
         height: 25px;
     }

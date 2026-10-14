@@ -1174,7 +1174,6 @@ async function doSubmit() {
     data.videos = [];
     const saveButton = document.getElementById('saveConcertButton');
     const originalSaveLabel = saveButton.textContent;
-    let posterFailures = 0;
     saveButton.disabled = true;
     try {
         for (const row of videoRows) {
@@ -1190,9 +1189,7 @@ async function doSubmit() {
                     try {
                         const videoUrl = `${getConcertsUrl(getConcertFolder())}/${src}`;
                         videoObj.posterData = await captureVideoPoster(videoUrl);
-                    } catch (error) {
-                        posterFailures++;
-                    }
+                    } catch (error) {}
                 }
                 data.videos.push(videoObj);
             }
@@ -1233,9 +1230,7 @@ async function doSubmit() {
     if (!res.ok) { toast(result.error, 'danger'); return; }
 
     editModalBS.hide();
-    toast(posterFailures
-        ? `${isEdit ? 'Concert bijgewerkt' : 'Concert toegevoegd'}, maar ${posterFailures} video poster(s) konden niet worden gemaakt.`
-        : (isEdit ? 'Concert bijgewerkt!' : 'Concert toegevoegd!'), posterFailures ? 'warning' : 'success');
+    toast(isEdit ? 'Concert bijgewerkt!' : 'Concert toegevoegd!', 'success');
     loadConcerts();
 }
 

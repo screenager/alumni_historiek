@@ -149,25 +149,45 @@ define('RATE_LIMIT_FILE', $storage['private_dir'] . '/rate_limits.json');
 define('MAX_LOGIN_ATTEMPTS', 5);
 define('RATE_LIMIT_WINDOW', 900);
 
+function generateVideoPosterWithFfmpeg(string $videoPath, string $posterPath): bool {
+    if (!function_exists('exec')) {
+        return false;
+    }
+
+    $ffmpegPath = '';
+    $whichOutput = [];
+    $whichStatus = 1;
+    @exec('command -v ffmpeg 2>/dev/null', $whichOutput, $whichStatus);
+    if ($whichStatus === 0 && !empty($whichOutput[0])) {
+        $ffmpegPath = trim((string) $whichOutput[0]);
+    }
+    if ($ffmpegPath === '') {
+        return false;
+    }
+
+    $command = escapeshellarg($ffmpegPath)
+        . ' -nostdin -y -ss 0.2 -i ' . escapeshellarg($videoPath)
+        . ' -frames:v 1 -vf ' . escapeshellarg('scale=640:-2')
+        . ' -q:v 3 ' . escapeshellarg($posterPath) . ' 2>&1';
+    $output = [];
+    $status = 1;
+    @exec($command, $output, $status);
+
+    return $status === 0 && is_file($posterPath) && filesize($posterPath) > 0;
+}
+
 function persistVideoPosters(array $videos, string $concertFolder): ?array {
     foreach ($videos as &$video) {
-        if (!is_array($video) || empty($video['posterData'])) {
-            if (is_array($video)) {
-                unset($video['posterData']);
-            }
+        if (!is_array($video)) {
+            continue;
+        }
+        if (!empty($video['poster'])) {
+            unset($video['posterData']);
             continue;
         }
 
-        $posterData = (string) $video['posterData'];
-        if (!preg_match('/^data:image\/jpeg;base64,([A-Za-z0-9+\/=]+)$/', $posterData, $matches)
-            || strlen($matches[1]) > 5000000
-            || !preg_match('/^videos\/video(\d+)\.[a-z0-9]+$/i', (string) ($video['src'] ?? ''), $srcMatches)
+        if (!preg_match('/^videos\/video(\d+)\.[a-z0-9]+$/i', (string) ($video['src'] ?? ''), $srcMatches)
             || !preg_match('/^[a-z0-9_]+$/i', $concertFolder)) {
-            return null;
-        }
-
-        $imageBytes = base64_decode($matches[1], true);
-        if ($imageBytes === false || strlen($imageBytes) < 4 || !str_starts_with($imageBytes, "\xFF\xD8\xFF")) {
             return null;
         }
 
@@ -179,7 +199,21 @@ function persistVideoPosters(array $videos, string $concertFolder): ?array {
         $posterFilename = 'video' . $srcMatches[1] . '_poster.jpg';
         $posterPath = CONCERTS_DIR . '/' . $concertFolder . '/videos/' . $posterFilename;
         ensureDir(dirname($posterPath));
-        if (file_put_contents($posterPath, $imageBytes, LOCK_EX) === false) {
+
+        if (!empty($video['posterData'])) {
+            $posterData = (string) $video['posterData'];
+            if (!preg_match('/^data:image\/jpeg;base64,([A-Za-z0-9+\/=]+)$/', $posterData, $matches)
+                || strlen($matches[1]) > 5000000) {
+                return null;
+            }
+            $imageBytes = base64_decode($matches[1], true);
+            if ($imageBytes === false || strlen($imageBytes) < 4 || !str_starts_with($imageBytes, "\xFF\xD8\xFF")) {
+                return null;
+            }
+            if (file_put_contents($posterPath, $imageBytes, LOCK_EX) === false) {
+                return null;
+            }
+        } elseif (!generateVideoPosterWithFfmpeg($videoPath, $posterPath)) {
             return null;
         }
 
@@ -605,7 +639,7 @@ switch ($action) {
         $concertFolder = ($oldConcert['year'] ?? '') . '_' . ($oldConcert['slug'] ?? '');
         $newVideos = persistVideoPosters(is_array($data['videos'] ?? null) ? $data['videos'] : [], $concertFolder);
         if ($newVideos === null) {
-            jsonResponse(['error' => 'Een of meer video posters konden niet worden opgeslagen. Controleer de video en probeer opnieuw.'], 400);
+            jsonResponse(['error' => 'Een of meer video posters konden niet worden gemaakt. Controleer of de browser of server het videoformaat kan verwerken en probeer opnieuw.'], 400);
         }
         $data['videos'] = $newVideos;
 
@@ -691,7 +725,7 @@ switch ($action) {
         $concertFolder = (string) ($data['year'] ?? '') . '_' . (string) ($data['slug'] ?? '');
         $videos = persistVideoPosters(is_array($data['videos'] ?? null) ? $data['videos'] : [], $concertFolder);
         if ($videos === null) {
-            jsonResponse(['error' => 'Een of meer video posters konden niet worden opgeslagen. Controleer de video en probeer opnieuw.'], 400);
+            jsonResponse(['error' => 'Een of meer video posters konden niet worden gemaakt. Controleer of de browser of server het videoformaat kan verwerken en probeer opnieuw.'], 400);
         }
         $data['videos'] = $videos;
 

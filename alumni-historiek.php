@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.135
+ * Version: 7.136
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -896,6 +896,11 @@ function alumni_historiek_enqueue_public_assets(): void {
     $inline = 'window.HISTORIEK_DATA_URL = ' . wp_json_encode($data_url) . ';';
     $inline .= 'window.HISTORIEK_ASSETS_BASE_URL = ' . wp_json_encode($concerts_base) . ';';
     $inline .= 'window.HISTORIEK_IS_WORDPRESS = true;';
+    $background_image = (string) get_option('alumni_historiek_theme_bg_image', 'aula_wideshot');
+    if (!in_array($background_image, ['aula_wideshot', 'pinnochio'], true)) {
+        $background_image = 'aula_wideshot';
+    }
+    $inline .= 'window.HISTORIEK_BACKGROUND_IMAGE = ' . wp_json_encode($background_image) . ';';
     if ($hamburger_enabled) {
         $inline .= 'window.HISTORIEK_SHOW_NAV = true;';
     }
@@ -907,13 +912,15 @@ function alumni_historiek_enqueue_public_assets(): void {
 
     $background_enabled = alumni_historiek_is_theme_background_enabled();
     $hide_topheader = alumni_historiek_is_theme_topheader_hidden();
-    $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . 'aula_wideshot.jpg');
+    $background_filename = $background_image === 'pinnochio' ? 'pinnochio.jpg' : 'aula_wideshot.jpg';
+    $background_url = esc_url(trailingslashit(ALUMNI_HISTORIEK_PLUGIN_URL) . $background_filename);
     $theme_css = 'body.alumni-historiek-page{';
     $theme_css .= ($hamburger_enabled || $hide_topheader) ? '--top-header-height:0px;' : '--top-header-height:100px;';
     $theme_css .= 'overflow:hidden !important;';
     $theme_css .= 'height:100vh !important;';
     if ($background_enabled) {
-        $theme_css .= 'background:url(' . $background_url . ') no-repeat center center fixed;';
+        $background_position = $background_image === 'pinnochio' ? 'top left' : 'center center';
+        $theme_css .= 'background:url(' . $background_url . ') no-repeat ' . $background_position . ' fixed;';
         $theme_css .= 'background-size:cover;';
     } else {
         $theme_css .= 'background-image:none !important;';
@@ -1103,7 +1110,11 @@ function alumni_historiek_render_full_page(): void {
     if ($site_icon_markup !== '') {
         $inject .= $site_icon_markup;
     }
-    $inline_js = 'window.HISTORIEK_DATA_URL = ' . wp_json_encode($data_url) . '; window.HISTORIEK_ASSETS_BASE_URL = ' . wp_json_encode($concerts_base) . '; window.HISTORIEK_IS_WORDPRESS = true;';
+    $background_image = (string) get_option('alumni_historiek_theme_bg_image', 'aula_wideshot');
+    if (!in_array($background_image, ['aula_wideshot', 'pinnochio'], true)) {
+        $background_image = 'aula_wideshot';
+    }
+    $inline_js = 'window.HISTORIEK_DATA_URL = ' . wp_json_encode($data_url) . '; window.HISTORIEK_ASSETS_BASE_URL = ' . wp_json_encode($concerts_base) . '; window.HISTORIEK_IS_WORDPRESS = true; window.HISTORIEK_BACKGROUND_IMAGE = ' . wp_json_encode($background_image) . ';';
     if ($hamburger_enabled) {
         $inline_js .= ' window.HISTORIEK_SHOW_NAV = true;';
     }

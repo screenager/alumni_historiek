@@ -161,7 +161,13 @@ header p {
 }
 
 .non-mobile-br {
-    display: block;
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .non-mobile-br {
+        display: block;
+    }
 }
 
 .nav-link {
@@ -1371,7 +1377,7 @@ h3.postcard-back-text-label {
     }
 
     .non-mobile-br {
-        display: none;
+        display: none !important;
     }
     
     .postcard-front-overlay {

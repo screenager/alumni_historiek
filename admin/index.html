@@ -31,8 +31,9 @@
         .thumb-preview { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #3a3a5a; }
         .drag-handle { cursor: grab; opacity: .5; font-size: 1.2rem; user-select: none; }
         .drag-handle:active { cursor: grabbing; }
-        .image-row.dragging { opacity: .3; }
-        .image-row.drag-over-row { border-top: 2px solid #667eea; }
+        .image-row.dragging, .video-row.dragging { opacity: .3; }
+        .image-row.drag-over-row, .video-row.drag-over-row { border-top: 2px solid #667eea; }
+        .video-preview { width: 96px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid #3a3a5a; background: #000; }
     </style>
 </head>
 <body>
@@ -283,6 +284,30 @@
                             <div id="uploadProgressBar" class="upload-progress-bar" style="width:0%"></div>
                         </div>
                         <div id="uploadStatus" class="small mt-2"></div>
+                    </div>
+
+                    <!-- Videos section -->
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Bestaande video's</label>
+                        <div id="videosList" class="mb-2"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Nieuwe video&apos;s uploaden</label>
+                        <div id="videoUploadZone" class="upload-zone" onclick="document.getElementById('videoFileInput').click()">
+                            <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-m4v" multiple>
+                            <div class="mb-2">
+                                <svg width="40" height="40" fill="none" stroke="#667eea" viewBox="0 0 24 24" style="opacity:.7">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.55-2.27A1 1 0 0121 8.62v6.76a1 1 0 01-1.45.89L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/>
+                                </svg>
+                            </div>
+                            <p class="mb-1 fw-medium">Klik of sleep video&apos;s hierheen</p>
+                            <p class="small text-secondary mb-0">MP4, WebM, Ogg of MOV — opgeslagen bij dit concert</p>
+                        </div>
+                        <div id="videoUploadProgress" class="upload-progress mt-2 d-none">
+                            <div id="videoUploadProgressBar" class="upload-progress-bar" style="width:0%"></div>
+                        </div>
+                        <div id="videoUploadStatus" class="small mt-2"></div>
                     </div>
                 </form>
             </div>
@@ -559,6 +584,7 @@ function openEditForm(index) {
         if (el) el.value = c[f] || '';
     });
     renderImages(c.images || []);
+    renderVideos(c.videos || []);
     clearUploadState();
     editModalBS.show();
 }
@@ -568,6 +594,7 @@ function openAddForm() {
     document.getElementById('modalTitle').textContent = 'Nieuw concert';
     document.getElementById('concertForm').reset();
     renderImages([]);
+    renderVideos([]);
     clearUploadState();
     editModalBS.show();
 }
@@ -577,6 +604,8 @@ function clearUploadState() {
     document.getElementById('uploadProgress').classList.add('d-none');
     document.getElementById('posterStatus').innerHTML = '';
     document.getElementById('posterProgress').classList.add('d-none');
+    document.getElementById('videoUploadStatus').innerHTML = '';
+    document.getElementById('videoUploadProgress').classList.add('d-none');
     // Show poster preview if concert has one
     updatePosterPreview();
 }
@@ -675,6 +704,52 @@ function addImageRow(thumb, full) {
     cont.appendChild(row);
 }
 
+// Video rows — display existing self-hosted videos with preview player
+function renderVideos(videos) {
+    const cont = document.getElementById('videosList');
+    cont.innerHTML = '';
+    if (videos.length === 0) {
+        cont.innerHTML = '<div class="text-secondary small fst-italic">Nog geen video\'s</div>';
+        return;
+    }
+    [...videos].reverse().forEach(video => {
+        cont.appendChild(createVideoRow(video.src || video.file || '', video.title || '', false));
+    });
+}
+
+function createVideoRow(src, title, fade) {
+    const folder = getConcertFolder();
+    const videoSrc = folder && src ? `${getConcertsUrl(folder)}/${src}` : '';
+    const row = document.createElement('div');
+    row.className = `row g-2 mb-2 align-items-center video-row${fade ? ' fade-in' : ''}`;
+    row.draggable = true;
+    row.dataset.src = src;
+    row.innerHTML = `
+        <div class="col-auto drag-handle" title="Versleep om te herordenen">&#x2630;</div>
+        <div class="col-auto">
+            ${videoSrc ? `<video src="${escAttr(videoSrc)}" class="video-preview" muted preload="metadata" playsinline></video>` : ''}
+        </div>
+        <div class="col">
+            <input type="text" value="${escAttr(src)}" class="form-control form-control-sm video-src" readonly>
+        </div>
+        <div class="col">
+            <input type="text" value="${escAttr(title)}" class="form-control form-control-sm video-title" placeholder="Titel / label">
+        </div>
+        <div class="col-auto">
+            <button type="button" onclick="this.closest('.row').remove()" class="btn btn-sm btn-outline-danger" title="Verwijderen">✕</button>
+        </div>
+    `;
+    initVideoRowDrag(row);
+    return row;
+}
+
+function addVideoRow(src, title) {
+    const cont = document.getElementById('videosList');
+    const placeholder = cont.querySelector('.fst-italic');
+    if (placeholder) placeholder.remove();
+    cont.appendChild(createVideoRow(src, title, true));
+}
+
 function getConcertFolder() {
     const year = document.querySelector('#concertForm [name="year"]')?.value || '';
     const slug = document.querySelector('#concertForm [name="slug"]')?.value || '';
@@ -718,6 +793,46 @@ function initImageRowDrag(row) {
             cont.insertBefore(dragSrcRow, row.nextSibling);
         } else {
             cont.insertBefore(dragSrcRow, row);
+        }
+    });
+}
+
+let dragSrcVideoRow = null;
+
+function initVideoRowDrag(row) {
+    row.addEventListener('dragstart', e => {
+        dragSrcVideoRow = row;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', '');
+    });
+    row.addEventListener('dragend', () => {
+        dragSrcVideoRow = null;
+        row.classList.remove('dragging');
+        document.querySelectorAll('#videosList .drag-over-row').forEach(r => r.classList.remove('drag-over-row'));
+    });
+    row.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (dragSrcVideoRow && dragSrcVideoRow !== row) {
+            row.classList.add('drag-over-row');
+        }
+    });
+    row.addEventListener('dragleave', () => {
+        row.classList.remove('drag-over-row');
+    });
+    row.addEventListener('drop', e => {
+        e.preventDefault();
+        row.classList.remove('drag-over-row');
+        if (!dragSrcVideoRow || dragSrcVideoRow === row) return;
+        const cont = document.getElementById('videosList');
+        const rows = [...cont.querySelectorAll('.video-row')];
+        const fromIdx = rows.indexOf(dragSrcVideoRow);
+        const toIdx = rows.indexOf(row);
+        if (fromIdx < toIdx) {
+            cont.insertBefore(dragSrcVideoRow, row.nextSibling);
+        } else {
+            cont.insertBefore(dragSrcVideoRow, row);
         }
     });
 }
@@ -879,6 +994,94 @@ async function handleUpload(files) {
     }
 }
 
+// ── Video upload handling ──────────────────────────────
+const videoUploadZone = document.getElementById('videoUploadZone');
+const videoFileInput  = document.getElementById('videoFileInput');
+
+videoUploadZone.addEventListener('dragover', e => { e.preventDefault(); videoUploadZone.classList.add('drag-over'); });
+videoUploadZone.addEventListener('dragleave', () => videoUploadZone.classList.remove('drag-over'));
+videoUploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    videoUploadZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) handleVideoUpload(e.dataTransfer.files);
+});
+
+videoFileInput.addEventListener('change', () => {
+    if (videoFileInput.files.length) handleVideoUpload(videoFileInput.files);
+    videoFileInput.value = '';
+});
+
+async function handleVideoUpload(files) {
+    const folder = getConcertFolder();
+    if (!folder) {
+        toast('Vul eerst Jaar en Slug in vóór je video\'s uploadt', 'warning');
+        return;
+    }
+
+    const progressWrap = document.getElementById('videoUploadProgress');
+    const progressBar  = document.getElementById('videoUploadProgressBar');
+    const statusEl     = document.getElementById('videoUploadStatus');
+
+    progressWrap.classList.remove('d-none');
+    progressBar.style.width = '0%';
+    statusEl.innerHTML = `<span class="text-info">⏳ ${files.length} video('s) uploaden...</span>`;
+
+    const formData = new FormData();
+    formData.append('folder', folder);
+    for (let i = 0; i < files.length; i++) {
+        formData.append('videos[]', files[i]);
+    }
+
+    try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${API}?action=upload_videos`);
+        xhr.setRequestHeader('X-WP-Nonce', csrfToken);
+
+        xhr.upload.addEventListener('progress', e => {
+            if (e.lengthComputable) {
+                progressBar.style.width = Math.round((e.loaded / e.total) * 100) + '%';
+            }
+        });
+
+        const result = await new Promise((resolve, reject) => {
+            xhr.onload = () => {
+                try { resolve(JSON.parse(xhr.responseText)); }
+                catch { reject(new Error('Ongeldig antwoord')); }
+            };
+            xhr.onerror = () => reject(new Error('Netwerkfout'));
+            xhr.send(formData);
+        });
+
+        progressWrap.classList.add('d-none');
+
+        if (!result.ok) {
+            statusEl.innerHTML = `<span class="text-danger">❌ ${escHtml(result.error)}</span>`;
+            return;
+        }
+
+        let successCount = 0;
+        let errors = [];
+        result.videos.forEach(video => {
+            if (video.error) {
+                errors.push(video.error);
+            } else {
+                addVideoRow(video.src, video.title || '');
+                successCount++;
+            }
+        });
+
+        let msg = `<span class="text-success">✅ ${successCount} video('s) verwerkt</span>`;
+        if (errors.length) {
+            msg += `<br><span class="text-danger">⚠️ ${errors.join(', ')}</span>`;
+        }
+        statusEl.innerHTML = msg;
+        setTimeout(() => statusEl.innerHTML = '', 5000);
+    } catch (err) {
+        progressWrap.classList.add('d-none');
+        statusEl.innerHTML = `<span class="text-danger">❌ ${escHtml(err.message)}</span>`;
+    }
+}
+
 // ── Form submit ────────────────────────────────────────
 function submitForm() {
     const form = document.getElementById('concertForm');
@@ -906,6 +1109,18 @@ async function doSubmit() {
             const imgObj = { thumb: th, full: fl };
             if (alt) imgObj.alt = alt;
             data.images.push(imgObj);
+        }
+    });
+
+    const videoRows = [...form.querySelectorAll('#videosList .video-row')].reverse();
+    data.videos = [];
+    videoRows.forEach(row => {
+        const src = row.dataset.src || row.querySelector('.video-src')?.value?.trim() || '';
+        const title = row.querySelector('.video-title')?.value?.trim() || '';
+        if (src) {
+            const videoObj = { src };
+            if (title) videoObj.title = title;
+            data.videos.push(videoObj);
         }
     });
 

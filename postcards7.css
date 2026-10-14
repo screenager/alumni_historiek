@@ -756,10 +756,9 @@ h3.postcard-back-text-label {
     min-height: 30%;
 }
 
-.postcard-back-images .concert-img {
+.postcard-back-images .concert-media {
     position: absolute;
     border-radius: 4px;
-    object-fit: cover;
     box-shadow: 2px 3px 10px rgba(0,0,0,0.25);
     border: 3px solid #fff;
     background: #ddd;
@@ -767,7 +766,12 @@ h3.postcard-back-text-label {
     transition: filter 0.2s ease, box-shadow 0.2s ease;
 }
 
-.postcard-back-images :is(.concert-img, .concert-img-placeholder):nth-child(1) {
+.postcard-back-images .concert-img {
+    object-fit: cover;
+}
+
+.postcard-back-images .concert-media--slot1,
+.postcard-back-images .concert-img-placeholder:nth-child(1) {
     width: 55%;
     height: 52%;
     top: 5%;
@@ -776,7 +780,8 @@ h3.postcard-back-text-label {
     z-index: 2;
 }
 
-.postcard-back-images :is(.concert-img, .concert-img-placeholder):nth-child(2) {
+.postcard-back-images .concert-media--slot2,
+.postcard-back-images .concert-img-placeholder:nth-child(2) {
     width: 48%;
     height: 46%;
     top: 8%;
@@ -785,7 +790,8 @@ h3.postcard-back-text-label {
     z-index: 1;
 }
 
-.postcard-back-images :is(.concert-img, .concert-img-placeholder):nth-child(3) {
+.postcard-back-images .concert-media--slot3,
+.postcard-back-images .concert-img-placeholder:nth-child(3) {
     width: 52%;
     height: 48%;
     bottom: 2%;
@@ -794,13 +800,84 @@ h3.postcard-back-text-label {
     z-index: 3;
 }
 
-.postcard-back-images :is(.concert-img, .concert-img-placeholder):nth-child(4) {
+.postcard-back-images .concert-media--slot4,
+.postcard-back-images .concert-img-placeholder:nth-child(4) {
     width: 46%;
     height: 44%;
     bottom: 0%;
     right: 2%;
     transform: rotate(3deg);
     z-index: 4;
+}
+
+.postcard-back-images .concert-img--stacked {
+    width: 52%;
+    height: 48%;
+    top: 47%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(2deg);
+    z-index: 5;
+}
+
+.concert-video-thumb {
+    padding: 0;
+    overflow: hidden;
+    color: #fff;
+}
+
+.postcard-back-images .concert-video-thumb.concert-media--slot4 {
+    z-index: 6;
+}
+
+.concert-video-thumb video,
+.concert-video-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #050505;
+    pointer-events: none;
+}
+
+.concert-video-count {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.68);
+    color: #fff;
+    font: 700 0.55rem/1.3 'Inter', sans-serif;
+    letter-spacing: 0;
+    z-index: 4;
+}
+
+.concert-video-play {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.68);
+    background: rgba(0, 0, 0, 0.38);
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 2;
+}
+
+.concert-video-play span {
+    display: block;
+    width: 0;
+    height: 0;
+    margin-left: 3px;
+    border-top: 0.45rem solid transparent;
+    border-bottom: 0.45rem solid transparent;
+    border-left: 0.7rem solid currentColor;
 }
 
 .postcard-back-images .concert-img-placeholder {
@@ -816,12 +893,12 @@ h3.postcard-back-text-label {
     font-family: 'Inter', sans-serif;
 }
 
-.postcard-back-images .concert-img:hover {
+.postcard-back-images .concert-media:hover {
     filter: brightness(1.1);
     box-shadow: 3px 5px 15px rgba(0,0,0,0.4);
 }
 
-.postcard-back-images .concert-img:focus-visible {
+.postcard-back-images .concert-media:focus-visible {
     outline: 3px solid #f8b500;
     outline-offset: 2px;
     filter: brightness(1.1);
@@ -860,6 +937,97 @@ h3.postcard-back-text-label {
     z-index: 10001;
 }
 
+.lightbox-video-player {
+    position: relative;
+    width: min(88vw, 980px);
+    aspect-ratio: 16 / 9;
+    border: 1px solid rgba(248, 181, 0, 0.32);
+    border-radius: 6px;
+    background: #050505;
+    box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+    cursor: default;
+}
+
+.lightbox-video-player[hidden] {
+    display: none;
+}
+
+.lightbox-video-player video,
+.lightbox-video-player iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: contain;
+}
+
+.video-lightbox__poster {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+.video-lightbox__player.has-started .video-lightbox__poster {
+    opacity: 0;
+}
+
+.video-lightbox__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(4.5rem, 11vw, 7.25rem);
+    height: clamp(4.5rem, 11vw, 7.25rem);
+    padding: 0;
+    border: 1px solid rgba(248, 181, 0, 0.58);
+    border-radius: 9999px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(0, 0, 0, 0.18);
+    color: #f8b500;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.42);
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: opacity 0.18s ease, transform 0.18s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.video-lightbox__play span {
+    display: block;
+    width: 0;
+    height: 0;
+    margin-left: clamp(0.35rem, 0.8vw, 0.55rem);
+    border-top: clamp(0.85rem, 2vw, 1.2rem) solid transparent;
+    border-bottom: clamp(0.85rem, 2vw, 1.2rem) solid transparent;
+    border-left: clamp(1.25rem, 2.8vw, 1.8rem) solid currentColor;
+}
+
+.video-lightbox__play:hover {
+    background: rgba(248, 181, 0, 0.08);
+    border-color: rgba(248, 181, 0, 0.86);
+    transform: translate(-50%, -50%) scale(1.04);
+}
+
+.video-lightbox__play:focus-visible {
+    outline: 2px solid #f8b500;
+    outline-offset: 4px;
+}
+
+.video-lightbox__player.is-playing .video-lightbox__play {
+    opacity: 0;
+    pointer-events: none;
+}
+
 .lightbox-close-btn,
 .lightbox-nav-btn {
     position: absolute;
@@ -886,6 +1054,25 @@ h3.postcard-back-text-label {
 
 .lightbox-close-btn {
     right: 16px;
+}
+
+.lightbox-content--video .lightbox-nav-btn {
+    bottom: 48px;
+    width: 45px;
+    height: 45px;
+    background: rgba(0, 0, 0, 0.18);
+    color: #f8b500;
+    border: 1px solid rgba(248, 181, 0, 0.58);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.lightbox-content--video .lightbox-nav-btn:hover,
+.lightbox-content--video .lightbox-nav-btn:active {
+    background: rgba(248, 181, 0, 0.08) !important;
+    border-color: rgba(248, 181, 0, 0.86);
+    color: #f8b500 !important;
 }
 
 /* Hover only on real pointer devices — prevents stuck hover state on touch screens */
@@ -1664,7 +1851,7 @@ a:focus-visible,
     }
 
     /* Disable concert image hover transform */
-    .postcard-back-images .concert-img:hover {
+    .postcard-back-images .concert-media:hover {
         filter: brightness(1.1);
     }
 }

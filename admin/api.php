@@ -567,7 +567,7 @@ switch ($action) {
             }
         }
         foreach (array_keys($original) as $key) {
-            if ($key !== 'images' && !array_key_exists($key, $data)) {
+            if ($key !== 'images' && $key !== 'videos' && !array_key_exists($key, $data)) {
                 unset($original[$key]);
             }
         }
@@ -575,6 +575,9 @@ switch ($action) {
         $oldImages = $oldConcert['images'] ?? [];
         $newImages = $data['images'] ?? [];
         $newPaths = array_merge(array_column($newImages, 'thumb'), array_column($newImages, 'full'));
+        $oldVideos = $oldConcert['videos'] ?? [];
+        $newVideos = $data['videos'] ?? [];
+        $newVideoPaths = array_column($newVideos, 'src');
 
         $concertFolder = ($oldConcert['year'] ?? '') . '_' . ($oldConcert['slug'] ?? '');
         if ($concertFolder !== '_') {
@@ -587,6 +590,16 @@ switch ($action) {
                             unlink($absPath);
                             auditLog($user, 'delete_image', "file=$concertFolder/$rel");
                         }
+                    }
+                }
+            }
+            foreach ($oldVideos as $video) {
+                $rel = is_array($video) ? ($video['src'] ?? '') : (string) $video;
+                if ($rel && !in_array($rel, $newVideoPaths, true)) {
+                    $absPath = CONCERTS_DIR . '/' . $concertFolder . '/' . $rel;
+                    if (file_exists($absPath)) {
+                        unlink($absPath);
+                        auditLog($user, 'delete_video', "file=$concertFolder/$rel");
                     }
                 }
             }
@@ -813,6 +826,92 @@ switch ($action) {
         }
 
         jsonResponse(['ok' => true, 'images' => $results]);
+        break;
+
+    case 'upload_videos':
+        if ($method !== 'POST') jsonResponse(['error' => 'POST vereist'], 405);
+        $user = requireAuth();
+        requireCsrf();
+
+        $concertFolder = $_POST['folder'] ?? '';
+        if (!$concertFolder || !preg_match('/^[a-z0-9_]+$/i', $concertFolder)) {
+            jsonResponse(['error' => 'Ongeldige concertmap'], 400);
+        }
+
+        $videosDir = CONCERTS_DIR . '/' . $concertFolder . '/videos';
+        ensureDir($videosDir);
+
+        $existing = glob($videosDir . '/video*.*');
+        $maxNum = 0;
+        foreach ($existing ?: [] as $f) {
+            if (preg_match('/video(\d+)\.[a-z0-9]+$/i', basename($f), $m)) {
+                $maxNum = max($maxNum, (int) $m[1]);
+            }
+        }
+
+        if (empty($_FILES['videos'])) {
+            jsonResponse(['error' => 'Geen videos ontvangen'], 400);
+        }
+
+        $files = $_FILES['videos'];
+        $results = [];
+        $allowed = [
+            'video/mp4' => 'mp4',
+            'video/webm' => 'webm',
+            'video/ogg' => 'ogv',
+            'video/quicktime' => 'mov',
+            'video/x-m4v' => 'm4v',
+        ];
+
+        $count = is_array($files['name']) ? count($files['name']) : 1;
+        for ($i = 0; $i < $count; $i++) {
+            $tmpName = is_array($files['tmp_name']) ? $files['tmp_name'][$i] : $files['tmp_name'];
+            $origName = is_array($files['name']) ? $files['name'][$i] : $files['name'];
+            $error = is_array($files['error']) ? $files['error'][$i] : $files['error'];
+
+            if ($error !== UPLOAD_ERR_OK) {
+                $results[] = ['error' => "Upload mislukt voor $origName (code $error)"];
+                continue;
+            }
+
+            $mime = '';
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                if ($finfo) {
+                    $mime = (string) finfo_file($finfo, $tmpName);
+                    finfo_close($finfo);
+                }
+            }
+            if ($mime === '' && function_exists('mime_content_type')) {
+                $mime = (string) mime_content_type($tmpName);
+            }
+            if (!isset($allowed[$mime])) {
+                $results[] = ['error' => "$origName is geen ondersteund videoformaat"];
+                continue;
+            }
+
+            $maxNum++;
+            $num = $maxNum;
+            $ext = $allowed[$mime];
+            $filename = "video{$num}.{$ext}";
+            $videoPath = $videosDir . '/' . $filename;
+
+            if (!move_uploaded_file($tmpName, $videoPath)) {
+                $results[] = ['error' => "Kan $origName niet opslaan"];
+                continue;
+            }
+
+            $title = trim((string) pathinfo($origName, PATHINFO_FILENAME));
+            $results[] = [
+                'src' => "videos/{$filename}",
+                'title' => $title,
+                'num' => $num,
+            ];
+
+            auditLog($user, 'upload_video', "folder=$concertFolder file=$filename original=\"$origName\" mime=$mime");
+        }
+
+        jsonResponse(['ok' => true, 'videos' => $results]);
         break;
 
     default:

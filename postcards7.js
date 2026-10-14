@@ -119,20 +119,43 @@ $.getJSON(dataUrl, function(data) {
             ? concert.text.split('\n').filter(l => l.trim()).map(l => `<p>${l.trim()}</p>`).join('')
             : '';
 
-        // Build images HTML: use images from concertData (max 4)
+        // Build media HTML: images plus a first-video thumbnail when videos exist.
         const imgs = concert.images || [];
-        let imagesHtml = '';
+        const videos = Array.isArray(concert.videos) ? concert.videos : [];
+        let mediaHtml = '';
         const hasPostcardImage = !!concert.postcard_img;
         const concertDir = (concert.postcard_img || '').split('/')[0];
         const concertsBase = window.HISTORIEK_ASSETS_BASE_URL || 'concerts/';
         const imageBasePath = concertsBase + (concertDir ? concertDir + '/' : '');
-        const maxThumbs = Math.min(imgs.length, 4);
-        for (let i = 0; i < maxThumbs; i++) {
+        const visibleImageSlots = videos.length > 0 ? Math.min(imgs.length, 3) : Math.min(imgs.length, 4);
+        for (let i = 0; i < visibleImageSlots; i++) {
             const img = imgs[i];
             const thumbSrc = imageBasePath + (img.thumb || img);
             const fullSrc = imageBasePath + (img.full || img);
             const imgAlt = img.alt || (concert.title + ' foto ' + (i+1));
-            imagesHtml += `<img class="concert-img" src="${thumbSrc}" data-full="${fullSrc}" alt="${imgAlt}" role="button" tabindex="-1">`;
+            mediaHtml += `<img class="concert-img concert-media concert-media--slot${i + 1}" src="${escapeHtml(thumbSrc)}" data-media-type="image" data-full="${escapeHtml(fullSrc)}" alt="${escapeHtml(imgAlt)}" role="button" tabindex="-1">`;
+        }
+        if (videos.length > 0 && imgs.length > 3) {
+            const img = imgs[3];
+            const thumbSrc = imageBasePath + (img.thumb || img);
+            const fullSrc = imageBasePath + (img.full || img);
+            const imgAlt = img.alt || (concert.title + ' foto 4');
+            mediaHtml += `<img class="concert-img concert-media concert-img--stacked" src="${escapeHtml(thumbSrc)}" data-media-type="image" data-full="${escapeHtml(fullSrc)}" alt="${escapeHtml(imgAlt)}" role="button" tabindex="-1">`;
+        }
+        if (videos.length > 0) {
+            const video = videos[0] || {};
+            const videoSrc = imageBasePath + (video.src || video.file || video);
+            const posterSrc = video.poster ? imageBasePath + video.poster : '';
+            const videoItems = videos.map((item, videoIndex) => ({
+                src: imageBasePath + (item.src || item.file || item),
+                poster: item.poster ? imageBasePath + item.poster : '',
+                title: item.title || (concert.title + ' video ' + (videoIndex + 1))
+            }));
+            const videoCount = String(videos.length);
+            const videoLabel = videos.length === 1 ? '1 video' : videos.length + ' videos';
+            const videoTitle = video.title || (concert.title + ' video 1');
+            const posterAttr = posterSrc ? ` poster="${escapeHtml(posterSrc)}"` : '';
+            mediaHtml += `<button class="concert-video-thumb concert-media concert-media--slot4" type="button" data-media-type="video" data-videos="${escapeHtml(JSON.stringify(videoItems))}" data-src="${escapeHtml(videoSrc)}" data-poster="${escapeHtml(posterSrc)}" data-title="${escapeHtml(videoTitle)}" aria-label="${escapeHtml(videoTitle)} openen (${videoLabel})" tabindex="-1"><video src="${escapeHtml(videoSrc)}"${posterAttr} muted preload="metadata" playsinline aria-hidden="true"></video><span class="concert-video-count">${escapeHtml(videoCount)}</span><span class="concert-video-play" aria-hidden="true"><span></span></span></button>`;
         }
 
         return `
@@ -180,7 +203,7 @@ $.getJSON(dataUrl, function(data) {
                                 <div class="postcard-back-title">${concert.title}</div>
                                 <div class="postcard-back-date">${[concert.dates, concert.year].filter(Boolean).join(' ')}${concert.locations ? ' - ' + concert.locations : ''}</div>
                                 <div class="postcard-back-images">
-                                    ${imagesHtml}
+                                    ${mediaHtml}
                                 </div>
                             </div>
                         </div>
@@ -217,7 +240,7 @@ $.getJSON(dataUrl, function(data) {
     // Helper: toggle tabindex on backside controls when card is flipped/unflipped
     function updateFlippedImageTabindex($card) {
         const isFlipped = $card.hasClass('flipped');
-        $card.find('.concert-img[role="button"], .postcard-back-field-link').attr('tabindex', isFlipped ? '0' : '-1');
+        $card.find('.concert-media[role="button"], .concert-media[type="button"], .postcard-back-field-link').attr('tabindex', isFlipped ? '0' : '-1');
     }
 
     // History debounce timer
@@ -705,40 +728,83 @@ $.getJSON(dataUrl, function(data) {
         }
     });
 
-    // Keyboard activation for concert images (Enter/Space opens lightbox)
-    $(document).on('keydown', '.concert-img[role="button"]', function(e) {
+    // Keyboard activation for concert media (Enter/Space opens lightbox)
+    $(document).on('keydown', '.concert-media[role="button"], .concert-media[type="button"]', function(e) {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             $(this).trigger('click');
         }
     });
 
-    // ── Lightbox for concert images ──
-    $(document).on('click', '.postcard-back-images .concert-img', function(e) {
+    // ── Lightbox for concert images and videos ──
+    $(document).on('click', '.postcard-back-images .concert-media', function(e) {
         e.stopPropagation();
         e.preventDefault();
         lightboxOpen = true;
 
-        // Collect all images in the same card's back
-        const $allImgs = $(this).closest('.postcard-back-images').find('.concert-img');
-        let lightboxIndex = $allImgs.index(this);
+        const $mediaContainer = $(this).closest('.postcard-back-images');
+        const mediaItems = [];
+        let lightboxIndex = 0;
+
+        $mediaContainer.find('.concert-media').each(function() {
+            const $item = $(this);
+            const isTrigger = this === e.currentTarget;
+            if ($item.data('media-type') === 'video') {
+                let videos = [];
+                try {
+                    videos = JSON.parse($item.attr('data-videos') || '[]');
+                } catch (err) {
+                    videos = [];
+                }
+                if (!Array.isArray(videos) || videos.length === 0) {
+                    videos = [{
+                        src: $item.data('src') || $item.attr('href') || '',
+                        poster: $item.data('poster') || '',
+                        title: $item.data('title') || 'Concert video'
+                    }];
+                }
+                videos.forEach((video, videoIndex) => {
+                    if (isTrigger && videoIndex === 0) {
+                        lightboxIndex = mediaItems.length;
+                    }
+                    mediaItems.push({
+                        type: 'video',
+                        src: video.src || '',
+                        poster: video.poster || '',
+                        title: video.title || ('Concert video ' + (videoIndex + 1))
+                    });
+                });
+                return;
+            }
+
+            if (isTrigger) {
+                lightboxIndex = mediaItems.length;
+            }
+            mediaItems.push({
+                type: 'image',
+                thumb: $item.attr('src') || '',
+                full: $item.data('full') || $item.attr('src') || '',
+                alt: $item.attr('alt') || ('Concert foto ' + (mediaItems.length + 1))
+            });
+        });
 
         // Build the overlay
         const $triggerEl = $(this).closest('.postcard');
         const $overlay = $('<div class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="Foto weergave"></div>');
         const $wrapper = $('<div class="lightbox-content"></div>');
         const $img = $('<img class="lightbox-img" alt="">');
+        const $videoPlayer = $('<div class="video-lightbox__player lightbox-video-player" hidden></div>');
         const $closeBtn = $('<button class="lightbox-close-btn" aria-label="Sluiten" title="Sluiten">&times;</button>');
-        const $prevBtn = $('<button class="lightbox-nav-btn prev" aria-label="Vorige foto" title="Vorige">&#8249;</button>');
-        const $nextBtn = $('<button class="lightbox-nav-btn next" aria-label="Volgende foto" title="Volgende">&#8250;</button>');
-        $wrapper.append($img).append($prevBtn).append($nextBtn).append($closeBtn);
+        const $prevBtn = $('<button class="lightbox-nav-btn prev" aria-label="Vorige media" title="Vorige">&#8249;</button>');
+        const $nextBtn = $('<button class="lightbox-nav-btn next" aria-label="Volgende media" title="Volgende">&#8250;</button>');
+        $wrapper.append($img).append($videoPlayer).append($prevBtn).append($nextBtn).append($closeBtn);
         $overlay.append($wrapper);
         $('body').append($overlay);
 
         // Trap focus within the lightbox dialog
         $overlay.on('keydown.lightboxTrap', function(e) {
             if (e.key === 'Tab') {
-                const focusable = $overlay.find('button:visible');
+                const focusable = $overlay.find('button:visible, video:visible');
                 const first = focusable.first()[0];
                 const last = focusable.last()[0];
                 if (e.shiftKey && document.activeElement === first) {
@@ -751,25 +817,82 @@ $.getJSON(dataUrl, function(data) {
             }
         });
 
-        function showImage(idx) {
-            const $target = $allImgs.eq(idx);
-            const thumbSrc = $target.attr('src');
-            const fullSrc = $target.data('full') || thumbSrc;
-            $img.attr('src', thumbSrc);
-            $img.attr('alt', $target.attr('alt') || 'Concert foto ' + (idx + 1));
-            // Preload and swap to full-res if available
-            if (fullSrc !== thumbSrc) {
-                const preload = new Image();
-                preload.onload = function() { $img.attr('src', fullSrc); };
-                preload.src = fullSrc;
+        function showMedia(idx) {
+            const target = mediaItems[idx];
+            $wrapper.toggleClass('lightbox-content--video', target.type === 'video');
+            $videoPlayer.empty().prop('hidden', true).removeClass('has-custom-play has-started is-playing');
+
+            if (target.type === 'video') {
+                $img.hide().attr('src', '');
+                $videoPlayer.prop('hidden', false);
+
+                const player = document.createElement('video');
+                const playButton = document.createElement('button');
+                const poster = target.poster || '';
+                let posterImage = null;
+
+                player.src = target.src;
+                player.controls = true;
+                player.preload = 'metadata';
+                player.playsInline = true;
+                player.setAttribute('aria-label', target.title || 'Concert video');
+                if (poster) {
+                    player.poster = poster;
+                    posterImage = document.createElement('img');
+                    posterImage.className = 'video-lightbox__poster';
+                    posterImage.src = poster;
+                    posterImage.alt = '';
+                    posterImage.setAttribute('aria-hidden', 'true');
+                }
+
+                playButton.type = 'button';
+                playButton.className = 'video-lightbox__play';
+                playButton.setAttribute('aria-label', 'Video afspelen');
+                playButton.innerHTML = '<span></span>';
+                playButton.addEventListener('click', function(ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    const playPromise = player.play();
+                    if (playPromise && typeof playPromise.catch === 'function') {
+                        playPromise.catch(function() {
+                            $videoPlayer.removeClass('is-playing');
+                        });
+                    }
+                });
+                player.addEventListener('play', function() {
+                    $videoPlayer.addClass('has-started is-playing');
+                });
+                player.addEventListener('pause', function() {
+                    $videoPlayer.removeClass('is-playing');
+                });
+                player.addEventListener('ended', function() {
+                    $videoPlayer.removeClass('has-started is-playing');
+                });
+
+                $videoPlayer.addClass('has-custom-play');
+                if (posterImage) {
+                    $videoPlayer.append(posterImage);
+                }
+                $videoPlayer.append(player).append(playButton);
+            } else {
+                const thumbSrc = target.thumb;
+                const fullSrc = target.full || thumbSrc;
+                $img.show().attr('src', thumbSrc);
+                $img.attr('alt', target.alt || 'Concert foto ' + (idx + 1));
+                // Preload and swap to full-res if available
+                if (fullSrc !== thumbSrc) {
+                    const preload = new Image();
+                    preload.onload = function() { $img.attr('src', fullSrc); };
+                    preload.src = fullSrc;
+                }
             }
             // Hide/show nav buttons at boundaries
-            const hasMultiple = $allImgs.length > 1;
+            const hasMultiple = mediaItems.length > 1;
             $prevBtn.toggle(hasMultiple);
             $nextBtn.toggle(hasMultiple);
         }
 
-        showImage(lightboxIndex);
+        showMedia(lightboxIndex);
         $closeBtn.focus();
 
         function closeLightbox() {
@@ -806,12 +929,12 @@ $.getJSON(dataUrl, function(data) {
             closeLightbox();
         });
         bindLightboxButton($prevBtn, function() {
-            lightboxIndex = (lightboxIndex - 1 + $allImgs.length) % $allImgs.length;
-            showImage(lightboxIndex);
+            lightboxIndex = (lightboxIndex - 1 + mediaItems.length) % mediaItems.length;
+            showMedia(lightboxIndex);
         }, { suppressClose: true });
         bindLightboxButton($nextBtn, function() {
-            lightboxIndex = (lightboxIndex + 1) % $allImgs.length;
-            showImage(lightboxIndex);
+            lightboxIndex = (lightboxIndex + 1) % mediaItems.length;
+            showMedia(lightboxIndex);
         }, { suppressClose: true });
         $overlay.on('click', function(e) {
             if (Date.now() < suppressCloseUntil) return;
@@ -819,8 +942,9 @@ $.getJSON(dataUrl, function(data) {
         });
         $(document).on('keydown.lightbox', function(e) {
             if (e.key === 'Escape') closeLightbox();
-            if (e.key === 'ArrowLeft') { lightboxIndex = (lightboxIndex - 1 + $allImgs.length) % $allImgs.length; showImage(lightboxIndex); }
-            if (e.key === 'ArrowRight') { lightboxIndex = (lightboxIndex + 1) % $allImgs.length; showImage(lightboxIndex); }
+            if ($(e.target).is('video')) return;
+            if (e.key === 'ArrowLeft') { lightboxIndex = (lightboxIndex - 1 + mediaItems.length) % mediaItems.length; showMedia(lightboxIndex); }
+            if (e.key === 'ArrowRight') { lightboxIndex = (lightboxIndex + 1) % mediaItems.length; showMedia(lightboxIndex); }
         });
 
         // Touch swipe support for lightbox on mobile
@@ -831,6 +955,7 @@ $.getJSON(dataUrl, function(data) {
             lbTouchStartY = e.originalEvent.changedTouches[0].screenY;
         });
         $overlay.on('touchmove', function(e) {
+            if ($(e.target).closest('.lightbox-video-player').length) return;
             e.preventDefault(); // prevent page scroll while swiping in lightbox
         });
         $overlay.on('touchend', function(e) {
@@ -841,9 +966,9 @@ $.getJSON(dataUrl, function(data) {
             // Only handle horizontal swipes (not taps or vertical scrolls)
             if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
                 lightboxIndex = diffX > 0
-                    ? (lightboxIndex + 1) % $allImgs.length
-                    : (lightboxIndex - 1 + $allImgs.length) % $allImgs.length;
-                showImage(lightboxIndex);
+                    ? (lightboxIndex + 1) % mediaItems.length
+                    : (lightboxIndex - 1 + mediaItems.length) % mediaItems.length;
+                showMedia(lightboxIndex);
             }
         });
     });

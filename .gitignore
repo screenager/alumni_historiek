@@ -3,6 +3,9 @@ private/passwd
 private/audit.log
 private/rate_limits.json
 
+# Uploaded concert videos can be large and are managed per environment.
+concerts/**/videos/
+
 # IDE
 .idea/
 

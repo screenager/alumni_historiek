@@ -313,7 +313,7 @@
             </div>
             <div class="modal-footer px-4 py-3">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
-                <button type="button" onclick="submitForm()" class="btn btn-primary btn-lg px-5">Opslaan</button>
+                <button id="saveConcertButton" type="button" onclick="submitForm()" class="btn btn-primary btn-lg px-5">Opslaan</button>
             </div>
         </div>
     </div>
@@ -713,21 +713,22 @@ function renderVideos(videos) {
         return;
     }
     [...videos].reverse().forEach(video => {
-        cont.appendChild(createVideoRow(video.src || video.file || '', video.title || '', false));
+        cont.appendChild(createVideoRow(video.src || video.file || '', video.title || '', false, video.poster || ''));
     });
 }
 
-function createVideoRow(src, title, fade) {
+function createVideoRow(src, title, fade, poster = '') {
     const folder = getConcertFolder();
     const videoSrc = folder && src ? `${getConcertsUrl(folder)}/${src}` : '';
     const row = document.createElement('div');
     row.className = `row g-2 mb-2 align-items-center video-row${fade ? ' fade-in' : ''}`;
     row.draggable = true;
     row.dataset.src = src;
+    row.dataset.poster = poster;
     row.innerHTML = `
         <div class="col-auto drag-handle" title="Versleep om te herordenen">&#x2630;</div>
         <div class="col-auto">
-            ${videoSrc ? `<video src="${escAttr(videoSrc)}" class="video-preview" muted preload="metadata" playsinline></video>` : ''}
+            ${videoSrc ? `<video src="${escAttr(videoSrc)}"${poster ? ` poster="${escAttr(`${getConcertsUrl(folder)}/${poster}`)}"` : ''} class="video-preview" muted preload="metadata" playsinline></video>` : ''}
         </div>
         <div class="col">
             <input type="text" value="${escAttr(src)}" class="form-control form-control-sm video-src" readonly>
@@ -1089,6 +1090,63 @@ function submitForm() {
     doSubmit();
 }
 
+function captureVideoPoster(videoUrl) {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        let settled = false;
+        let seekRequested = false;
+        const timeout = setTimeout(() => finish(new Error('Video laden duurde te lang')), 20000);
+
+        function finish(error, result) {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
+            video.removeAttribute('src');
+            video.load();
+            if (error) reject(error);
+            else resolve(result);
+        }
+
+        function captureFrame() {
+            if (settled || video.readyState < 2 || !video.videoWidth || !video.videoHeight) return;
+            try {
+                const maxWidth = 640;
+                const scale = Math.min(1, maxWidth / video.videoWidth);
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+                canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                finish(null, canvas.toDataURL('image/jpeg', 0.82));
+            } catch (error) {
+                finish(new Error('Kan geen posterframe uit dit videoformaat maken'));
+            }
+        }
+
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.addEventListener('error', () => finish(new Error('Video kan niet worden gelezen door deze browser')), { once: true });
+        video.addEventListener('loadedmetadata', () => {
+            const targetTime = Number.isFinite(video.duration) && video.duration > 0.2
+                ? Math.min(0.2, video.duration / 2)
+                : 0;
+            if (targetTime > 0) {
+                seekRequested = true;
+                try { video.currentTime = targetTime; } catch (error) { captureFrame(); }
+            } else {
+                captureFrame();
+            }
+        }, { once: true });
+        video.addEventListener('loadeddata', () => {
+            if (!seekRequested) captureFrame();
+        }, { once: true });
+        video.addEventListener('seeked', captureFrame, { once: true });
+        video.src = videoUrl;
+        video.load();
+    });
+}
+
 async function doSubmit() {
     const form = document.getElementById('concertForm');
     const indexVal = document.getElementById('editIndex').value;
@@ -1114,36 +1172,70 @@ async function doSubmit() {
 
     const videoRows = [...form.querySelectorAll('#videosList .video-row')].reverse();
     data.videos = [];
-    videoRows.forEach(row => {
-        const src = row.dataset.src || row.querySelector('.video-src')?.value?.trim() || '';
-        const title = row.querySelector('.video-title')?.value?.trim() || '';
-        if (src) {
-            const videoObj = { src };
-            if (title) videoObj.title = title;
-            data.videos.push(videoObj);
+    const saveButton = document.getElementById('saveConcertButton');
+    const originalSaveLabel = saveButton.textContent;
+    let posterFailures = 0;
+    saveButton.disabled = true;
+    try {
+        for (const row of videoRows) {
+            const src = row.dataset.src || row.querySelector('.video-src')?.value?.trim() || '';
+            const title = row.querySelector('.video-title')?.value?.trim() || '';
+            if (src) {
+                const videoObj = { src };
+                if (title) videoObj.title = title;
+                if (row.dataset.poster) {
+                    videoObj.poster = row.dataset.poster;
+                } else {
+                    saveButton.textContent = 'Video posters maken…';
+                    try {
+                        const videoUrl = `${getConcertsUrl(getConcertFolder())}/${src}`;
+                        videoObj.posterData = await captureVideoPoster(videoUrl);
+                    } catch (error) {
+                        posterFailures++;
+                    }
+                }
+                data.videos.push(videoObj);
+            }
         }
-    });
-
-    let res;
-    if (isEdit) {
-        res = await fetch(`${API}?action=update`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
-            body: JSON.stringify({ index: parseInt(indexVal), data })
-        });
-    } else {
-        res = await fetch(`${API}?action=add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
-            body: JSON.stringify(data)
-        });
+    } catch (error) {
+        saveButton.disabled = false;
+        saveButton.textContent = originalSaveLabel;
+        toast('Video posters konden niet worden voorbereid.', 'danger');
+        return;
     }
 
-    const result = await res.json();
+    let res;
+    let result;
+    try {
+        if (isEdit) {
+            res = await fetch(`${API}?action=update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
+                body: JSON.stringify({ index: parseInt(indexVal), data })
+            });
+        } else {
+            res = await fetch(`${API}?action=add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
+                body: JSON.stringify(data)
+            });
+        }
+        result = await res.json();
+    } catch (error) {
+        saveButton.disabled = false;
+        saveButton.textContent = originalSaveLabel;
+        toast('Opslaan mislukt. Controleer de verbinding en probeer opnieuw.', 'danger');
+        return;
+    }
+
+    saveButton.disabled = false;
+    saveButton.textContent = originalSaveLabel;
     if (!res.ok) { toast(result.error, 'danger'); return; }
 
     editModalBS.hide();
-    toast(isEdit ? 'Concert bijgewerkt!' : 'Concert toegevoegd!', 'success');
+    toast(posterFailures
+        ? `${isEdit ? 'Concert bijgewerkt' : 'Concert toegevoegd'}, maar ${posterFailures} video poster(s) konden niet worden gemaakt.`
+        : (isEdit ? 'Concert bijgewerkt!' : 'Concert toegevoegd!'), posterFailures ? 'warning' : 'success');
     loadConcerts();
 }
 

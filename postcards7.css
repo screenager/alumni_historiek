@@ -160,6 +160,10 @@ header p {
     display: none;
 }
 
+.non-mobile-br {
+    display: block;
+}
+
 .nav-link {
     display: inline-block;
     margin-top: 1rem;
@@ -1364,6 +1368,10 @@ h3.postcard-back-text-label {
 
     .mobile-br {
         display: block;
+    }
+
+    .non-mobile-br {
+        display: none;
     }
     
     .postcard-front-overlay {

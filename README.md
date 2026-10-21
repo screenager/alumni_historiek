@@ -27,6 +27,14 @@ This project supports 2 runtime modes.
     cannot be deleted. Full-resolution images, thumbnails and all lightbox videos/posters
     are protected.
   - Only unreferenced files offer **Verwijderen**, followed by an explicit confirmation.
+    Orphan-only checkboxes and **Geselecteerde bestanden verwijderen** also support
+    confirmed bulk deletion in both modes; the header checkbox selects all orphans.
+    All selected files are checked before deletion starts, and usage is rechecked
+    for each deletion. Any partial failures report which files failed.
+  - Click any data-column header (including **Actie**) to toggle ascending/descending
+    sorting. Sizes sort by bytes, not formatted KB/MB text. The selection column
+    is reserved for select-all. Sorting preserves selections and announces its
+    direction to screen readers.
     Deletion requires WordPress administrator permissions and a nonce-protected POST;
     current concert references are checked again before deleting.
   - Unreadable/invalid concert data blocks deletion. Symbolic links, other WordPress media,

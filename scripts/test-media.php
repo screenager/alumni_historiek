@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 define('ABSPATH', __DIR__ . '/../');
+define('ALUMNI_HISTORIEK_PLUGIN_URL', 'https://alumniarenbergorkest.be/wp-content/plugins/alumni-historiek/');
 
 class WP_Error {
     private $message;
@@ -28,7 +29,9 @@ function wp_get_ext_types(): array {
 function number_format_i18n(float $value, int $decimals): string { return number_format($value, $decimals); }
 function current_user_can(string $capability): bool { return $GLOBALS['allowed']; }
 function wp_die(string $message): void { throw new RuntimeException($message); }
-function wp_unslash(string $value): string { return stripslashes($value); }
+function wp_unslash($value) {
+    return is_array($value) ? array_map('wp_unslash', $value) : stripslashes($value);
+}
 function check_admin_referer(string $action): void {
     if (($GLOBALS['valid_nonce'] ?? '') !== $action) {
         wp_die('Invalid nonce');
@@ -140,6 +143,8 @@ try {
     verify(strpos($html, 'Nee - wel gekoppeld') !== false && strpos($html, 'Nee - verweesd') !== false, 'Table distinguishes hidden references and orphans.');
     verify(substr_count($html, '>Verwijderen</a>') === 2, 'Only two orphaned files offer deletion.');
     verify(strpos($html, 'scope="col"') !== false && strpos($html, 'overflow-x:auto') !== false, 'Accessible table supports mobile scrolling.');
+    verify(substr_count($html, 'name="files[]"') === 2, 'WordPress bulk selection is available only for orphans.');
+    verify(substr_count($html, 'data-media-sort=') === 5, 'All five WordPress data columns support sorting.');
     verify(strpos($html, 'href="' . $storage['base_url'] . '/concerts/2026_test/poster.jpg" target="_blank" rel="noopener noreferrer"') !== false, 'WordPress filenames link to active plugin storage.');
     $GLOBALS['storage']['base_url'] = 'https://alumniarenbergorkest.be/wp-content/uploads/alumni-historiek';
     ob_start();
@@ -169,6 +174,15 @@ try {
     $save(['concerts' => [$changed]]);
     verify(media_fails(fn() => alumni_historiek_delete_orphaned_media($storage, '2026_test/orphan.JPG')), 'Recheck references after listing.');
     $save(['concerts' => [$concert]]);
+    verify(media_fails(fn() => alumni_historiek_delete_media_batch($storage, [])), 'Empty bulk selection is rejected.');
+    verify(media_fails(fn() => alumni_historiek_delete_media_batch($storage, [12])), 'Invalid bulk paths are rejected.');
+    verify(media_fails(fn() => alumni_historiek_delete_media_batch($storage, ['2026_test/orphan.JPG', '2026_test/poster.jpg'])), 'Mixed bulk selection is rejected before deletion.');
+    verify(is_file($storage['concerts_dir'] . '/2026_test/orphan.JPG'), 'Invalid bulk selection does not delete the valid orphan.');
+    file_put_contents($storage['concerts_dir'] . '/2026_test/bulk1.jpg', 'orphan');
+    file_put_contents($storage['concerts_dir'] . '/2026_test/bulk2.jpg', 'orphan');
+    $batch = alumni_historiek_delete_media_batch($storage, ['2026_test/bulk1.jpg', '2026_test/bulk2.jpg', '2026_test/bulk1.jpg']);
+    verify(count($batch['deleted']) === 2 && !$batch['errors'], 'Bulk deletion removes unique orphan paths.');
+    verify(!file_exists($storage['concerts_dir'] . '/2026_test/bulk1.jpg') && !file_exists($storage['concerts_dir'] . '/2026_test/bulk2.jpg'), 'Both bulk orphans are removed.');
     verify(alumni_historiek_delete_orphaned_media($storage, '2026_test/orphan.JPG') === true, 'Delete a real orphan.');
     verify(!file_exists($storage['concerts_dir'] . '/2026_test/orphan.JPG'), 'Orphan was removed from disk.');
     verify(is_file($temporary . '/outside.jpg'), 'Outside files remain intact.');
@@ -194,16 +208,25 @@ try {
 
     $GLOBALS['allowed'] = false;
     expect_failure('alumni_historiek_delete_media', 'geen rechten');
+    expect_failure('alumni_historiek_delete_media_bulk', 'geen rechten');
     expect_failure('alumni_historiek_render_media_screen', 'geen rechten');
     $GLOBALS['allowed'] = true;
     $_SERVER['REQUEST_METHOD'] = 'GET';
     expect_failure('alumni_historiek_delete_media', 'POST vereist');
+    expect_failure('alumni_historiek_delete_media_bulk', 'POST vereist');
     $_SERVER['REQUEST_METHOD'] = 'POST';
     $_POST = ['file' => '2026_test/original_poster.png', 'storage_mode' => 'plugin'];
     expect_failure('alumni_historiek_delete_media', 'Invalid nonce');
+    expect_failure('alumni_historiek_delete_media_bulk', 'Invalid nonce');
     $_POST['storage_mode'] = 'uploads';
     $GLOBALS['valid_nonce'] = 'alumni_historiek_delete_media|uploads|2026_test/original_poster.png';
     expect_failure('alumni_historiek_delete_media', 'opslaglocatie is gewijzigd');
+    $GLOBALS['valid_nonce'] = 'alumni_historiek_delete_media_bulk|uploads';
+    expect_failure('alumni_historiek_delete_media_bulk', 'opslaglocatie is gewijzigd');
+    $_POST = ['storage_mode' => 'plugin', 'files' => ['2026_test/poster.jpg']];
+    $GLOBALS['valid_nonce'] = 'alumni_historiek_delete_media_bulk|plugin';
+    $save(['concerts' => [$concert]]);
+    expect_failure('alumni_historiek_delete_media_bulk', 'gekoppeld bestand');
 
     $storage['mode'] = 'uploads';
     verify(is_array(alumni_historiek_media_inventory($storage)), 'Uploads storage uses the same inventory logic.');

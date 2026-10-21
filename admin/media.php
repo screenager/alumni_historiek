@@ -174,6 +174,60 @@ function alumni_historiek_delete_orphaned_media(array $storage, string $path) {
     return true;
 }
 
+function alumni_historiek_delete_media_batch(array $storage, array $paths): array {
+    if (!$paths || array_values($paths) !== $paths) {
+        throw new RuntimeException('Selecteer minstens een verweesd bestand.');
+    }
+    foreach ($paths as $path) {
+        if (!is_string($path) || $path === '') {
+            throw new RuntimeException('Ongeldige bestandsselectie.');
+        }
+    }
+    $paths = array_values(array_unique($paths));
+    $inventory = alumni_historiek_media_inventory($storage);
+    foreach ($paths as $path) {
+        if (!isset($inventory[$path]) || $inventory[$path]['referenced']) {
+            throw new RuntimeException('Selectie bevat een ontbrekend of gekoppeld bestand: ' . $path . '. Geen bestanden verwijderd.');
+        }
+    }
+    $result = ['deleted' => [], 'errors' => []];
+    foreach ($paths as $path) {
+        try {
+            alumni_historiek_delete_orphaned_media($storage, $path);
+            $result['deleted'][] = $path;
+        } catch (RuntimeException $error) {
+            $result['errors'][$path] = $error->getMessage();
+        }
+    }
+    return $result;
+}
+
+function alumni_historiek_delete_media_bulk(): void {
+    if (!current_user_can('manage_options')) {
+        wp_die('Je hebt geen rechten om deze actie uit te voeren.');
+    }
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+        wp_die('POST vereist.');
+    }
+    $mode = isset($_POST['storage_mode']) && is_string($_POST['storage_mode']) ? wp_unslash($_POST['storage_mode']) : '';
+    check_admin_referer('alumni_historiek_delete_media_bulk|' . $mode);
+    $storage = alumni_historiek_storage_info();
+    if ($mode !== $storage['mode']) {
+        wp_die('De opslaglocatie is gewijzigd. Vernieuw de medialijst.');
+    }
+    $paths = isset($_POST['files']) && is_array($_POST['files']) ? wp_unslash($_POST['files']) : [];
+    try {
+        $result = alumni_historiek_delete_media_batch($storage, $paths);
+    } catch (RuntimeException $error) {
+        wp_die(esc_html($error->getMessage()));
+    }
+    if ($result['errors']) {
+        wp_die(esc_html(count($result['deleted']) . ' bestanden verwijderd. Mislukt: ' . wp_json_encode($result['errors'])));
+    }
+    wp_safe_redirect(admin_url('admin.php?page=alumni-historiek-media&bulk_deleted=' . count($result['deleted'])));
+    exit;
+}
+
 function alumni_historiek_delete_media(): void {
     if (!current_user_can('manage_options')) {
         wp_die('Je hebt geen rechten om deze actie uit te voeren.');
@@ -198,6 +252,7 @@ function alumni_historiek_delete_media(): void {
 }
 if (defined('ABSPATH')) {
     add_action('admin_post_alumni_historiek_delete_media', 'alumni_historiek_delete_media');
+    add_action('admin_post_alumni_historiek_delete_media_bulk', 'alumni_historiek_delete_media_bulk');
 }
 
 function alumni_historiek_media_size(int $bytes): string {
@@ -229,6 +284,9 @@ function alumni_historiek_render_media_screen(): void {
     if (isset($_GET['deleted']) && $_GET['deleted'] === '1') {
         echo '<div class="notice notice-success is-dismissible"><p>Mediabestand verwijderd.</p></div>';
     }
+    if (isset($_GET['bulk_deleted']) && is_scalar($_GET['bulk_deleted'])) {
+        echo '<div class="notice notice-success"><p>' . esc_html((string) absint($_GET['bulk_deleted'])) . ' mediabestanden verwijderd.</p></div>';
+    }
     $selected = isset($_GET['file']) && is_string($_GET['file']) ? wp_unslash($_GET['file']) : '';
     if ($selected !== '') {
         if (!isset($files[$selected]) || $files[$selected]['referenced']) {
@@ -248,13 +306,26 @@ function alumni_historiek_render_media_screen(): void {
         return !$file['referenced'];
     }));
     echo '<p>' . esc_html(count($files) . ' bestanden; ' . $orphans . ' verweesd.') . '</p>';
+    echo '<form id="mediaBulkForm" method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+    echo '<input type="hidden" name="action" value="alumni_historiek_delete_media_bulk">';
+    echo '<input type="hidden" name="storage_mode" value="' . esc_attr($storage['mode']) . '">';
+    wp_nonce_field('alumni_historiek_delete_media_bulk|' . $storage['mode']);
+    echo '<p><button id="mediaBulkDelete" class="button" type="submit" disabled>Geselecteerde bestanden verwijderen (0)</button></p>';
     echo '<div role="region" aria-label="Concertmedia" tabindex="0" style="overflow-x:auto;">';
-    echo '<table class="widefat striped"><caption class="screen-reader-text">Media in de actieve concertmap</caption>';
-    echo '<thead><tr><th scope="col">Bestandsnaam (relatief pad)</th><th scope="col">Extensie</th><th scope="col">Grootte</th><th scope="col">Zichtbaar op concertkaart</th><th scope="col">Actie</th></tr></thead><tbody>';
+    echo '<table id="mediaTable" class="widefat striped"><caption class="screen-reader-text">Media in de actieve concertmap</caption>';
+    echo '<thead><tr><th scope="col"><input type="checkbox" data-media-select-all aria-label="Alle verweesde bestanden selecteren"></th>';
+    foreach (['filename' => 'Bestandsnaam (relatief pad)', 'extension' => 'Extensie', 'size' => 'Grootte', 'status' => 'Zichtbaar op concertkaart', 'action' => 'Actie'] as $key => $label) {
+        echo '<th scope="col" aria-sort="none"><button type="button" class="button-link" data-media-sort="' . esc_attr($key) . '">' . esc_html($label) . '<span data-sort-indicator aria-hidden="true"></span></button></th>';
+    }
+    echo '</tr></thead><tbody>';
     foreach ($files as $file) {
         $status = $file['visible'] ? 'Ja' : ($file['referenced'] ? 'Nee - wel gekoppeld' : 'Nee - verweesd');
         $media_url = alumni_historiek_media_url($storage['base_url'] . '/concerts', $file['filename']);
-        echo '<tr><th scope="row" style="overflow-wrap:anywhere;"><a href="' . esc_url($media_url) . '" target="_blank" rel="noopener noreferrer" aria-label="' . esc_attr('Bekijk ' . $file['filename'] . ' (opent in een nieuw tabblad)') . '">' . esc_html($file['filename']) . '</a></th>';
+        echo '<tr data-filename="' . esc_attr($file['filename']) . '" data-extension="' . esc_attr($file['extension']) . '" data-size="' . esc_attr((string) $file['size']) . '" data-status="' . esc_attr($status) . '" data-action="' . ($file['referenced'] ? '-' : 'Verwijderen') . '"><td>';
+        if (!$file['referenced']) {
+            echo '<input type="checkbox" name="files[]" value="' . esc_attr($file['filename']) . '" aria-label="' . esc_attr('Selecteer ' . $file['filename']) . '">';
+        }
+        echo '</td><th scope="row" style="overflow-wrap:anywhere;"><a href="' . esc_url($media_url) . '" target="_blank" rel="noopener noreferrer" aria-label="' . esc_attr('Bekijk ' . $file['filename'] . ' (opent in een nieuw tabblad)') . '">' . esc_html($file['filename']) . '</a></th>';
         echo '<td>' . esc_html($file['extension']) . '</td><td style="white-space:nowrap;">' . esc_html(alumni_historiek_media_size($file['size'])) . '</td>';
         echo '<td>' . esc_html($status) . '</td><td>';
         if (!$file['referenced']) {
@@ -265,7 +336,9 @@ function alumni_historiek_render_media_screen(): void {
         echo '</td></tr>';
     }
     if (!$files) {
-        echo '<tr><td colspan="5">Geen mediabestanden gevonden.</td></tr>';
+        echo '<tr><td colspan="6">Geen mediabestanden gevonden.</td></tr>';
     }
-    echo '</tbody></table></div></div>';
+    echo '</tbody></table></div></form>';
+    echo '<script src="' . esc_url(ALUMNI_HISTORIEK_PLUGIN_URL . 'admin/media-table.js?ver=7.147') . '"></script>';
+    echo '<script>initializeMediaTable(document.getElementById("mediaTable"),document.getElementById("mediaBulkDelete"));document.getElementById("mediaBulkForm").addEventListener("submit",function(event){var count=this.querySelectorAll("tbody input:checked").length;if(!count||!confirm(count+" geselecteerde bestanden definitief verwijderen? Deze actie kan niet ongedaan worden gemaakt.")){event.preventDefault();}});</script></div>';
 }

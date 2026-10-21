@@ -598,6 +598,25 @@ switch ($action) {
         jsonResponse(['files' => array_values($files)]);
         break;
 
+    case 'media_delete_bulk':
+        if ($method !== 'POST') jsonResponse(['error' => 'POST vereist'], 405);
+        $user = requireAuth();
+        requireCsrf();
+        $input = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($input) || !is_array($input['files'] ?? null)) {
+            jsonResponse(['error' => 'Een bestandsselectie is vereist'], 400);
+        }
+        try {
+            $result = alumni_historiek_delete_media_batch($storage, $input['files']);
+        } catch (RuntimeException $error) {
+            jsonResponse(['error' => $error->getMessage()], 409);
+        }
+        foreach ($result['deleted'] as $path) {
+            auditLog($user, 'delete_orphaned_media', 'file=' . json_encode($path));
+        }
+        jsonResponse($result);
+        break;
+
     case 'media_delete':
         if ($method !== 'POST') jsonResponse(['error' => 'POST vereist'], 405);
         $user = requireAuth();

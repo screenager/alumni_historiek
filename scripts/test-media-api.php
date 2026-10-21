@@ -89,6 +89,17 @@ try {
     check_api(request_api('media_delete', 'POST', ['file' => 'poster.jpg'])[0] === 409, 'Used media protected.');
     check_api(request_api('media_delete', 'POST', ['file' => '../concertData.json'])[0] === 409, 'Traversal rejected.');
     check_api(request_api('media_delete', 'POST', ['file' => []])[0] === 400, 'Invalid filenames rejected.');
+    check_api(request_api('media_delete_bulk')[0] === 405, 'Bulk GET deletion is rejected.');
+    check_api(request_api('media_delete_bulk', 'POST', ['files' => ['orphan.jpg']], false)[0] === 401, 'Anonymous bulk deletion is rejected.');
+    check_api(request_api('media_delete_bulk', 'POST', ['files' => ['orphan.jpg']], true, false)[0] === 403, 'Bulk deletion requires CSRF.');
+    check_api(request_api('media_delete_bulk', 'POST', ['files' => []])[0] === 409, 'Empty bulk selection rejected.');
+    check_api(request_api('media_delete_bulk', 'POST', ['files' => ['orphan.jpg', 'poster.jpg']])[0] === 409, 'Used file blocks entire bulk selection.');
+    check_api(is_file($root . '/concerts/orphan.jpg'), 'Rejected batch leaves orphan intact.');
+    file_put_contents($root . '/concerts/bulk1.jpg', 'orphan');
+    file_put_contents($root . '/concerts/bulk2.jpg', 'orphan');
+    [$bulk_status, $bulk_result] = request_api('media_delete_bulk', 'POST', ['files' => ['bulk1.jpg', 'bulk2.jpg']]);
+    check_api($bulk_status === 200 && count($bulk_result['deleted']) === 2 && !$bulk_result['errors'], 'Bulk API deletes two orphans.');
+    check_api(!file_exists($root . '/concerts/bulk1.jpg') && !file_exists($root . '/concerts/bulk2.jpg'), 'Bulk API persists deletion.');
     [$status, $data] = request_api('media_delete', 'POST', ['file' => 'orphan.jpg']);
     check_api($status === 200 && $data['ok'] === true && !file_exists($root . '/concerts/orphan.jpg'), 'Authenticated orphan deletion succeeds.');
     check_api(strpos(file_get_contents($root . '/private/audit.log'), 'delete_orphaned_media') !== false, 'Deletion is audited.');

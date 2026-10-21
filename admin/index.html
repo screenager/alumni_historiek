@@ -17,7 +17,7 @@
         .concert-card:hover { background: #1a2745; }
         .navbar-dark-custom { background: #0f3460; }
         .navbar-brand { white-space: normal; }
-        #mediaTable th:first-child { overflow-wrap: anywhere; min-width: 220px; }
+        #mediaTable th[scope="row"] { overflow-wrap: anywhere; min-width: 220px; }
         #mediaTable td, #mediaTable th { vertical-align: middle; }
         .modal-content { background: #16213e; color: #e0e0e0; }
         .modal-header { border-bottom: 1px solid #2a2a4a; }
@@ -161,10 +161,18 @@
             <p>Alleen bestanden zonder concertkoppeling zijn verweesd en kunnen worden verwijderd. Gekoppelde, niet-getoonde bestanden blijven beschermd. Verwijderen is definitief; maak zo nodig eerst een back-up.</p>
             <p id="mediaStatus" role="status" aria-live="polite"></p>
             <div id="mediaError" class="alert alert-danger d-none" role="alert"></div>
+            <button id="mediaBulkDelete" type="button" class="btn btn-outline-danger mb-3" disabled onclick="deleteSelectedMedia()">Geselecteerde bestanden verwijderen (0)</button>
             <div class="table-responsive" role="region" aria-label="Concertmedia" tabindex="0">
                 <table id="mediaTable" class="table table-dark table-striped">
                     <caption class="visually-hidden">Media in de actieve concertmap</caption>
-                    <thead><tr><th scope="col">Bestandsnaam (relatief pad)</th><th scope="col">Extensie</th><th scope="col">Grootte</th><th scope="col">Zichtbaar op concertkaart</th><th scope="col">Actie</th></tr></thead>
+                    <thead><tr>
+                        <th scope="col"><input type="checkbox" data-media-select-all aria-label="Alle verweesde bestanden selecteren"></th>
+                        <th scope="col" aria-sort="none"><button type="button" class="btn btn-link link-light p-0 text-start" data-media-sort="filename">Bestandsnaam (relatief pad)<span data-sort-indicator aria-hidden="true"></span></button></th>
+                        <th scope="col" aria-sort="none"><button type="button" class="btn btn-link link-light p-0" data-media-sort="extension">Extensie<span data-sort-indicator aria-hidden="true"></span></button></th>
+                        <th scope="col" aria-sort="none"><button type="button" class="btn btn-link link-light p-0" data-media-sort="size">Grootte<span data-sort-indicator aria-hidden="true"></span></button></th>
+                        <th scope="col" aria-sort="none"><button type="button" class="btn btn-link link-light p-0 text-start" data-media-sort="status">Zichtbaar op concertkaart<span data-sort-indicator aria-hidden="true"></span></button></th>
+                        <th scope="col" aria-sort="none"><button type="button" class="btn btn-link link-light p-0" data-media-sort="action">Actie<span data-sort-indicator aria-hidden="true"></span></button></th>
+                    </tr></thead>
                     <tbody id="mediaTableBody"></tbody>
                 </table>
             </div>
@@ -370,6 +378,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="media-table.js?ver=7.147"></script>
 <script>
 const API = 'api.php';
 let concerts = [];
@@ -500,6 +509,7 @@ async function doLogout() {
 
 // ── Media ──────────────────────────────────────────────
 let mediaBusy = false;
+const refreshMediaTable = initializeMediaTable(document.getElementById('mediaTable'), document.getElementById('mediaBulkDelete'));
 
 function showAdminPage(page) {
     const media = page === 'media';
@@ -538,6 +548,7 @@ async function loadMedia() {
     const status = document.getElementById('mediaStatus');
     const refresh = document.getElementById('mediaRefreshButton');
     body.replaceChildren();
+    refreshMediaTable();
     status.textContent = 'Media laden...';
     refresh.disabled = true;
     document.getElementById('mediaError').classList.add('d-none');
@@ -550,6 +561,21 @@ async function loadMedia() {
         let orphaned = 0;
         for (const file of files) {
             const row = document.createElement('tr');
+            row.dataset.filename = file.filename;
+            row.dataset.extension = file.extension;
+            row.dataset.size = file.size;
+            row.dataset.status = file.visible ? 'Ja' : (file.referenced ? 'Nee - wel gekoppeld' : 'Nee - verweesd');
+            row.dataset.action = file.referenced ? '-' : 'Verwijderen';
+            const selection = document.createElement('td');
+            if (!file.referenced) {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'files[]';
+                checkbox.value = file.filename;
+                checkbox.setAttribute('aria-label', 'Selecteer ' + file.filename);
+                selection.append(checkbox);
+            }
+            row.append(selection);
             const filename = document.createElement('th');
             filename.scope = 'row';
             const link = document.createElement('a');
@@ -591,6 +617,38 @@ async function loadMedia() {
     } finally {
         mediaBusy = false;
         refresh.disabled = false;
+        refreshMediaTable();
+    }
+}
+
+async function deleteSelectedMedia() {
+    if (mediaBusy) return;
+    const files = Array.from(document.querySelectorAll('#mediaTableBody input:checked'), box => box.value);
+    if (!files.length || !window.confirm(`${files.length} geselecteerde bestanden definitief verwijderen? Deze actie kan niet ongedaan worden gemaakt.`)) return;
+    mediaBusy = true;
+    document.getElementById('mediaBulkDelete').disabled = true;
+    document.getElementById('mediaError').classList.add('d-none');
+    try {
+        const response = await fetch(`${API}?action=media_delete_bulk`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
+            body: JSON.stringify({ files })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Verwijderen mislukt.');
+        mediaBusy = false;
+        await loadMedia();
+        if (Object.keys(result.errors).length) {
+            mediaError(`${result.deleted.length} bestanden verwijderd. Mislukt: ` + Object.entries(result.errors).map(([path, message]) => `${path}: ${message}`).join('; '));
+        } else {
+            toast(`${result.deleted.length} mediabestanden verwijderd`, 'success');
+        }
+        document.getElementById('mediaTitle').focus();
+    } catch (error) {
+        mediaError('Verwijderen mislukt: ' + error.message);
+    } finally {
+        mediaBusy = false;
+        refreshMediaTable();
     }
 }
 

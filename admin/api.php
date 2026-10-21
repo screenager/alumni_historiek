@@ -25,6 +25,8 @@ function tryLoadWordPress(): bool {
 }
 
 $IS_WP_MODE = tryLoadWordPress();
+define('ALUMNI_HISTORIEK_ADMIN_API', true);
+require_once __DIR__ . '/media.php';
 
 if (!$IS_WP_MODE) {
     ini_set('session.cookie_httponly', '1');
@@ -576,6 +578,41 @@ switch ($action) {
         $data = loadData();
         $data['settings'] = backgroundSettings();
         jsonResponse($data);
+        break;
+
+    case 'media_list':
+        if ($method !== 'GET') jsonResponse(['error' => 'GET vereist'], 405);
+        requireAuth();
+        try {
+            $files = alumni_historiek_media_inventory($storage);
+            $media_base_url = $IS_WP_MODE
+                ? alumni_historiek_storage_info()['base_url'] . '/concerts'
+                : '../concerts';
+            foreach ($files as &$file) {
+                $file['url'] = alumni_historiek_media_url($media_base_url, $file['filename']);
+            }
+            unset($file);
+        } catch (RuntimeException $error) {
+            jsonResponse(['error' => $error->getMessage()], 500);
+        }
+        jsonResponse(['files' => array_values($files)]);
+        break;
+
+    case 'media_delete':
+        if ($method !== 'POST') jsonResponse(['error' => 'POST vereist'], 405);
+        $user = requireAuth();
+        requireCsrf();
+        $input = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($input) || !is_string($input['file'] ?? null) || $input['file'] === '') {
+            jsonResponse(['error' => 'Een bestandsnaam is vereist'], 400);
+        }
+        try {
+            alumni_historiek_delete_orphaned_media($storage, $input['file']);
+        } catch (RuntimeException $error) {
+            jsonResponse(['error' => $error->getMessage()], 409);
+        }
+        auditLog($user, 'delete_orphaned_media', 'file=' . json_encode($input['file']));
+        jsonResponse(['ok' => true]);
         break;
 
     case 'update_header':

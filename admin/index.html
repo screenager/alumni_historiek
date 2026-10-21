@@ -16,6 +16,9 @@
         .concert-card { background: #16213e; border: 1px solid #2a2a4a; border-radius: 12px; transition: background .2s; }
         .concert-card:hover { background: #1a2745; }
         .navbar-dark-custom { background: #0f3460; }
+        .navbar-brand { white-space: normal; }
+        #mediaTable th:first-child { overflow-wrap: anywhere; min-width: 220px; }
+        #mediaTable td, #mediaTable th { vertical-align: middle; }
         .modal-content { background: #16213e; color: #e0e0e0; }
         .modal-header { border-bottom: 1px solid #2a2a4a; }
         .modal-footer { border-top: 1px solid #2a2a4a; }
@@ -70,6 +73,11 @@
     </nav>
 
     <div class="container py-4" style="max-width:960px;">
+        <nav class="d-flex flex-wrap gap-2 mb-4" aria-label="Beheerpagina's">
+            <button id="concertPageButton" type="button" class="btn btn-primary" aria-current="page" onclick="showAdminPage('concerts')">Concertbeheer</button>
+            <button id="mediaPageButton" type="button" class="btn btn-outline-light" onclick="showAdminPage('media')">Media beheren</button>
+        </nav>
+        <section id="concertPage" aria-label="Concertbeheer">
         <!-- Header text management -->
         <div class="card mb-4 concert-card border-0 shadow-sm">
             <div class="card-body p-4">
@@ -143,6 +151,24 @@
             </button>
         </div>
         <div id="concertList"></div>
+        </section>
+        <section id="mediaPage" class="d-none" aria-labelledby="mediaTitle">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h2 id="mediaTitle" class="h4 mb-0" tabindex="-1">Media beheren</h2>
+                <button id="mediaRefreshButton" type="button" class="btn btn-outline-light" onclick="loadMedia()">Vernieuwen</button>
+            </div>
+            <p>Afbeeldingen, concertposters, videoposters en videos in de actieve concertmap. Ja = zichtbaar op een concertkaart of in de bijbehorende lightbox.</p>
+            <p>Alleen bestanden zonder concertkoppeling zijn verweesd en kunnen worden verwijderd. Gekoppelde, niet-getoonde bestanden blijven beschermd. Verwijderen is definitief; maak zo nodig eerst een back-up.</p>
+            <p id="mediaStatus" role="status" aria-live="polite"></p>
+            <div id="mediaError" class="alert alert-danger d-none" role="alert"></div>
+            <div class="table-responsive" role="region" aria-label="Concertmedia" tabindex="0">
+                <table id="mediaTable" class="table table-dark table-striped">
+                    <caption class="visually-hidden">Media in de actieve concertmap</caption>
+                    <thead><tr><th scope="col">Bestandsnaam (relatief pad)</th><th scope="col">Extensie</th><th scope="col">Grootte</th><th scope="col">Zichtbaar op concertkaart</th><th scope="col">Actie</th></tr></thead>
+                    <tbody id="mediaTableBody"></tbody>
+                </table>
+            </div>
+        </section>
     </div>
 </div>
 
@@ -470,6 +496,127 @@ function showAdmin(user) {
 async function doLogout() {
     await fetch(`${API}?action=logout`);
     location.reload();
+}
+
+// ── Media ──────────────────────────────────────────────
+let mediaBusy = false;
+
+function showAdminPage(page) {
+    const media = page === 'media';
+    document.getElementById('concertPage').classList.toggle('d-none', media);
+    document.getElementById('mediaPage').classList.toggle('d-none', !media);
+    for (const [id, active] of [['concertPageButton', !media], ['mediaPageButton', media]]) {
+        const button = document.getElementById(id);
+        button.classList.toggle('btn-primary', active);
+        button.classList.toggle('btn-outline-light', !active);
+        if (active) button.setAttribute('aria-current', 'page');
+        else button.removeAttribute('aria-current');
+    }
+    if (media) {
+        document.getElementById('mediaTitle').focus();
+        loadMedia();
+    }
+}
+
+function mediaError(message) {
+    const box = document.getElementById('mediaError');
+    box.textContent = message;
+    box.classList.remove('d-none');
+}
+
+function formatMediaSize(bytes) {
+    const mb = bytes >= 1024 * 1024;
+    return (bytes / (mb ? 1024 * 1024 : 1024)).toLocaleString('nl-BE', {
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+    }) + (mb ? ' MB' : ' KB');
+}
+
+async function loadMedia() {
+    if (mediaBusy) return;
+    mediaBusy = true;
+    const body = document.getElementById('mediaTableBody');
+    const status = document.getElementById('mediaStatus');
+    const refresh = document.getElementById('mediaRefreshButton');
+    body.replaceChildren();
+    status.textContent = 'Media laden...';
+    refresh.disabled = true;
+    document.getElementById('mediaError').classList.add('d-none');
+    try {
+        const response = await fetch(`${API}?action=media_list`, { cache: 'no-store' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Media laden mislukt.');
+        const files = result.files;
+        if (!Array.isArray(files)) throw new Error('Ongeldige medialijst ontvangen.');
+        let orphaned = 0;
+        for (const file of files) {
+            const row = document.createElement('tr');
+            const filename = document.createElement('th');
+            filename.scope = 'row';
+            const link = document.createElement('a');
+            link.href = file.url;
+            link.textContent = file.filename;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'link-info';
+            link.setAttribute('aria-label', 'Bekijk ' + file.filename + ' (opent in een nieuw tabblad)');
+            filename.append(link);
+            row.append(filename);
+            for (const text of [file.extension, formatMediaSize(file.size), file.visible ? 'Ja' : (file.referenced ? 'Nee - wel gekoppeld' : 'Nee - verweesd')]) {
+                const cell = document.createElement('td');
+                cell.textContent = text;
+                row.append(cell);
+            }
+            const action = document.createElement('td');
+            if (!file.referenced) {
+                orphaned++;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-sm btn-outline-danger';
+                button.textContent = 'Verwijderen';
+                button.setAttribute('aria-label', 'Verwijder ' + file.filename);
+                button.addEventListener('click', () => deleteMediaFile(file.filename, button));
+                action.append(button);
+            } else {
+                action.textContent = '-';
+            }
+            row.append(action);
+            body.append(row);
+        }
+        status.textContent = `${files.length} bestanden; ${orphaned} verweesd.`;
+        if (!files.length) status.textContent = 'Geen mediabestanden gevonden.';
+    } catch (error) {
+        body.replaceChildren();
+        status.textContent = '';
+        mediaError('Media laden mislukt: ' + error.message);
+    } finally {
+        mediaBusy = false;
+        refresh.disabled = false;
+    }
+}
+
+async function deleteMediaFile(filename, button) {
+    if (mediaBusy || !window.confirm(`"${filename}" definitief verwijderen? Dit bestand is niet gekoppeld aan een concert. Deze actie kan niet ongedaan worden gemaakt.`)) return;
+    mediaBusy = true;
+    button.disabled = true;
+    document.getElementById('mediaError').classList.add('d-none');
+    try {
+        const response = await fetch(`${API}?action=media_delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': csrfToken },
+            body: JSON.stringify({ file: filename })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Verwijderen mislukt.');
+        toast('Mediabestand verwijderd', 'success');
+        mediaBusy = false;
+        await loadMedia();
+        document.getElementById('mediaTitle').focus();
+    } catch (error) {
+        mediaError('Verwijderen mislukt: ' + error.message);
+    } finally {
+        mediaBusy = false;
+        button.disabled = false;
+    }
 }
 
 // ── Concert list ───────────────────────────────────────

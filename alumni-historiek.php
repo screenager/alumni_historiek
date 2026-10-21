@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Alumni Historiek
  * Description: Serves the historiek page at /historiek and provides a WordPress-admin integration for managing concert data.
- * Version: 7.143
+ * Version: 7.146
  * Author: Alumni Arenbergorkest
  * Plugin URI: https://github.com/screenager/alumni_historiek
  * Update URI: https://github.com/screenager/alumni_historiek
@@ -1331,6 +1331,8 @@ add_filter('all_plugins', function (array $plugins): array {
     return $plugins;
 });
 
+require_once ALUMNI_HISTORIEK_PLUGIN_DIR . 'admin/media.php';
+
 function alumni_historiek_add_admin_menu(): void {
     add_menu_page(
         'Historiek beheer',
@@ -1340,6 +1342,14 @@ function alumni_historiek_add_admin_menu(): void {
         'alumni_historiek_render_admin_screen',
         'dashicons-images-alt2',
         28
+    );
+    add_submenu_page(
+        'alumni-historiek',
+        'Historiek media',
+        'Media',
+        'manage_options',
+        'alumni-historiek-media',
+        'alumni_historiek_render_media_screen'
     );
 }
 add_action('admin_menu', 'alumni_historiek_add_admin_menu');
@@ -1422,6 +1432,7 @@ function alumni_historiek_render_admin_screen(): void {
 
     echo '<div class="wrap">';
     echo '<h1>Historiek beheer</h1>';
+    echo '<p><a class="button button-secondary" href="' . esc_url(admin_url('admin.php?page=alumni-historiek-media')) . '">Media en verweesde bestanden beheren</a></p>';
     alumni_historiek_render_update_notice();
     if (isset($_GET['settings']) && $_GET['settings'] === '1') {
         echo '<div class="notice notice-success is-dismissible"><p>Instellingen opgeslagen.</p></div>';

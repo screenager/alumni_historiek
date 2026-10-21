@@ -15,6 +15,24 @@ This project supports 2 runtime modes.
   - Preferred: plugin directory (if writable)
   - Fallback: `/wp-content/uploads/alumni-historiek/`
 - Frontend dev nav (hamburger/menu links): hidden in WordPress mode
+- Media inventory: open **Historiek > Media**, or use **Media en verweesde bestanden beheren**
+  on the plugin configuration page.
+  - Lists images, concert/video posters and videos recursively from the **active**
+    `concerts/` storage directory (plugin directory or uploads fallback).
+  - Shows the relative filename, extension, size in KB/MB, and concert-card/lightbox usage.
+  - Click a filename to view the media in a new tab. Links use the active WordPress
+    storage URL (plugin or uploads), or a relative concert URL in standalone mode,
+    so they work on localhost and production without a hardcoded hostname.
+  - Files still referenced by concert data but not displayed are marked separately and
+    cannot be deleted. Full-resolution images, thumbnails and all lightbox videos/posters
+    are protected.
+  - Only unreferenced files offer **Verwijderen**, followed by an explicit confirmation.
+    Deletion requires WordPress administrator permissions and a nonce-protected POST;
+    current concert references are checked again before deleting.
+  - Unreadable/invalid concert data blocks deletion. Symbolic links, other WordPress media,
+    static design assets and inactive storage locations are excluded.
+  - The table supports keyboard navigation, screen readers and horizontal scrolling on mobile.
+  - Deletion is permanent; download a plugin backup from the configuration page first if needed.
 
 2. **Standalone Local Mode**
 - Public page URL: `/postcards7.html`
@@ -25,6 +43,11 @@ This project supports 2 runtime modes.
   - `concerts/`
   - `private/`
 - Frontend dev nav (hamburger/menu links): visible
+- Media inventory: log in at `/admin/index.html` and select **Media beheren**.
+  The same inventory and orphan-protection rules as WordPress apply, using local
+  `concertData.json` and `concerts/`. Deletion requires confirmation and the
+  standalone session's CSRF token. The media table supports mobile scrolling and
+  accessible headings, status messages and keyboard controls.
 
 ## Versioned HTML Rule
 - `postcards.html`, `postcards2.html`, `postcards3.html`, ... are versioned.
@@ -67,3 +90,11 @@ To rename it (e.g. to `alumni-historiek`) without losing settings:
 - In WordPress mode, `concertData.json` is cache-busted with a version query string.
 - If plugin ZIP upload fails due memory/security scanner limits, install by copying
   the plugin folder directly into `wp-content/plugins` and activate from WP admin.
+
+## Media regression checks
+Run `php scripts/test-media.php` to check inventory, card/lightbox references,
+orphan deletion, confirmation markup and WordPress permission/nonce guards.
+Run `php scripts/test-media-api.php` for standalone HTTP API checks, including
+authentication, CSRF validation and deletion, using an isolated temporary server.
+These CLI-only checks use temporary fixtures and WordPress function stubs; they do
+not change project media or replace a smoke test in a real WordPress admin.
